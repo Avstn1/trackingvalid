@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, ActivityIndicator } from 'react-native';
 import { supabase } from '@/utils/supabaseClient';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Text, View } from 'react-native';
 
 interface DailyRevenueCardProps {
   userId: string;
@@ -104,14 +104,14 @@ export default function DailyRevenueCard({ userId, selectedDate }: DailyRevenueC
       : null;
 
   return (
-    <View className="rounded-xl bg-zinc-900 border border-zinc-800 p-4">
-      <Text className="text-lime-300 text-sm font-semibold mb-3">💰 Daily Revenue</Text>
+    <View className="rounded-xl bg-zinc-900 border border-zinc-800 p-2.5">
+      <Text className="text-lime-300 text-xs font-semibold mb-1">💰 Daily Revenue</Text>
       
-      <View className="min-h-[60px] justify-center mb-2">
+      <View className="min-h-[40px] justify-center mb-1">
         {loading ? (
-          <ActivityIndicator color="#c4ff85" />
+          <ActivityIndicator color="#c4ff85" size="small" />
         ) : (
-          <Text className="text-2xl font-bold text-lime-200" numberOfLines={1} adjustsFontSizeToFit>
+          <Text className="text-xl font-bold text-lime-200" numberOfLines={1} adjustsFontSizeToFit>
             {revenue !== null ? formatCurrency(revenue) : 'No data'}
           </Text>
         )}

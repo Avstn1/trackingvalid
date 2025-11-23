@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, ActivityIndicator, Alert } from 'react-native';
 import { supabase } from '@/utils/supabaseClient';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, Text, View } from 'react-native';
 
 interface MonthlyExpensesCardProps {
   userId: string;
@@ -43,14 +43,14 @@ export default function MonthlyExpensesCard({ userId, month, year }: MonthlyExpe
     `$${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   return (
-    <View className="rounded-xl bg-zinc-900 border border-zinc-800 p-4">
-      <Text className="text-red-300 text-sm font-semibold mb-3">🧾 Monthly Expenses</Text>
+    <View className="rounded-xl bg-zinc-900 border border-zinc-800 p-2.5">
+      <Text className="text-red-300 text-xs font-semibold mb-1">🧾 Monthly Expenses</Text>
 
-      <View className="min-h-[60px] justify-center">
+      <View className="min-h-[40px] justify-center">
         {loading ? (
-          <ActivityIndicator color="#fca5a5" />
+          <ActivityIndicator color="#fca5a5" size="small" />
         ) : (
-          <Text className="text-2xl font-bold text-red-200" numberOfLines={1} adjustsFontSizeToFit>
+          <Text className="text-xl font-bold text-red-200" numberOfLines={1} adjustsFontSizeToFit>
             {formatCurrency(expenses)}
           </Text>
         )}

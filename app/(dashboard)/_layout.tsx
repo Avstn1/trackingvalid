@@ -18,11 +18,6 @@ const TAB_BAR_STYLES = StyleSheet.create({
     
     borderTopWidth: 1,
     borderTopColor: 'rgba(196,255,133,0.15)',
-    
-    shadowColor: '#c4ff85',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 15,
     elevation: 12,
   },
   tabBarIcon: {

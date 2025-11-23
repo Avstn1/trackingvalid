@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, ActivityIndicator } from 'react-native';
 import { supabase } from '@/utils/supabaseClient';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Text, View } from 'react-native';
 
 interface MonthlyRevenueCardProps {
   userId: string;
@@ -123,29 +123,34 @@ export default function MonthlyRevenueCard({ userId, selectedMonth, year }: Mont
   const change = calculateChange();
 
   return (
-    <View className="rounded-xl bg-zinc-900 border border-zinc-800 p-4">
-      <Text className="text-lime-300 text-sm font-semibold mb-3">🏆 Monthly Revenue</Text>
+    <View className="rounded-xl bg-zinc-900 border border-zinc-800 p-2.5">
+      <Text className="text-lime-300 text-xs font-semibold mb-1">🏆 Monthly Revenue</Text>
       
-      <View className="min-h-[60px] justify-center mb-2">
+      <View className="min-h-[40px] justify-center">
         {loading ? (
-          <ActivityIndicator color="#c4ff85" />
+          <ActivityIndicator color="#c4ff85" size="small" />
         ) : (
-          <Text className="text-2xl font-bold text-lime-200" numberOfLines={1} adjustsFontSizeToFit>
-            {revenue !== null ? formatCurrency(revenue) : 'N/A'}
-          </Text>
+          <View className="flex-row items-baseline gap-2">
+            <Text className="text-xl font-bold text-lime-200" numberOfLines={1} adjustsFontSizeToFit>
+              {revenue !== null ? formatCurrency(revenue) : 'N/A'}
+            </Text>
+            
+            {change !== null && (
+              <Text
+                className={`text-xs font-semibold ${
+                  change > 0
+                    ? 'text-green-400'
+                    : change < 0
+                    ? 'text-red-400'
+                    : 'text-gray-400'
+                }`}
+              >
+                ({change > 0 ? '+' : ''}{change.toFixed(1)}%)
+              </Text>
+            )}
+          </View>
         )}
       </View>
-      
-      {change !== null ? (
-        <Text 
-          className={`text-xs font-semibold ${change > 0 ? 'text-green-400' : change < 0 ? 'text-red-400' : 'text-gray-400'}`}
-          numberOfLines={1}
-        >
-          {change > 0 ? `+${change}%` : `${change}%`} <Text className="text-gray-500">vs. prior</Text>
-        </Text>
-      ) : (
-        <Text className="text-xs text-gray-500">—</Text>
-      )}
     </View>
   );
 }

@@ -339,17 +339,25 @@ export default function DashboardPage() {
         {/* CONTENT */}
         {dashboardView === "monthly" && (
           <View className="gap-4">
+            <DailyRevenueCard
+                key={`daily-${refreshKey}`}
+                userId={user.id}
+                selectedDate={`${selectedYear}-${String(
+                  MONTHS.indexOf(selectedMonth) + 1
+                ).padStart(2, "0")}-${String(selectedDay).padStart(2, "0")}`}
+            />
+            
             {/* Revenue Cards Row */}
             <View className="flex-row gap-3">
               <View className="flex-1">
-                <DailyRevenueCard
-                  key={`daily-${refreshKey}`}
+                <MonthlyExpensesCard
+                  key={`expenses-${refreshKey}`}
                   userId={user.id}
-                  selectedDate={`${selectedYear}-${String(
-                    MONTHS.indexOf(selectedMonth) + 1
-                  ).padStart(2, "0")}-${String(selectedDay).padStart(2, "0")}`}
+                  month={selectedMonth}
+                  year={selectedYear}
                 />
               </View>
+
               <View className="flex-1">
                 <MonthlyRevenueCard
                   key={`monthly-${refreshKey}`}
@@ -360,12 +368,7 @@ export default function DashboardPage() {
               </View>
             </View>
 
-            <MonthlyExpensesCard
-              key={`expenses-${refreshKey}`}
-              userId={user.id}
-              month={selectedMonth}
-              year={selectedYear}
-            />
+
 
             <View className="flex-row gap-3">
               <View className="flex-1">

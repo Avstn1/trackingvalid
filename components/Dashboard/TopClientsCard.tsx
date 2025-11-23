@@ -59,8 +59,8 @@ export default function TopClientsCard({ userId, selectedMonth, selectedYear }: 
   }, [userId ?? '', selectedMonth ?? '', selectedYear ?? 0]);
 
   return (
-    <View className="rounded-xl bg-zinc-900 border border-zinc-800 p-4 flex-1 min-h-[320px] max-h-[480px]">
-      <Text className="text-xl font-bold mb-3 text-white">
+    <View className="rounded-xl bg-zinc-900 border border-zinc-800 p-3 flex-1 min-h-[310px] max-h-[440px]">
+      <Text className="text-lg font-bold mb-2 text-white">
         🏆 Top Clients
       </Text>
 
@@ -79,28 +79,28 @@ export default function TopClientsCard({ userId, selectedMonth, selectedYear }: 
         <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
           {/* Table Header */}
           <View className="flex-row border-b border-zinc-700 pb-2 mb-2">
-            <Text className="text-white font-semibold text-xs w-8">#</Text>
+            <Text className="text-white font-semibold text-xs w-6">#</Text>
             <Text className="text-white font-semibold text-xs flex-1">Client</Text>
-            <Text className="text-white font-semibold text-xs w-24 text-right">Service Totals</Text>
-            <Text className="text-white font-semibold text-xs w-16 text-right">Visits</Text>
+            <Text className="text-white font-semibold text-xs flex-1 text-right">Total</Text>
+            <Text className="text-white font-semibold text-xs flex-1 text-right">Visits</Text>
           </View>
 
           {/* Table Rows */}
           {clients.slice(0, 5).map((client, idx) => (
             <View
               key={client.id}
-              className={`flex-row py-3 border-b border-zinc-700 ${
+              className={`flex-row py-4 border-b border-zinc-700 ${
                 idx % 2 === 0 ? 'bg-zinc-800/30' : ''
               }`}
             >
-              <Text className="text-white text-sm w-8">{idx + 1}</Text>
+              <Text className="text-white text-sm w-6">{idx + 1}</Text>
               <Text className="text-white font-semibold text-sm flex-1" numberOfLines={1}>
                 {client.client_name ?? 'N/A'}
               </Text>
-              <Text className="text-green-400 font-semibold text-sm w-24 text-right">
+              <Text className="text-green-400 font-semibold text-sm flex-1 text-right">
                 ${client.total_paid?.toFixed(2) ?? '-'}
               </Text>
-              <Text className="text-yellow-400 font-semibold text-sm w-16 text-right">
+              <Text className="text-yellow-400 font-semibold text-sm flex-1 text-right">
                 {client.num_visits ?? '-'}
               </Text>
             </View>

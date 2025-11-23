@@ -209,4 +209,4 @@ MIT License — free to use, modify, and distribute with attribution.
 ### 💬 Questions?
 
 For dev access, issues, or onboarding:  
-**Project Maintainer:** yourname@shearwork.app
+**Project Maintainer:** austinkbartolome@gmail.com

@@ -1,10 +1,13 @@
 // app/(dashboard)/dashboard.tsx
 import { supabase } from "@/utils/supabaseClient";
-import { Loader2 } from "lucide-react-native";
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { Calendar, Loader2 } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Modal,
+  Platform,
   RefreshControl,
   ScrollView,
   Text,
@@ -18,12 +21,14 @@ import DailyRevenueCard from '@/components/Dashboard/DailyRevenueCard';
 import MonthlyExpensesCard from '@/components/Dashboard/MonthlyExpensesCard';
 import MonthlyRevenueCard from '@/components/Dashboard/MonthlyRevenueCard';
 import ServiceBreakdownChart from '@/components/Dashboard/ServiceBreakdownChart';
+import TopClientsCard from '@/components/Dashboard/TopClientsCard';
 import YearlyRevenueCard from '@/components/Dashboard/YearlyRevenueCard';
 
 
+import { CustomHeader } from '@/components/CustomHeader';
 
 
-const TopClientsCard = (props: any) => <View className="p-5 bg-zinc-900 rounded-2xl"><Text className="text-white">Top Clients</Text></View>;
+// const TopClientsCard = (props: any) => <View className="p-5 bg-zinc-900 rounded-2xl"><Text className="text-white">Top Clients</Text></View>;
 const MarketingFunnelsChart = (props: any) => <View className="p-5 bg-zinc-900 rounded-2xl"><Text className="text-white">Marketing</Text></View>;
 const MonthlyReports = (props: any) => <View><Text className="text-white text-xs">Monthly Reports...</Text></View>;
 const WeeklyReports = (props: any) => <View><Text className="text-white text-xs">Weekly Reports...</Text></View>;
@@ -53,6 +58,9 @@ export default function DashboardPage() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [dashboardView, setDashboardView] = useState<"monthly" | "yearly" | "profit">("monthly");
   const [selectedDay, setSelectedDay] = useState<number>(new Date().getDate());
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [tempDate, setTempDate] = useState(new Date());
 
   const hasSyncedInitially = useRef(false);
   const firstSyncAfterConnect = useRef(false);
@@ -149,6 +157,34 @@ export default function DashboardPage() {
     }
   };
 
+  const handleDateChange = (event: any, date?: Date) => {
+    if (date) {
+      setTempDate(date);
+    }
+  };
+
+  const handleDateConfirm = () => {
+    setSelectedDate(tempDate);
+    setSelectedDay(tempDate.getDate());
+    setSelectedMonth(MONTHS[tempDate.getMonth()]);
+    setSelectedYear(tempDate.getFullYear());
+    setShowDatePicker(false);
+  };
+
+  const handleDateCancel = () => {
+    setTempDate(selectedDate); // Reset to current selected date
+    setShowDatePicker(false);
+  };
+
+  const handleOpenDatePicker = () => {
+    setTempDate(selectedDate); // Initialize temp date with current selection
+    setShowDatePicker(true);
+  };
+
+  const formatSelectedDate = () => {
+    return `${MONTHS[selectedDate.getMonth()].slice(0, 3)} ${selectedDate.getDate()}, ${selectedDate.getFullYear()}`;
+  };
+
   if (loading) {
     return (
       <View className="flex-1 justify-center items-center bg-zinc-950">
@@ -168,6 +204,8 @@ export default function DashboardPage() {
 
   return (
     <SafeAreaView className="flex-1 bg-zinc-950">
+      <CustomHeader pageName="Dashboard" />
+
       <ScrollView
         className="flex-1 px-4"
         refreshControl={
@@ -176,11 +214,6 @@ export default function DashboardPage() {
       >
         {/* HEADER */}
         <View className="mb-6 mt-4">
-          <Text className="text-lime-300 text-3xl font-bold">Welcome back!</Text>
-          <Text className="text-zinc-400 text-sm mt-1">
-            Here&apos;s your daily & monthly summary.
-          </Text>
-
           {/* Dashboard View Switcher */}
           <View className="flex-row bg-zinc-900 rounded-full p-1 mt-4">
             <TouchableOpacity
@@ -229,22 +262,79 @@ export default function DashboardPage() {
             </TouchableOpacity>
           </View>
 
-          {/* Sync Button */}
-          <TouchableOpacity
-            onPress={syncAcuityData}
-            disabled={isRefreshing}
-            className="flex-row items-center justify-center gap-2 mt-4 bg-zinc-800 py-3 rounded-full"
-          >
-            <Loader2
-              size={16}
-              color="#c4ff85"
-              className={isRefreshing ? "animate-spin" : ""}
-            />
-            <Text className="text-white font-semibold">
-              {isRefreshing ? "Syncing..." : "Re-sync Data"}
-            </Text>
-          </TouchableOpacity>
+          {/* Date Picker and Sync Button - Equal Width */}
+          <View className="flex-row gap-2 mt-4">
+            {/* Date Picker Button - 50% */}
+            <TouchableOpacity
+              onPress={handleOpenDatePicker}
+              className="flex-1 flex-row items-center justify-center gap-2 bg-zinc-800 py-3 rounded-full"
+            >
+              <Calendar size={16} color="#c4ff85" />
+              <Text className="text-white font-semibold text-sm">
+                {formatSelectedDate()}
+              </Text>
+            </TouchableOpacity>
+
+            {/* Sync Button - 50% */}
+            <TouchableOpacity
+              onPress={syncAcuityData}
+              disabled={isRefreshing}
+              className="flex-1 flex-row items-center justify-center gap-2 bg-zinc-800 py-3 rounded-full"
+            >
+              <Loader2
+                size={16}
+                color="#c4ff85"
+                className={isRefreshing ? "animate-spin" : ""}
+              />
+              <Text className="text-white font-semibold text-sm">
+                {isRefreshing ? "Syncing..." : "Re-sync"}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
+
+        {/* Date Picker Modal */}
+        <Modal
+          visible={showDatePicker}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={handleDateCancel}
+        >
+          <View className="flex-1 justify-center items-center bg-black/70">
+            <View className="bg-zinc-900 rounded-2xl p-6 w-[90%] max-w-md">
+              <Text className="text-white text-lg font-semibold mb-4 text-center">
+                Choose Date
+              </Text>
+
+              <View className="bg-zinc-800 rounded-xl overflow-hidden">
+                <DateTimePicker
+                  value={tempDate}
+                  mode="date"
+                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                  onChange={handleDateChange}
+                  maximumDate={new Date()}
+                  textColor="#ffffff"
+                  themeVariant="dark"
+                />
+              </View>
+
+              <View className="flex-row gap-3 mt-6">
+                <TouchableOpacity
+                  onPress={handleDateCancel}
+                  className="flex-1 bg-zinc-700 py-3 rounded-full"
+                >
+                  <Text className="text-center text-white font-semibold">Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={handleDateConfirm}
+                  className="flex-1 bg-lime-400 py-3 rounded-full"
+                >
+                  <Text className="text-center text-black font-semibold">Done</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
 
         {/* CONTENT */}
         {dashboardView === "monthly" && (
@@ -295,19 +385,19 @@ export default function DashboardPage() {
                 />
               </View>
             </View>
+            
+            <TopClientsCard
+              key={`clients-${refreshKey}`}
+              userId={user.id}
+              selectedMonth={selectedMonth}
+              selectedYear={selectedYear}
+            />
 
             <ServiceBreakdownChart
               key={`services-${refreshKey}`}
               barberId={user.id}
               month={selectedMonth}
               year={selectedYear}
-            />
-
-            <TopClientsCard
-              key={`clients-${refreshKey}`}
-              userId={user.id}
-              selectedMonth={selectedMonth}
-              selectedYear={selectedYear}
             />
 
             <MarketingFunnelsChart

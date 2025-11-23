@@ -1,212 +1,50 @@
-# 💈 ShearWork — Mobile App (Expo + React Native)
+# Welcome to your Expo app 👋
 
-ShearWork is now a **cross-platform mobile app** built for barbershops and stylists — offering appointment tracking, client insights, and performance analytics in a sleek, data-driven experience built for iOS and Android.
+This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
-This project uses:
-- **React Native + Expo** — for the mobile application  
-- **Supabase** — as the backend database and authentication layer  
-- **Expo Go** — for rapid development & device testing  
-- **EAS (Expo Application Services)** — for production builds & deployment
+## Get started
 
----
+1. Install dependencies
 
-## 🚀 Features
-
-- 🗓️ Appointment scheduling with real-time updates  
-- 💬 New & returning client tracking  
-- 💵 Revenue summaries and insights  
-- 📊 Weekly & monthly performance dashboards  
-- 🔐 Authentication powered by Supabase  
-- 📱 Cross-platform development via Expo  
-
----
-
-## 🧑‍💻 Getting Started
-
-### 1️⃣ Clone the repository
-
-```bash
-git clone https://github.com/yourusername/shearwork-mobile.git
-cd shearwork-mobile
-```
-
-### 2️⃣ Install dependencies
-
-Make sure you have **Node.js (v18+)** and the **Expo CLI** installed:
-
-```bash
-npm install
-npm install -g expo-cli
-```
-
-### 3️⃣ Set up environment variables
-
-Duplicate the example file:
-
-```bash
-cp .env.example .env
-```
-
-Add your Supabase configuration:
-
-```bash
-EXPO_PUBLIC_SUPABASE_URL=your_supabase_url
-EXPO_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
-```
-
-> 🛡️ **Note:** Never commit `.env` to version control — it contains sensitive keys.
-
-For access to the production Supabase instance, request credentials or project team access from:
-- Email: austinkbartolome@gmail.com  
-- Email: trackingvalid@gmail.com  
-
----
-
-## 📱 Running the App
-
-Start the Expo development server:
-
-```bash
-npm start
-```
-
-Then:
-- Scan the QR code with the **Expo Go** app on iOS/Android  
-- Or run on a simulator:  
-  ```bash
-  npm run ios
-  npm run android
-  ```
-
-Your mobile app will automatically refresh with each save.
-
----
-
-## 🧩 Project Structure
-
-```
-shearwork-mobile/
-├── app/                     # Expo Router (navigation, screens)
-├── components/              # Reusable UI components
-├── hooks/                   # Custom hooks (auth, data fetching, etc.)
-├── lib/                     # Supabase client, helpers
-├── assets/                  # Images, icons, fonts
-├── utils/                   # Shared utilities
-│
-├── .env                     # Environment variables (ignored by git)
-├── .gitignore               # Git ignore rules
-├── app.json                 # Expo project config
-├── package.json             # Dependencies and scripts
-├── tsconfig.json            # TypeScript config
-└── README.md                # Documentation
-```
-
----
-
-## 🧠 Supabase Setup
-
-If you're connecting to your own Supabase instance:
-
-1. Go to https://supabase.com  
-2. Create a new project  
-3. Copy your:
-   - **Project URL**
-   - **Anon Key**
-4. Place them inside `.env`
-
-For access to the production database, request permission from the Supabase project admin.
-
----
-
-## 🔄 Deployment (Future: Using EAS)
-
-When ready to build for TestFlight / Play Store, switch from Expo Go to **EAS builds**.
-
-Example:
-
-```bash
-eas build -p ios
-eas build -p android
-```
-
-Ensure environment variables are configured in:  
-**EAS → Project Settings → Environment Variables**
-
----
-
-## 🧾 Common Commands
-
-| Command | Description |
-|----------|--------------|
-| `npm start` | Start Expo dev server |
-| `npm run ios` | Run iOS simulator |
-| `npm run android` | Run Android emulator |
-| `eas build` | Create production builds |
-| `npm run lint` | Run ESLint |
-
----
-
-## 🧑‍🤝‍🧑 Contributing
-
-1. Fork the repo  
-2. Create a branch:  
    ```bash
-   git checkout -b feature/new-feature
+   npm install
    ```
-3. Commit changes  
-4. Push and open a Pull Request
 
-Before submitting:
-- Run `npm run lint`  
-- Double-check no secrets are committed  
-- Include screenshots for UI updates  
+2. Start the app
 
----
+   ```bash
+   npx expo start
+   ```
 
-## 🧰 Tech Stack
+In the output, you'll find options to open the app in a
 
-| Tech | Purpose |
-|------|----------|
-| Expo + React Native | Mobile app framework |
-| Supabase | Database, Auth, API |
-| Expo Router | Navigation system |
-| NativeWind/Tailwind RN | Styling |
-| Recharts alternative | (Victory Native / React Native SVG charts) |
-| EAS | Mobile app deployment |
+- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
+- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
+- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
+- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
 
----
+You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
 
-## 🌍 Example `.env.example`
+## Get a fresh project
+
+When you're ready, run:
 
 ```bash
-# Supabase Configuration
-EXPO_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
-EXPO_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-
-# Optional
-EXPO_PUBLIC_APP_ENV=development
+npm run reset-project
 ```
 
----
+This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
 
-## 🛟 Support
+## Learn more
 
-If you run into issues:
-- Check the Supabase Docs  
-- Check Expo & React Native Docs  
-- Open a GitHub Issue or contact the maintainer  
+To learn more about developing your project with Expo, look at the following resources:
 
----
+- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
+- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
 
-## 📜 License
+## Join the community
 
-MIT License — free to use, modify, and distribute with attribution.
+Join our community of developers creating universal apps.
 
----
-
-### 💬 Questions?
-
-For dev access, issues, or onboarding:  
-**Project Maintainer:** austinkbartolome@gmail.com
+- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
+- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.

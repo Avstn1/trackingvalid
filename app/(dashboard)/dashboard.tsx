@@ -25,11 +25,15 @@ import ServiceBreakdownChart from '@/components/Dashboard/ServiceBreakdownChart'
 import TopClientsCard from '@/components/Dashboard/TopClientsCard';
 import YearlyRevenueCard from '@/components/Dashboard/YearlyRevenueCard';
 
+import MonthlyReports from '@/components/Dashboard/Reports/MonthlyReports';
+import WeeklyComparisonReports from '@/components/Dashboard/Reports/WeeklyComparisonReports';
+import WeeklyReports from '@/components/Dashboard/Reports/WeeklyReports';
+
 import { CustomHeader } from '@/components/CustomHeader';
 
-const MonthlyReports = (props: any) => <View><Text className="text-white text-xs">Monthly Reports...</Text></View>;
-const WeeklyReports = (props: any) => <View><Text className="text-white text-xs">Weekly Reports...</Text></View>;
-const WeeklyComparisonReports = (props: any) => <View><Text className="text-white text-xs">Weekly Comparison...</Text></View>;
+// const MonthlyReports = (props: any) => <View><Text className="text-white text-xs">Monthly Reports...</Text></View>;
+// const WeeklyReports = (props: any) => <View><Text className="text-white text-xs">Weekly Reports...</Text></View>;
+// const WeeklyComparisonReports = (props: any) => <View><Text className="text-white text-xs">Weekly Comparison...</Text></View>;
 const YearlyDashboard = (props: any) => <View className="p-5"><Text className="text-white text-xl">Yearly Dashboard</Text></View>;
 const ProfitLossDashboard = (props: any) => <View className="p-5"><Text className="text-white text-xl">Profit/Loss Dashboard</Text></View>;
 
@@ -415,7 +419,6 @@ export default function DashboardPage() {
                 userId={user.id}
                 filterMonth={selectedMonth}
                 filterYear={selectedYear}
-                isAdmin={isAdmin}
               />
             </View>
 
@@ -426,7 +429,6 @@ export default function DashboardPage() {
                 userId={user.id}
                 filterMonth={selectedMonth}
                 filterYear={selectedYear}
-                isAdmin={isAdmin}
               />
             </View>
 
@@ -437,7 +439,6 @@ export default function DashboardPage() {
                 userId={user.id}
                 filterMonth={selectedMonth}
                 filterYear={selectedYear}
-                isAdmin={isAdmin}
               />
             </View>
           </View>

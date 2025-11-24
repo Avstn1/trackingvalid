@@ -18,18 +18,15 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import AverageTicketCard from '@/components/Dashboard/AverageTicketCard';
 import DailyRevenueCard from '@/components/Dashboard/DailyRevenueCard';
+import MarketingFunnelsChart from '@/components/Dashboard/MarketingFunnelsChart';
 import MonthlyExpensesCard from '@/components/Dashboard/MonthlyExpensesCard';
 import MonthlyRevenueCard from '@/components/Dashboard/MonthlyRevenueCard';
 import ServiceBreakdownChart from '@/components/Dashboard/ServiceBreakdownChart';
 import TopClientsCard from '@/components/Dashboard/TopClientsCard';
 import YearlyRevenueCard from '@/components/Dashboard/YearlyRevenueCard';
 
-
 import { CustomHeader } from '@/components/CustomHeader';
 
-
-// const TopClientsCard = (props: any) => <View className="p-5 bg-zinc-900 rounded-2xl"><Text className="text-white">Top Clients</Text></View>;
-const MarketingFunnelsChart = (props: any) => <View className="p-5 bg-zinc-900 rounded-2xl"><Text className="text-white">Marketing</Text></View>;
 const MonthlyReports = (props: any) => <View><Text className="text-white text-xs">Monthly Reports...</Text></View>;
 const WeeklyReports = (props: any) => <View><Text className="text-white text-xs">Weekly Reports...</Text></View>;
 const WeeklyComparisonReports = (props: any) => <View><Text className="text-white text-xs">Weekly Comparison...</Text></View>;

@@ -1,6 +1,6 @@
 import { supabase } from '@/utils/supabaseClient';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Text, View } from 'react-native';
 
 interface TopClientsCardProps {
   userId?: string;
@@ -76,36 +76,36 @@ export default function TopClientsCard({ userId, selectedMonth, selectedYear }: 
           </Text>
         </View>
       ) : (
-        <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-          {/* Table Header */}
-          <View className="flex-row border-b border-zinc-700 pb-2 mb-2">
-            <Text className="text-white font-semibold text-xs w-6">#</Text>
-            <Text className="text-white font-semibold text-xs flex-1">Client</Text>
-            <Text className="text-white font-semibold text-xs flex-1 text-right">Total</Text>
-            <Text className="text-white font-semibold text-xs flex-1 text-right">Visits</Text>
-          </View>
-
-          {/* Table Rows */}
-          {clients.slice(0, 5).map((client, idx) => (
-            <View
-              key={client.id}
-              className={`flex-row py-4 border-b border-zinc-700 ${
-                idx % 2 === 0 ? 'bg-zinc-800/30' : ''
-              }`}
-            >
-              <Text className="text-white text-sm w-6">{idx + 1}</Text>
-              <Text className="text-white font-semibold text-sm flex-1" numberOfLines={1}>
-                {client.client_name ?? 'N/A'}
-              </Text>
-              <Text className="text-green-400 font-semibold text-sm flex-1 text-right">
-                ${client.total_paid?.toFixed(2) ?? '-'}
-              </Text>
-              <Text className="text-yellow-400 font-semibold text-sm flex-1 text-right">
-                {client.num_visits ?? '-'}
-              </Text>
+        <View className="flex-1">
+        {/* Table Header */}
+            <View className="flex-row border-b border-zinc-700 pb-2 mb-2">
+                <Text className="text-white font-semibold text-xs w-6">#</Text>
+                <Text className="text-white font-semibold text-xs flex-1">Client</Text>
+                <Text className="text-white font-semibold text-xs flex-1 text-right">Total</Text>
+                <Text className="text-white font-semibold text-xs flex-1 text-right">Visits</Text>
             </View>
-          ))}
-        </ScrollView>
+
+            {/* Table Rows */}
+            {clients.slice(0, 5).map((client, idx) => (
+            <View
+                key={client.id}
+                className={`flex-row py-4 pr-3 border-b border-zinc-700 ${
+                    idx % 2 === 0 ? 'bg-zinc-800/30' : ''
+                }`}
+                >
+                <Text className="text-white text-sm w-6">{idx + 1}</Text>
+                <Text className="text-white font-semibold text-sm flex-1" numberOfLines={1}>
+                    {client.client_name ?? 'N/A'}
+                </Text>
+                <Text className="text-green-400 font-semibold text-sm flex-1 text-right">
+                    ${client.total_paid?.toFixed(2) ?? '-'}
+                </Text>
+                <Text className="text-yellow-400 font-semibold text-sm flex-1 text-right">
+                    {client.num_visits ?? '-'}
+                </Text>
+            </View>
+        ))}
+        </View>
       )}
     </View>
   );

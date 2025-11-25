@@ -1,6 +1,7 @@
 // app/(dashboard)/dashboard.tsx
 import { supabase } from "@/utils/supabaseClient";
 import DateTimePicker from '@react-native-community/datetimepicker';
+import * as Device from 'expo-device';
 import { Calendar, CalendarRange, Loader2 } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
 import {
@@ -16,10 +17,11 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-
-import { CustomHeader } from '@/components/CustomHeader';
 import MonthlyDashboard from '@/components/Dashboard/Dashboards/MonthlyDashboard';
 import YearlyDashboard from '@/components/Dashboard/Dashboards/YearlyDashboard';
+import { CustomHeader } from '@/components/Header/CustomHeader';
+
+import { usePushNotifications } from '@/hooks/usePushNotifications';
 
 const ProfitLossDashboard = (props: any) => <View className="p-5"><Text className="text-white text-xl">Profit/Loss Dashboard</Text></View>;
 
@@ -63,6 +65,9 @@ export default function DashboardPage() {
 
   const hasSyncedInitially = useRef(false);
   const firstSyncAfterConnect = useRef(false);
+
+  const { expoPushToken } = usePushNotifications()
+  console.log('Your Push Token:', expoPushToken)
 
   // Fetch user and profile
   useEffect(() => {
@@ -118,6 +123,43 @@ export default function DashboardPage() {
     if (!user || !hasSyncedInitially.current) return;
     syncAcuityData();
   }, [selectedMonth, selectedYear]);
+
+  useEffect(() => {
+    if (expoPushToken && user) {
+      console.log('Push Token:', expoPushToken);
+      saveTokenToDatabase(expoPushToken);
+    }
+  }, [expoPushToken, user]);
+
+  const saveTokenToDatabase = async (token: string) => {
+    if (!profile?.user_id) return;
+
+    try {
+      // Get device information
+      const deviceName = Device.deviceName || 'Unknown Device';
+      const deviceType = Platform.OS === 'ios' ? 'ios' : 'android';
+
+      const { error } = await supabase
+        .from('push_tokens')
+        .upsert({
+          user_id: profile.user_id,
+          token: token,
+          device_name: deviceName,
+          device_type: deviceType,
+          last_used_at: new Date().toISOString(),
+        }, {
+          onConflict: 'token',
+        });
+
+      if (error) {
+        console.error('Error saving push token:', error);
+      } else {
+        console.log('✅ Push token saved successfully');
+      }
+    } catch (err) {
+      console.error('Error saving push token:', err);
+    }
+  };
 
   // Sync functions
   const syncAcuityData = async () => {
@@ -203,7 +245,7 @@ export default function DashboardPage() {
 
   return (
     <SafeAreaView className="flex-1 bg-zinc-950">
-      <CustomHeader pageName="Dashboard" />
+      <CustomHeader pageName="Dashboard" userId={profile.user_id}/>
 
       <ScrollView
         className="flex-1 px-4"

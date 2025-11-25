@@ -1,8 +1,8 @@
 // app/(dashboard)/reports.tsx
-import { CustomHeader } from '@/components/CustomHeader';
-import MonthlyReports from '@/components/Dashboard/Reports/MonthlyReports';
-import WeeklyComparisonReports from '@/components/Dashboard/Reports/WeeklyComparisonReports';
-import WeeklyReports from '@/components/Dashboard/Reports/WeeklyReports';
+import { CustomHeader } from '@/components/Header/CustomHeader';
+import MonthlyReports from '@/components/Reports/MonthlyReports';
+import WeeklyComparisonReports from '@/components/Reports/WeeklyComparisonReports';
+import WeeklyReports from '@/components/Reports/WeeklyReports';
 import { supabase } from '@/utils/supabaseClient';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { CalendarRange } from 'lucide-react-native';

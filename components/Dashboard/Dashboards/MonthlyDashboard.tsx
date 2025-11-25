@@ -39,17 +39,6 @@ export default function MonthlyDashboard({
   // Define all charts in an array
   const charts = [
     {
-      id: 'top-clients',
-      component: (
-        <TopClientsCard
-          key={`clients-${globalRefreshKey}`}
-          userId={userId}
-          selectedMonth={selectedMonth}
-          selectedYear={selectedYear}
-        />
-      ),
-    },
-    {
       id: 'service-breakdown',
       component: (
         <ServiceBreakdownChart
@@ -57,6 +46,17 @@ export default function MonthlyDashboard({
           barberId={userId}
           month={selectedMonth}
           year={selectedYear}
+        />
+      ),
+    },
+    {
+      id: 'top-clients',
+      component: (
+        <TopClientsCard
+          key={`clients-${globalRefreshKey}`}
+          userId={userId}
+          selectedMonth={selectedMonth}
+          selectedYear={selectedYear}
         />
       ),
     },
@@ -157,7 +157,7 @@ export default function MonthlyDashboard({
       </View>
 
       {/* Swipeable Charts Container */}
-      <View className="bg-zinc-900 rounded-2xl overflow-hidden max-h-[100px]">
+      <View className="bg-zinc-900 rounded-2xl overflow-hidden max-h-[320px]">
         <FlatList
           ref={flatListRef}
           data={charts}

@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "trackingvalid",
-    "slug": "trackingvalid",
+    "slug": "shearwork",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -44,6 +44,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "b95d616c-d9d4-4235-ae5d-6f82b1bc0f3d"
+      }
+    },
+    "owner": "shearwork"
   }
 }

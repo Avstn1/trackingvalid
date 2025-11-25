@@ -62,6 +62,24 @@ export default function DashboardLayout() {
         }}>
 
         <Tabs.Screen
+          name="reports"
+          options={{
+            title: 'Reports',
+            headerShown: false,
+            tabBarIcon: ({ color, size }) => <Ionicons name="document-text" size={size} color={color} />,
+          }}
+        />
+
+        <Tabs.Screen
+          name="finances"
+          options={{
+            title: 'Finances',
+            headerShown: false,
+            tabBarIcon: ({ color, size }) => <Ionicons name="wallet" size={size} color={color} />,
+          }}
+        />
+
+        <Tabs.Screen
           name="dashboard"
           options={{
             title: 'Dashboard',
@@ -76,15 +94,6 @@ export default function DashboardLayout() {
             title: 'User Editor',
             headerShown: false,
             tabBarIcon: ({ color, size }) => <Ionicons name="people" size={size} color={color} />,
-          }}
-        />
-
-        <Tabs.Screen
-          name="finances"
-          options={{
-            title: 'Finances',
-            headerShown: false,
-            tabBarIcon: ({ color, size }) => <Ionicons name="wallet" size={size} color={color} />,
           }}
         />
 

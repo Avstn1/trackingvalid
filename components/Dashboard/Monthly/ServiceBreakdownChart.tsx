@@ -107,13 +107,12 @@ export default function ServiceBreakdownChart({
         💈 Service Breakdown
       </Text>
 
-      <View className="flex-row h-[200px]">
-        {/* Pie Chart - 1/2 of space */}
+      <View className="flex-row h-[262px] pl-5">
         <View className="flex-1 items-center justify-center">
           <PieChart
             data={chartData}
-            width={screenWidth / 3}
-            height={180}
+            width={screenWidth / 2.4}
+            height={200}
             chartConfig={{
               color: (opacity = 1) => `rgba(196, 255, 133, ${opacity})`,
             }}
@@ -126,7 +125,7 @@ export default function ServiceBreakdownChart({
         </View>
 
         {/* Custom Legend - 1/2 of space */}
-        <View className="flex-1 pl-2">
+        <View className="flex-1 pl-4 pt-5">
           {chartData.map((item, index) => {
             const percentage = ((item.population / totalBookings) * 100).toFixed(1);
             return (

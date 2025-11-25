@@ -209,6 +209,10 @@ export default function WeeklyReports({
   };
 
   const weeksList = generateWeeksList();
+  
+  // Calculate card height based on number of weeks
+  const totalWeeks = weeksList.length;
+  const cardHeight = totalWeeks === 4 ? 73 : 57;
 
   if (loading) {
     return (
@@ -220,7 +224,7 @@ export default function WeeklyReports({
 
   return (
     <>
-      <View className="gap-2">
+      <View className="gap-1.5">
         {weeksList.length > 0 ? (
           weeksList.map((r: any) => {
             const isUpcoming = r.isUpcoming;
@@ -230,25 +234,28 @@ export default function WeeklyReports({
                 key={r.id}
                 onPress={() => !isUpcoming && handleOpenReport(r)}
                 disabled={isUpcoming}
-                className={`rounded-xl p-4 mb-2 ${
+                className={`rounded-xl p-3 ${
                   isUpcoming 
                     ? 'bg-zinc-800/40 opacity-60' 
                     : 'bg-zinc-800 active:bg-lime-500/20'
                 }`}
-                style={!isUpcoming ? { elevation: 4 } : {}}
+                style={[
+                  { height: cardHeight }, // Dynamic height based on week count
+                  !isUpcoming ? { elevation: 4 } : {}
+                ]}
               >
-                <View className="flex-row items-center gap-3 min-h-[40px]">
-                  <View className={`p-2 rounded-lg ${
+                <View className="flex-row items-center gap-3 h-full">
+                  <View className={`p-1.5 rounded-lg ${
                     isUpcoming ? 'bg-zinc-700/50' : 'bg-lime-500/20'
                   }`}>
                     <FileText 
-                      size={20} 
+                      size={18} 
                       color={isUpcoming ? "#71717a" : "#c4ff85"} 
                       strokeWidth={2.5} 
                     />
                   </View>
                   <View className="flex-1">
-                    <Text className={`text-base font-bold ${
+                    <Text className={`text-sm font-bold ${
                       isUpcoming ? 'text-zinc-400' : 'text-white'
                     }`}>
                       Week {r.week_number} - {r.month} {r.year}
@@ -262,7 +269,7 @@ export default function WeeklyReports({
                       }
                     </Text>
                   </View>
-                  {!isUpcoming && <ChevronRight size={18} color="#c4ff85" />}
+                  {!isUpcoming && <ChevronRight size={16} color="#c4ff85" />}
                 </View>
               </TouchableOpacity>
             );

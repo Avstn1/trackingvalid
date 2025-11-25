@@ -103,35 +103,32 @@ export default function MonthlyProfitCard({
   const change = calculateChange();
 
   return (
-    <View className="rounded-xl bg-zinc-900 border border-zinc-800 p-4 min-h-[140px]">
-      <Text className="text-lime-300 text-base font-semibold mb-2">💰 Monthly Profit</Text>
+    <View className="rounded-xl bg-zinc-900 border border-zinc-800 p-2.5">
+      <Text className="text-lime-300 text-xs font-semibold mb-1">💰 Monthly Profit</Text>
 
-      <View className="flex-1 justify-center">
+      <View className="min-h-[40px] justify-center">
         {loading ? (
-          <ActivityIndicator size="small" color="#c4ff85" />
+          <ActivityIndicator color="#c4ff85" size="small" />
         ) : (
-          <Text className="text-3xl font-bold text-lime-200">
-            {profit !== null ? formatCurrency(profit) : 'N/A'}
-          </Text>
-        )}
-      </View>
-
-      <View className="mt-2">
-        {change !== null ? (
-          <Text
-            className={`text-sm font-semibold ${
-              change > 0
-                ? 'text-green-400'
-                : change < 0
-                ? 'text-red-400'
-                : 'text-gray-400'
-            }`}
-          >
-            {change > 0 ? `+${change.toFixed(2)}%` : `${change.toFixed(2)}%`}{' '}
-            <Text className="text-gray-400">(vs. prior month)</Text>
-          </Text>
-        ) : (
-          <Text className="text-sm text-gray-500">—</Text>
+          <View className="flex-row items-baseline gap-2">
+            <Text className="text-xl font-bold text-lime-200" numberOfLines={1} adjustsFontSizeToFit>
+              {profit !== null ? formatCurrency(profit) : 'N/A'}
+            </Text>
+            
+            {change !== null && (
+              <Text
+                className={`text-xs font-semibold ${
+                  change > 0
+                    ? 'text-green-400'
+                    : change < 0
+                    ? 'text-red-400'
+                    : 'text-gray-400'
+                }`}
+              >
+                ({change > 0 ? '+' : ''}{change.toFixed(1)}%)
+              </Text>
+            )}
+          </View>
         )}
       </View>
     </View>

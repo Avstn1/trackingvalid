@@ -40,15 +40,19 @@ const generateYears = () => {
   return years;
 };
 
-// Get ordered months: current month first, then previous months in reverse order
-const getOrderedMonths = () => {
+// Get ordered months based on selected year
+const getOrderedMonths = (selectedYear: number) => {
+  const currentYear = new Date().getFullYear();
   const currentMonthIndex = new Date().getMonth();
   
-  // Get only months up to and including current month
-  const availableMonths = MONTHS.slice(0, currentMonthIndex + 1);
+  // For current year, show only up to current month
+  if (selectedYear === currentYear) {
+    const availableMonths = MONTHS.slice(0, currentMonthIndex + 1);
+    return availableMonths.reverse();
+  }
   
-  // Reverse so most recent (current) is first
-  return availableMonths.reverse();
+  // For past years, show all 12 months in reverse order
+  return [...MONTHS].reverse();
 };
 
 export default function ReportsPage() {
@@ -60,12 +64,13 @@ export default function ReportsPage() {
   const [refreshKey, setRefreshKey] = useState(0);
 
   const availableYears = generateYears();
-  const orderedMonths = getOrderedMonths();
+  const orderedMonths = getOrderedMonths(selectedYear);
   const currentMonth = MONTHS[new Date().getMonth()];
+  const currentYear = new Date().getFullYear();
   
-  // Initialize with current month expanded
+  // Initialize with current month expanded (only if viewing current year)
   const [expandedMonths, setExpandedMonths] = useState<Set<string>>(
-    new Set([currentMonth])
+    selectedYear === currentYear ? new Set([currentMonth]) : new Set()
   );
 
   // Fetch user
@@ -88,9 +93,9 @@ export default function ReportsPage() {
     fetchUser();
   }, []);
 
-  // Re-expand current month when year changes
+  // Re-expand current month when year changes to current year
   useEffect(() => {
-    if (selectedYear === new Date().getFullYear()) {
+    if (selectedYear === currentYear) {
       setExpandedMonths(new Set([currentMonth]));
     } else {
       setExpandedMonths(new Set());
@@ -108,13 +113,12 @@ export default function ReportsPage() {
     );
 
     setExpandedMonths((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(month)) {
-        newSet.delete(month);
-      } else {
-        newSet.add(month);
+      // If clicking the already expanded month, collapse it
+      if (prev.has(month)) {
+        return new Set();
       }
-      return newSet;
+      // Otherwise, expand only this month (collapse all others)
+      return new Set([month]);
     });
   };
 
@@ -156,9 +160,10 @@ export default function ReportsPage() {
 
         {/* Collapsible Month Sections */}
         <View className="gap-3 mb-6">
-          {orderedMonths.map((month, index) => {
+          {orderedMonths.map((month) => {
             const isExpanded = expandedMonths.has(month);
-            const isCurrentMonth = index === 0; // First month is always current
+            // Only mark as current if it's the current month AND current year
+            const isCurrentMonth = month === currentMonth && selectedYear === currentYear;
             
             return (
               <View 
@@ -167,10 +172,11 @@ export default function ReportsPage() {
                   isCurrentMonth ? 'bg-lime-900/20 border-2 border-lime-500/30' : 'bg-zinc-900'
                 }`}
               >
-                {/* Month Header Button */}
+                {/* Month Header Button - Removed active:bg-zinc-800 to prevent darkening */}
                 <TouchableOpacity
                   onPress={() => toggleMonth(month)}
-                  className="flex-row items-center justify-between p-4 active:bg-zinc-800"
+                  className="flex-row items-center justify-between p-4"
+                  activeOpacity={1}
                 >
                   <View className="flex-row items-center gap-2">
                     <Animated.View>
@@ -197,7 +203,7 @@ export default function ReportsPage() {
                 {isExpanded && (
                   <View className="px-4 pb-4 gap-4">
                     {/* Monthly Reports */}
-                    <View className="bg-zinc-800/50 rounded-xl p-4">
+                    <View className="bg-zinc-800/30 rounded-xl p-4">
                       <Text className="text-lime-300 font-semibold mb-3">📄 Monthly Reports</Text>
                       <MonthlyReports
                         key={`mreports-${refreshKey}-${month}`}
@@ -209,7 +215,7 @@ export default function ReportsPage() {
                     </View>
 
                     {/* Weekly Reports */}
-                    <View className="bg-zinc-800/50 rounded-xl p-4">
+                    <View className="bg-zinc-800/30 rounded-xl p-4">
                       <Text className="text-lime-300 font-semibold mb-3">📅 Weekly Reports</Text>
                       <WeeklyReports
                         key={`wreports-${refreshKey}-${month}`}
@@ -221,7 +227,7 @@ export default function ReportsPage() {
                     </View>
 
                     {/* Weekly Comparison Reports */}
-                    <View className="bg-zinc-800/50 rounded-xl p-4">
+                    <View className="bg-zinc-800/30 rounded-xl p-4">
                       <Text className="text-lime-300 font-semibold mb-3">🔄 Weekly Comparison</Text>
                       <WeeklyComparisonReports
                         key={`wcompare-${refreshKey}-${month}`}

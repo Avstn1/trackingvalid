@@ -1,5 +1,5 @@
 import { supabase } from '@/utils/supabaseClient';
-import { FileText } from 'lucide-react-native';
+import { ChevronRight, FileText } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
 import ReportViewerModal from './ReportViewerModal';
@@ -18,6 +18,70 @@ interface WeeklyReportsProps {
   refresh?: number;
   filterMonth?: string;
   filterYear?: number | null;
+}
+
+// Get all Mondays in a specific month/year
+function getMondaysInMonth(month: string, year: number): Date[] {
+  const MONTHS = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December",
+  ];
+  const monthIndex = MONTHS.indexOf(month);
+  const mondays: Date[] = [];
+  const date = new Date(year, monthIndex, 1);
+
+  // Move to first Monday
+  while (date.getDay() !== 1) {
+    date.setDate(date.getDate() + 1);
+  }
+
+  // Collect all Mondays
+  while (date.getMonth() === monthIndex) {
+    mondays.push(new Date(date));
+    date.setDate(date.getDate() + 7);
+  }
+
+  return mondays;
+}
+
+// Get current week number in the month
+function getCurrentWeekNumber(month: string, year: number): number {
+  const today = new Date();
+  const currentMonth = today.getMonth();
+  const currentYear = today.getFullYear();
+  
+  const MONTHS = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December",
+  ];
+  const monthIndex = MONTHS.indexOf(month);
+  
+  // If not current month/year, return -1 (not applicable)
+  if (monthIndex !== currentMonth || year !== currentYear) {
+    return -1;
+  }
+  
+  const mondays = getMondaysInMonth(month, year);
+  const todayTime = today.getTime();
+  
+  // Find which week we're in
+  for (let i = 0; i < mondays.length; i++) {
+    const mondayTime = mondays[i].getTime();
+    const nextMondayTime = mondays[i + 1] ? mondays[i + 1].getTime() : Infinity;
+    
+    if (todayTime >= mondayTime && todayTime < nextMondayTime) {
+      return i + 1; // Week numbers are 1-indexed
+    }
+  }
+  
+  // If we're past all Mondays, we're in the last week
+  return mondays.length;
+}
+
+// Format date as "Mon DD, YYYY"
+function formatDate(date: Date): string {
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
 }
 
 async function logWeeklyReportOpen(user_id: string, r: any) {
@@ -95,6 +159,57 @@ export default function WeeklyReports({
     setSelectedReport(null);
   };
 
+  // Generate complete week list with ALL weeks shown
+  const generateWeeksList = () => {
+    if (!filterMonth || !filterYear) return filteredReports;
+
+    const currentWeek = getCurrentWeekNumber(filterMonth, filterYear);
+    
+    // If not current month/year, just show existing reports
+    if (currentWeek === -1) return filteredReports;
+
+    const mondays = getMondaysInMonth(filterMonth, filterYear);
+    const totalWeeks = mondays.length;
+    const allWeeks = [];
+
+    for (let weekNum = 1; weekNum <= totalWeeks; weekNum++) {
+      const existingReport = filteredReports.find(r => r.week_number === weekNum);
+      
+      if (existingReport) {
+        // Add existing report (always clickable, even if current/future week)
+        allWeeks.push({ ...existingReport, isUpcoming: false });
+      } else {
+        // Create placeholder for any week without a report
+        const isUpcoming = weekNum >= currentWeek;
+        
+        // Release date is the Monday AFTER the week ends
+        let releaseDate;
+        if (mondays[weekNum]) {
+          // If there's a next Monday in the array, use it
+          releaseDate = mondays[weekNum];
+        } else {
+          // If it's the last week, add 7 days to the last Monday
+          releaseDate = new Date(mondays[weekNum - 1]);
+          releaseDate.setDate(releaseDate.getDate() + 7);
+        }
+        
+        allWeeks.push({
+          id: `placeholder-${weekNum}`,
+          week_number: weekNum,
+          month: filterMonth,
+          year: filterYear,
+          content: '',
+          isUpcoming: isUpcoming,
+          releaseDate: releaseDate,
+        });
+      }
+    }
+
+    return allWeeks;
+  };
+
+  const weeksList = generateWeeksList();
+
   if (loading) {
     return (
       <View className="items-center justify-center py-4">
@@ -106,21 +221,52 @@ export default function WeeklyReports({
   return (
     <>
       <View className="gap-2">
-        {filteredReports.length > 0 ? (
-          filteredReports.map((r) => (
-            <TouchableOpacity
-              key={r.id}
-              onPress={() => handleOpenReport(r)}
-              className="rounded-xl p-3 border border-zinc-800 bg-zinc-900/50 active:bg-zinc-800/50"
-            >
-              <View className="flex-row items-center gap-2">
-                <FileText size={16} color="#c4ff85" />
-                <Text className="text-white text-sm font-semibold">
-                  Week {r.week_number} - {r.month} {r.year}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          ))
+        {weeksList.length > 0 ? (
+          weeksList.map((r: any) => {
+            const isUpcoming = r.isUpcoming;
+            
+            return (
+              <TouchableOpacity
+                key={r.id}
+                onPress={() => !isUpcoming && handleOpenReport(r)}
+                disabled={isUpcoming}
+                className={`rounded-xl p-4 mb-2 ${
+                  isUpcoming 
+                    ? 'bg-zinc-800/40 opacity-60' 
+                    : 'bg-zinc-800 active:bg-lime-500/20'
+                }`}
+                style={!isUpcoming ? { elevation: 4 } : {}}
+              >
+                <View className="flex-row items-center gap-3 min-h-[40px]">
+                  <View className={`p-2 rounded-lg ${
+                    isUpcoming ? 'bg-zinc-700/50' : 'bg-lime-500/20'
+                  }`}>
+                    <FileText 
+                      size={20} 
+                      color={isUpcoming ? "#71717a" : "#c4ff85"} 
+                      strokeWidth={2.5} 
+                    />
+                  </View>
+                  <View className="flex-1">
+                    <Text className={`text-base font-bold ${
+                      isUpcoming ? 'text-zinc-400' : 'text-white'
+                    }`}>
+                      Week {r.week_number} - {r.month} {r.year}
+                    </Text>
+                    <Text className={`text-xs mt-0.5 ${
+                      isUpcoming ? 'text-zinc-500' : 'text-lime-400/70'
+                    }`}>
+                      {isUpcoming 
+                        ? `Releasing on ${formatDate(r.releaseDate)}`
+                        : 'Tap to view report'
+                      }
+                    </Text>
+                  </View>
+                  {!isUpcoming && <ChevronRight size={18} color="#c4ff85" />}
+                </View>
+              </TouchableOpacity>
+            );
+          })
         ) : (
           <Text className="text-gray-400 text-xs text-center py-2">
             No weekly reports available for this month/year.

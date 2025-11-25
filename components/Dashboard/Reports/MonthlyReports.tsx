@@ -1,5 +1,5 @@
 import { supabase } from '@/utils/supabaseClient';
-import { FileText } from 'lucide-react-native';
+import { ChevronRight, FileText } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
 import ReportViewerModal from './ReportViewerModal';
@@ -116,13 +116,24 @@ export default function MonthlyReports({
             <TouchableOpacity
               key={r.id}
               onPress={() => handleOpenReport(r)}
-              className="rounded-xl p-3 border border-zinc-800 bg-zinc-900/50 active:bg-zinc-800/50"
+              className="rounded-xl p-4 bg-zinc-800 active:bg-lime-500/20 mb-2"
+              style={{
+                elevation: 4,
+              }}
             >
-              <View className="flex-row items-center gap-2">
-                <FileText size={16} color="#c4ff85" />
-                <Text className="text-white text-sm font-semibold">
-                  {r.month} {r.year}
-                </Text>
+              <View className="flex-row items-center gap-3">
+                <View className="bg-lime-500/20 p-2 rounded-lg">
+                  <FileText size={20} color="#c4ff85" strokeWidth={2.5} />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-white text-base font-bold">
+                    {r.month} {r.year}
+                  </Text>
+                  <Text className="text-lime-400/70 text-xs mt-0.5">
+                    Tap to view report
+                  </Text>
+                </View>
+                <ChevronRight size={18} color="#c4ff85" />
               </View>
             </TouchableOpacity>
           ))

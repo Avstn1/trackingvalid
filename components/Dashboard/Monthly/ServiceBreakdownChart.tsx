@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, ActivityIndicator, Dimensions } from 'react-native';
-import { PieChart } from 'react-native-chart-kit';
 import { supabase } from '@/utils/supabaseClient';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Dimensions, Text, View } from 'react-native';
+import { PieChart } from 'react-native-chart-kit';
 
 const COLORS = [
   '#F6E27F', '#E7B7A3', '#A7C7E7', '#C6D8A8', '#9AD1C9',
@@ -63,7 +63,7 @@ export default function ServiceBreakdownChart({
 
   if (loading) {
     return (
-      <View className="p-4 rounded-xl bg-zinc-900 border border-zinc-800 min-h-[300px] justify-center items-center">
+      <View className="p-4 rounded-xl bg-zinc-900 border border-zinc-800 h-[200px] justify-center items-center">
         <ActivityIndicator color="#c4ff85" size="large" />
         <Text className="text-zinc-400 mt-2 text-xs">Loading services...</Text>
       </View>
@@ -72,7 +72,7 @@ export default function ServiceBreakdownChart({
 
   if (!data.length) {
     return (
-      <View className="p-4 rounded-xl bg-zinc-900 border border-zinc-800 min-h-[300px] justify-center items-center">
+      <View className="p-4 rounded-xl bg-zinc-900 border border-zinc-800 h-[200px] justify-center items-center">
         <Text className="text-lime-300 opacity-70 text-sm">No service data yet!</Text>
       </View>
     );
@@ -83,13 +83,9 @@ export default function ServiceBreakdownChart({
   const otherServices = data.slice(5);
   
   const chartData = topServices.map((item, index) => ({
-    name: item.service_name.length > 12 
-      ? item.service_name.substring(0, 12) + '...' 
-      : item.service_name,
+    name: item.service_name,
     population: item.bookings,
     color: COLORS[index % COLORS.length],
-    legendFontColor: '#d4e5c7',
-    legendFontSize: 10,
   }));
 
   // Add "Others" if there are more than 5 services
@@ -99,35 +95,60 @@ export default function ServiceBreakdownChart({
       name: `Others (${otherServices.length})`,
       population: othersTotal,
       color: COLORS[5 % COLORS.length],
-      legendFontColor: '#d4e5c7',
-      legendFontSize: 10,
     });
   }
 
   const screenWidth = Dimensions.get('window').width;
+  const totalBookings = chartData.reduce((sum, item) => sum + item.population, 0);
 
   return (
     <View className="p-4 rounded-xl bg-zinc-900 border border-zinc-800">
-      <Text className="text-lime-300 text-base font-semibold mb-2">
+      <Text className="text-lime-300 text-base font-semibold mb-3">
         💈 Service Breakdown
       </Text>
 
-      {/* Pie Chart with Legend */}
-      <View className="items-center">
-        <PieChart
-          data={chartData}
-          width={screenWidth - 40}
-          height={280}
-          chartConfig={{
-            color: (opacity = 1) => `rgba(196, 255, 133, ${opacity})`,
-            labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-          }}
-          accessor="population"
-          backgroundColor="transparent"
-          paddingLeft="10"
-          absolute
-          hasLegend={true}
-        />
+      <View className="flex-row h-[262px] pl-5">
+        <View className="flex-1 items-center justify-center">
+          <PieChart
+            data={chartData}
+            width={screenWidth / 2.4}
+            height={200}
+            chartConfig={{
+              color: (opacity = 1) => `rgba(196, 255, 133, ${opacity})`,
+            }}
+            accessor="population"
+            backgroundColor="transparent"
+            paddingLeft="35"
+            absolute
+            hasLegend={false}
+          />
+        </View>
+
+        {/* Custom Legend - 1/2 of space */}
+        <View className="flex-1 pl-4 pt-5">
+          {chartData.map((item, index) => {
+            const percentage = ((item.population / totalBookings) * 100).toFixed(1);
+            return (
+              <View key={index} className="flex-row items-center mb-2.5">
+                {/* Color indicator */}
+                <View 
+                  className="w-3 h-3 rounded-full mr-2" 
+                  style={{ backgroundColor: item.color }}
+                />
+                
+                {/* Service info */}
+                <View className="flex-1">
+                  <Text className="text-white text-xs font-medium" numberOfLines={1}>
+                    {item.name}
+                  </Text>
+                  <Text className="text-zinc-400 text-[10px]">
+                    {item.population} bookings ({percentage}%)
+                  </Text>
+                </View>
+              </View>
+            );
+          })}
+        </View>
       </View>
     </View>
   );

@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, ActivityIndicator } from 'react-native';
 import { supabase } from '@/utils/supabaseClient';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Text, View } from 'react-native';
 
 type Timeframe = 'year' | 'Q1' | 'Q2' | 'Q3' | 'Q4' | 'YTD';
 
@@ -137,16 +137,16 @@ export default function YearlyRevenueCard({
   const titleSuffix = timeframe === 'year' ? 'YTD' : timeframe;
 
   return (
-    <View className="rounded-xl bg-zinc-900 border border-zinc-800 p-4">
-      <Text className="text-lime-300 text-sm font-semibold mb-3">
+    <View className="rounded-xl bg-zinc-900 border border-zinc-800 p-2.5">
+      <Text className="text-lime-300 text-xs font-semibold mb-1">
         💰 Revenue ({titleSuffix})
       </Text>
 
-      <View className="min-h-[60px] justify-center">
+      <View className="min-h-[40px] justify-center">
         {loading ? (
-          <ActivityIndicator color="#c4ff85" />
+          <ActivityIndicator color="#c4ff85" size="small" />
         ) : (
-          <Text className="text-2xl font-bold text-lime-200" numberOfLines={1} adjustsFontSizeToFit>
+          <Text className="text-xl font-bold text-lime-200" numberOfLines={1} adjustsFontSizeToFit>
             {total !== null ? formatCurrency(total) : 'N/A'}
           </Text>
         )}

@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, ActivityIndicator } from 'react-native';
 import { supabase } from '@/utils/supabaseClient';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Text, View } from 'react-native';
 
 interface AverageTicketCardProps {
   userId: string;
@@ -82,34 +82,32 @@ export default function AverageTicketCard({ userId, selectedMonth, year }: Avera
   const change = calculateChange();
 
   return (
-    <View className="rounded-xl bg-zinc-900 border border-zinc-800 p-4">
-      <View className="flex-row items-center justify-between mb-3">
-        <Text className="text-lime-300 text-sm font-semibold">💵 Avg Ticket</Text>
-        
-        {change !== null ? (
-          <Text
-            className={`text-xs font-semibold ${
-              change > 0
-                ? 'text-green-400'
-                : change < 0
-                ? 'text-red-400'
-                : 'text-gray-400'
-            }`}
-          >
-            {change > 0 ? '+' : ''}{change.toFixed(1)}%
-          </Text>
-        ) : (
-          <Text className="text-xs text-gray-500">—</Text>
-        )}
-      </View>
+    <View className="rounded-xl bg-zinc-900 border border-zinc-800 p-2.5">
+      <Text className="text-lime-300 text-xs font-semibold mb-1">💵 Avg Ticket</Text>
 
-      <View className="min-h-[60px] justify-center">
+      <View className="min-h-[40px] justify-center">
         {loading ? (
-          <ActivityIndicator color="#c4ff85" />
+          <ActivityIndicator color="#c4ff85" size="small" />
         ) : (
-          <Text className="text-2xl font-bold text-lime-200" numberOfLines={1} adjustsFontSizeToFit>
-            {avgTicket !== null ? formatCurrency(avgTicket) : 'N/A'}
-          </Text>
+          <View className="flex-row items-baseline gap-2">
+            <Text className="text-xl font-bold text-lime-200" numberOfLines={1} adjustsFontSizeToFit>
+              {avgTicket !== null ? formatCurrency(avgTicket) : 'N/A'}
+            </Text>
+            
+            {change !== null && (
+              <Text
+                className={`text-xs font-semibold ${
+                  change > 0
+                    ? 'text-green-400'
+                    : change < 0
+                    ? 'text-red-400'
+                    : 'text-gray-400'
+                }`}
+              >
+                ({change > 0 ? '+' : ''}{change.toFixed(1)}%)
+              </Text>
+            )}
+          </View>
         )}
       </View>
     </View>

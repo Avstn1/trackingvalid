@@ -1,9 +1,9 @@
-import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
-import { Eye, EyeOff } from 'lucide-react-native';
-import { useRouter } from 'expo-router';
 import { supabase } from '@/utils/supabaseClient';
-import React from 'react';
+import { useRouter } from 'expo-router';
+import { Eye, EyeOff } from 'lucide-react-native';
+import React, { useState } from 'react';
+import { ActivityIndicator, Alert, Text, TextInput, TouchableOpacity, View } from 'react-native';
+
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -45,8 +45,6 @@ export default function LoginPage() {
           .select('role, full_name')
           .eq('user_id', userProfile.user?.id)
           .single();
-
-        console.log('User data:', userData);
 
         // Log successful login (except for admin)
         if (userData?.role?.toLowerCase() !== 'admin') {

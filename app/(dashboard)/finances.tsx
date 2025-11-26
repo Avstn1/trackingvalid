@@ -469,11 +469,32 @@ export default function FinancesPage() {
             snapToInterval={SCREEN_WIDTH - 32}
             snapToAlignment="start"
             keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
+            renderItem={({ item, index }) => (
               <View style={{ width: SCREEN_WIDTH - 32 }} className="p-4">
-                <Text className="text-lime-300 text-lg font-semibold mb-3">
-                  {item.title}
-                </Text>
+                {index === 0 ? (
+                  // First view: Title with Add Button
+                  <View className="flex-row justify-between items-center mb-3">
+                    <Text className="text-lime-300 text-lg font-semibold">
+                      {item.title}
+                    </Text>
+                    <TouchableOpacity
+                      onPress={() => {
+                        flatListRef.current?.scrollToIndex({
+                          index: 1,
+                          animated: true,
+                        });
+                      }}
+                      className="bg-lime-400 p-2 rounded-lg"
+                    >
+                      <Plus size={20} color="#000" />
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  // Other views: Normal title
+                  <Text className="text-lime-300 text-lg font-semibold mb-3">
+                    {item.title}
+                  </Text>
+                )}
                 {item.component}
               </View>
             )}

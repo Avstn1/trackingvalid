@@ -12,10 +12,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface CustomHeaderProps {
   pageName: string;
-  userId: string;
 }
 
-export function CustomHeader({ pageName, userId }: CustomHeaderProps) {
+export function CustomHeader({ pageName }: CustomHeaderProps) {
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

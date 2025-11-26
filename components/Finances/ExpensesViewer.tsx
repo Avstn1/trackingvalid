@@ -312,7 +312,9 @@ export default function ExpensesViewer({
   return (
     <View className="flex-1">
       {expenses.length === 0 ? (
-        <Text className="text-sm text-zinc-400">No recurring expenses found.</Text>
+        <View className="flex-1 justify-center items-center py-12">
+          <Text className="text-sm text-zinc-400">No recurring expenses found.</Text>
+        </View>
       ) : (
         <View className="flex-1">
           <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>

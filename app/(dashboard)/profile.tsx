@@ -43,14 +43,10 @@ export default function SettingsPage() {
     <SafeAreaView className="flex-1 bg-zinc-950">
       <CustomHeader pageName="Settings" />
 
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        {/* Tab Navigation */}
-        <View className="px-4 py-4">
-          <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false}
-            className="flex-row gap-2"
-          >
+      <ScrollView className="flex-1 px-4" showsVerticalScrollIndicator={false}>
+        {/* Tab Navigation - Segmented Control Style */}
+        <View className="my-4">
+          <View className="bg-zinc-900 rounded-2xl p-1.5 flex-row">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -58,19 +54,18 @@ export default function SettingsPage() {
                 <TouchableOpacity
                   key={tab.id}
                   onPress={() => setActiveTab(tab.id)}
-                  className={`flex-row items-center gap-2 px-4 py-3 rounded-xl ${
-                    isActive
-                      ? 'bg-lime-400'
-                      : 'bg-zinc-800'
+                  activeOpacity={0.7}
+                  className={`flex-1 flex-row items-center justify-center gap-2 px-4 py-3 rounded-xl ${
+                    isActive ? 'bg-zinc-800' : 'bg-transparent'
                   }`}
                 >
                   <Icon 
-                    size={20} 
-                    color={isActive ? '#000' : '#a1a1aa'} 
+                    size={18} 
+                    color={isActive ? '#c4ff85' : '#71717a'} 
                   />
                   <Text 
-                    className={`font-semibold ${
-                      isActive ? 'text-black' : 'text-zinc-400'
+                    className={`font-semibold text-sm ${
+                      isActive ? 'text-white' : 'text-zinc-500'
                     }`}
                   >
                     {tab.label}
@@ -78,11 +73,11 @@ export default function SettingsPage() {
                 </TouchableOpacity>
               );
             })}
-          </ScrollView>
+          </View>
         </View>
 
         {/* Tab Content */}
-        <View className="flex-1 px-4 pb-6">
+        <View className="flex-1 pb-6">
           <View className="bg-zinc-900 rounded-2xl p-6 min-h-[500px]">
             {renderTab()}
           </View>

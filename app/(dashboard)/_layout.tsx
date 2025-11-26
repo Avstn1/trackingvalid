@@ -89,7 +89,7 @@ export default function DashboardLayout() {
         />
 
         <Tabs.Screen
-          name="user_editor"
+          name="userEditor"
           options={{
             title: 'User Editor',
             headerShown: false,

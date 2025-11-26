@@ -356,7 +356,7 @@ export default function ProfileSecurityLogout() {
       </View>
 
       {/* DIVIDER */}
-      <View className="h-px bg-zinc-800 mb-3" />
+      <View className="h-px bg-zinc-800 mb-1" />
 
       {/* LOGOUT SECTION */}
       <View className="items-center py-3">

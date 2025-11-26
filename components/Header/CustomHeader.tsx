@@ -1,3 +1,4 @@
+import DailyTipsDropdown from '@/components/Header/DailyTipsDropdown';
 import NotificationsDropdown from '@/components/Header/NotificationsDropdown';
 import { supabase } from "@/utils/supabaseClient";
 import React, { useEffect, useState } from "react";
@@ -7,14 +8,12 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-
-
-
 interface CustomHeaderProps {
   pageName: string;
+  onRefresh?: () => void;
 }
 
-export function CustomHeader({ pageName }: CustomHeaderProps) {
+export function CustomHeader({ pageName, onRefresh }: CustomHeaderProps) {
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -66,7 +65,11 @@ export function CustomHeader({ pageName }: CustomHeaderProps) {
         <Text className="text-white text-3xl font-bold flex-1">
           ShearWork - <Text className="text-[#c4ff85]">{pageName}</Text>
         </Text>
-        <NotificationsDropdown userId={profile.user_id} />
+        
+        <View className="flex-row items-center gap-3">
+          <DailyTipsDropdown barberId={profile.user_id} onRefresh={onRefresh} />
+          <NotificationsDropdown userId={profile.user_id} />
+        </View>
       </View>
     </View>
   );

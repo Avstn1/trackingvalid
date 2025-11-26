@@ -67,7 +67,7 @@ export default function DashboardPage() {
   const firstSyncAfterConnect = useRef(false);
 
   const { expoPushToken } = usePushNotifications()
-  console.log('Your Push Token:', expoPushToken)
+  // console.log('Your Push Token:', expoPushToken)
 
   // Fetch user and profile
   useEffect(() => {

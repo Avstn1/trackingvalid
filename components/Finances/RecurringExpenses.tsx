@@ -50,8 +50,6 @@ export default function RecurringExpenses({
   // Date picker states
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
-  const [tempStartDate, setTempStartDate] = useState(new Date());
-  const [tempEndDate, setTempEndDate] = useState(new Date());
 
   const handleDayToggle = (day: string) => {
     setSelectedDays((prev) =>
@@ -60,24 +58,38 @@ export default function RecurringExpenses({
   };
 
   const handleStartDateChange = (event: any, selectedDate?: Date) => {
+    if (Platform.OS === 'android') {
+      setShowStartPicker(false);
+    }
     if (selectedDate) {
-      setTempStartDate(selectedDate);
+      setStartDate(selectedDate);
+      // If end date exists and new start date is after it, clear end date
+      if (endDate && selectedDate > endDate) {
+        setEndDate(null);
+        Alert.alert('Notice', 'End date cleared as start date must be before end date');
+      }
     }
   };
 
   const handleEndDateChange = (event: any, selectedDate?: Date) => {
+    if (Platform.OS === 'android') {
+      setShowEndPicker(false);
+    }
     if (selectedDate) {
-      setTempEndDate(selectedDate);
+      // Validate that end date is after start date
+      if (selectedDate <= startDate) {
+        Alert.alert('Error', 'End date must be after start date');
+      } else {
+        setEndDate(selectedDate);
+      }
     }
   };
 
   const confirmStartDate = () => {
-    setStartDate(tempStartDate);
     setShowStartPicker(false);
   };
 
   const confirmEndDate = () => {
-    setEndDate(tempEndDate);
     setShowEndPicker(false);
   };
 
@@ -109,6 +121,11 @@ export default function RecurringExpenses({
         Alert.alert('Error', 'Yearly day must be 1–31');
         return;
       }
+    }
+    // Validate dates
+    if (endDate && endDate <= startDate) {
+      Alert.alert('Error', 'End date must be after start date');
+      return;
     }
 
     const payload = {
@@ -322,10 +339,7 @@ export default function RecurringExpenses({
         <View>
           <Text className="text-zinc-400 text-xs mb-2">Start Date</Text>
           <TouchableOpacity
-            onPress={() => {
-              setTempStartDate(startDate);
-              setShowStartPicker(true);
-            }}
+            onPress={() => setShowStartPicker(true)}
             className="flex-row items-center gap-2 px-4 py-3 rounded-xl bg-zinc-800 border border-zinc-700"
           >
             <Calendar size={16} color="#c4ff85" />
@@ -339,10 +353,7 @@ export default function RecurringExpenses({
         <View>
           <Text className="text-zinc-400 text-xs mb-2">End Date (Optional)</Text>
           <TouchableOpacity
-            onPress={() => {
-              setTempEndDate(endDate || new Date());
-              setShowEndPicker(true);
-            }}
+            onPress={() => setShowEndPicker(true)}
             className="flex-row items-center gap-2 px-4 py-3 rounded-xl bg-zinc-800 border border-zinc-700"
           >
             <Calendar size={16} color="#c4ff85" />
@@ -382,7 +393,7 @@ export default function RecurringExpenses({
             </Text>
             <View className="bg-zinc-800 rounded-xl overflow-hidden">
               <DateTimePicker
-                value={tempStartDate}
+                value={startDate}
                 mode="date"
                 display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                 onChange={handleStartDateChange}
@@ -397,12 +408,14 @@ export default function RecurringExpenses({
               >
                 <Text className="text-center text-white font-semibold">Cancel</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                onPress={confirmStartDate}
-                className="flex-1 bg-lime-400 py-3 rounded-full"
-              >
-                <Text className="text-center text-black font-semibold">Done</Text>
-              </TouchableOpacity>
+              {Platform.OS === 'ios' && (
+                <TouchableOpacity
+                  onPress={confirmStartDate}
+                  className="flex-1 bg-lime-400 py-3 rounded-full"
+                >
+                  <Text className="text-center text-black font-semibold">Done</Text>
+                </TouchableOpacity>
+              )}
             </View>
           </View>
         </View>
@@ -422,12 +435,13 @@ export default function RecurringExpenses({
             </Text>
             <View className="bg-zinc-800 rounded-xl overflow-hidden">
               <DateTimePicker
-                value={tempEndDate}
+                value={endDate || new Date()}
                 mode="date"
                 display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                 onChange={handleEndDateChange}
                 textColor="#ffffff"
                 themeVariant="dark"
+                minimumDate={new Date(startDate.getTime() + 86400000)} // Next day after start
               />
             </View>
             <View className="flex-row gap-3 mt-6">
@@ -443,12 +457,14 @@ export default function RecurringExpenses({
               >
                 <Text className="text-center text-white font-semibold">Cancel</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                onPress={confirmEndDate}
-                className="flex-1 bg-lime-400 py-3 rounded-full"
-              >
-                <Text className="text-center text-black font-semibold">Done</Text>
-              </TouchableOpacity>
+              {Platform.OS === 'ios' && (
+                <TouchableOpacity
+                  onPress={confirmEndDate}
+                  className="flex-1 bg-lime-400 py-3 rounded-full"
+                >
+                  <Text className="text-center text-black font-semibold">Done</Text>
+                </TouchableOpacity>
+              )}
             </View>
           </View>
         </View>

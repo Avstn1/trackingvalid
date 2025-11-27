@@ -244,7 +244,7 @@ export default function FinancesPage() {
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
       allowsEditing: true,
       quality: 0.8,
     });
@@ -262,14 +262,24 @@ export default function FinancesPage() {
     const labelText = receiptLabel.trim() || new Date().toLocaleDateString();
     
     try {
-      const response = await fetch(uploadingImage);
-      const blob = await response.blob();
-      
       const fileName = `${user.id}/${selectedYear}-${selectedMonth}-${Date.now()}.jpg`;
+
+      // For React Native, we need to use a different approach
+      // Create a file object that Supabase can handle
+      const fileExt = uploadingImage.split('.').pop();
+      const filePath = fileName;
+
+      // Use fetch to get the file as an ArrayBuffer, then convert to Uint8Array
+      const response = await fetch(uploadingImage);
+      const arrayBuffer = await response.arrayBuffer();
+      const uint8Array = new Uint8Array(arrayBuffer);
 
       const { error: uploadError } = await supabase.storage
         .from('receipts')
-        .upload(fileName, blob);
+        .upload(filePath, uint8Array, {
+          contentType: 'image/jpeg',
+          upsert: false,
+        });
         
       if (uploadError) throw uploadError;
 
@@ -277,7 +287,7 @@ export default function FinancesPage() {
         user_id: user.id,
         month: selectedMonth,
         year: selectedYear,
-        image_url: fileName,
+        image_url: filePath,
         label: labelText,
       });
       
@@ -668,7 +678,10 @@ export default function FinancesPage() {
                 <TouchableOpacity
                   onPress={() => {
                     setShowReceiptGallery(false);
-                    handlePickImage();
+                    // Delay to ensure modal closes before picker opens
+                    setTimeout(() => {
+                      handlePickImage();
+                    }, 200);
                   }}
                   className="bg-lime-400 py-3.5 rounded-xl flex-row items-center justify-center gap-2"
                 >

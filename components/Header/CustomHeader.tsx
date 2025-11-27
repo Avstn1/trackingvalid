@@ -63,7 +63,7 @@ export function CustomHeader({ pageName, onRefresh }: CustomHeaderProps) {
     >
       <View className="px-5 flex-row items-center justify-between">
         <Text className="text-white text-3xl font-bold flex-1">
-          ShearWork - <Text className="text-[#c4ff85]">{pageName}</Text>
+          <Text className="text-[#c4ff85]">{pageName}</Text>
         </Text>
         
         <View className="flex-row items-center gap-3">

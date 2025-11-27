@@ -162,6 +162,7 @@ export default function DashboardPage() {
   };
 
   // Sync functions
+  // Sync functions
   const syncAcuityData = async () => {
     if (!user) return;
     setIsRefreshing(true);

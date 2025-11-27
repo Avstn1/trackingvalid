@@ -52,15 +52,23 @@ export default function AcuityTab() {
       const { data: { session } } = await supabase.auth.getSession();
       const accessToken = session?.access_token;
 
+      if (!accessToken) {
+        console.warn('No access token found in Supabase session');
+        setCalendarError(true);
+        return;
+      }
+
       // Try to fetch calendars with auth token
       try {
         const res = await fetch(`${API_BASE_URL}/api/acuity/calendar`, {
           headers: {
-            'Authorization': `Bearer ${accessToken}`,
+            'x-client-access-token': accessToken,
           },
         });
+
+        const data = await res.json();
+
         if (res.ok) {
-          const data = await res.json();
           setCalendars(data.calendars || []);
         } else {
           console.warn('Could not fetch calendars - API may not be available');
@@ -77,6 +85,7 @@ export default function AcuityTab() {
       setLoading(false);
     }
   };
+
 
   const saveCalendar = async () => {
     if (!profile) return;
@@ -107,17 +116,17 @@ export default function AcuityTab() {
   const syncYear = async () => {
     if (!profile) return;
     setSyncingClients(true);
-    
+
     // Get access token
     const { data: { session } } = await supabase.auth.getSession();
     const accessToken = session?.access_token;
-    
+
     try {
       const res = await fetch(
         `${API_BASE_URL}/api/acuity/pull-clients?year=${encodeURIComponent(year)}`,
         {
           headers: {
-            'Authorization': `Bearer ${accessToken}`,
+            'x-client-access-token': accessToken,
           },
         }
       );
@@ -134,7 +143,7 @@ export default function AcuityTab() {
 
   const syncFullYear = async () => {
     if (!profile) return;
-    
+
     Alert.alert(
       'Confirm',
       `This will sync all appointments for ${year}. Continue?`,
@@ -144,11 +153,11 @@ export default function AcuityTab() {
           text: 'Continue',
           onPress: async () => {
             setSyncingAppointments(true);
-            
+
             // Get access token
             const { data: { session } } = await supabase.auth.getSession();
             const accessToken = session?.access_token;
-            
+
             try {
               for (const month of MONTHS) {
                 try {
@@ -156,7 +165,7 @@ export default function AcuityTab() {
                     `${API_BASE_URL}/api/acuity/pull?endpoint=appointments&month=${encodeURIComponent(month)}&year=${encodeURIComponent(year)}`,
                     {
                       headers: {
-                        'Authorization': `Bearer ${accessToken}`,
+                        'x-client-access-token': accessToken,
                       },
                     }
                   );
@@ -178,6 +187,7 @@ export default function AcuityTab() {
       ]
     );
   };
+
   
   const generateYearOptions = () => {
     const currentYear = new Date().getFullYear();

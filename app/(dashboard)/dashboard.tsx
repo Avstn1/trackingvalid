@@ -165,10 +165,21 @@ export default function DashboardPage() {
   const syncAcuityData = async () => {
     if (!user) return;
     setIsRefreshing(true);
+
     try {
+      // Get Supabase session token
+      const { data: { session } } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
+
       const res = await fetch(
-        `${process.env.EXPO_PUBLIC_API_URL}/api/acuity/pull?endpoint=appointments&month=${encodeURIComponent(selectedMonth)}&year=${selectedYear}`
+        `${process.env.EXPO_PUBLIC_API_URL}/api/acuity/pull?endpoint=appointments&month=${encodeURIComponent(selectedMonth)}&year=${selectedYear}`,
+        {
+          headers: {
+            'x-client-access-token': accessToken,
+          },
+        }
       );
+
       await res.json();
       setRefreshKey((prev) => prev + 1);
       Alert.alert("Success", `Data updated for ${selectedMonth} ${selectedYear}`);
@@ -182,10 +193,19 @@ export default function DashboardPage() {
 
   const handleFullAcuitySync = async () => {
     setIsRefreshing(true);
+
     try {
+      // Get Supabase session token
+      const { data: { session } } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
+
       const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/acuity/sync-full`, {
         method: "POST",
+        headers: {
+          'x-client-access-token': accessToken,
+        },
       });
+
       if (!res.ok) throw new Error("Full Acuity sync failed");
       await res.json();
       Alert.alert("Success", "Full Acuity sync complete!");
@@ -197,6 +217,7 @@ export default function DashboardPage() {
       setIsRefreshing(false);
     }
   };
+
 
   const handleDateChange = (event: any, date?: Date) => {
     if (date) {

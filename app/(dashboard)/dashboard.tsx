@@ -1,8 +1,9 @@
 // app/(dashboard)/dashboard.tsx
 import { supabase } from "@/utils/supabaseClient";
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { BlurView } from 'expo-blur';
 import * as Device from 'expo-device';
-import { Calendar, CalendarRange, Loader2 } from "lucide-react-native";
+import { Calendar, CalendarRange } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -23,7 +24,23 @@ import { CustomHeader } from '@/components/Header/CustomHeader';
 
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 
-const ProfitLossDashboard = (props: any) => <View className="p-5"><Text className="text-white text-xl">Profit/Loss Dashboard</Text></View>;
+// Color Palette
+const COLORS = {
+  background: '#181818',
+  surface: 'rgba(37, 37, 37, 0.6)',
+  surfaceSolid: '#252525',
+  glassBorder: 'rgba(255, 255, 255, 0.1)',
+  glassHighlight: 'rgba(255, 255, 255, 0.05)',
+  text: '#F7F7F7',
+  textMuted: 'rgba(247, 247, 247, 0.5)',
+  orange: '#FF5722',
+  orangeGlow: 'rgba(255, 87, 34, 0.3)',
+  purple: '#673AB7',
+  purpleGlow: 'rgba(103, 58, 183, 0.3)',
+  yellow: '#FFEB3B',
+};
+
+const ProfitLossDashboard = (props: any) => <View className="p-5"><Text style={{ color: COLORS.text }} className="text-xl">Profit/Loss Dashboard</Text></View>;
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
@@ -44,6 +61,34 @@ const getLocalMonthYear = () => {
   const now = new Date();
   return { month: MONTHS[now.getMonth()], year: now.getFullYear() };
 };
+
+// Glassy container component
+const GlassContainer = ({ 
+  children, 
+  style = {}, 
+  intensity = 40,
+  className = ""
+}: { 
+  children: React.ReactNode; 
+  style?: any;
+  intensity?: number;
+  className?: string;
+}) => (
+  <View 
+    className={`overflow-hidden ${className}`}
+    style={[{
+      borderRadius: 9999,
+      borderWidth: 1,
+      borderColor: COLORS.glassBorder,
+    }, style]}
+  >
+    <BlurView intensity={intensity} tint="dark" style={{ flex: 1 }}>
+      <View style={{ backgroundColor: COLORS.glassHighlight, flex: 1 }}>
+        {children}
+      </View>
+    </BlurView>
+  </View>
+);
 
 export default function DashboardPage() {
   const [user, setUser] = useState<any>(null);
@@ -67,7 +112,6 @@ export default function DashboardPage() {
   const firstSyncAfterConnect = useRef(false);
 
   const { expoPushToken } = usePushNotifications()
-  // console.log('Your Push Token:', expoPushToken)
 
   // Fetch user and profile
   useEffect(() => {
@@ -135,7 +179,6 @@ export default function DashboardPage() {
     if (!profile?.user_id) return;
 
     try {
-      // Get device information
       const deviceName = Device.deviceName || 'Unknown Device';
       const deviceType = Platform.OS === 'ios' ? 'ios' : 'android';
 
@@ -161,14 +204,11 @@ export default function DashboardPage() {
     }
   };
 
-  // Sync functions
-  // Sync functions
   const syncAcuityData = async () => {
     if (!user) return;
     setIsRefreshing(true);
 
     try {
-      // Get Supabase session token
       const { data: { session } } = await supabase.auth.getSession();
       const accessToken = session?.access_token;
 
@@ -196,7 +236,6 @@ export default function DashboardPage() {
     setIsRefreshing(true);
 
     try {
-      // Get Supabase session token
       const { data: { session } } = await supabase.auth.getSession();
       const accessToken = session?.access_token;
 
@@ -218,7 +257,6 @@ export default function DashboardPage() {
       setIsRefreshing(false);
     }
   };
-
 
   const handleDateChange = (event: any, date?: Date) => {
     if (date) {
@@ -250,45 +288,57 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <View className="flex-1 justify-center items-center bg-zinc-950">
-        <ActivityIndicator size="large" color="#c4ff85" />
-        <Text className="text-white mt-4">Loading dashboard...</Text>
+      <View className="flex-1 justify-center items-center" style={{ backgroundColor: COLORS.background }}>
+        <ActivityIndicator size="large" color={COLORS.orange} />
+        <Text className="mt-4" style={{ color: COLORS.text }}>Loading dashboard...</Text>
       </View>
     );
   }
 
   if (error) {
     return (
-      <View className="flex-1 justify-center items-center bg-zinc-950">
-        <Text className="text-red-500 text-lg">{error}</Text>
+      <View className="flex-1 justify-center items-center" style={{ backgroundColor: COLORS.background }}>
+        <Text className="text-lg" style={{ color: '#ef4444' }}>{error}</Text>
       </View>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-zinc-950">
+    <SafeAreaView className="flex-1" style={{ backgroundColor: COLORS.background }}>
       <CustomHeader pageName="Dashboard" userId={profile.user_id}/>
 
       <ScrollView
         className="flex-1 px-4"
         refreshControl={
-          <RefreshControl refreshing={isRefreshing} onRefresh={syncAcuityData} tintColor="#c4ff85" />
+          <RefreshControl refreshing={isRefreshing} onRefresh={syncAcuityData} tintColor={COLORS.orange} />
         }
       >
         {/* HEADER */}
         <View className="mb-6">
-          {/* Dashboard View Switcher */}
-          <View className="flex-row bg-zinc-900 rounded-full p-1 mt-4">
+          {/* Dashboard View Switcher - Glassy */}
+          <View 
+            className="flex-row rounded-full p-1 mt-4 overflow-hidden"
+            style={{ 
+              backgroundColor: COLORS.surface,
+              borderWidth: 1,
+              borderColor: COLORS.glassBorder,
+            }}
+          >
             <TouchableOpacity
               onPress={() => setDashboardView("monthly")}
-              className={`flex-1 py-3 rounded-full ${
-                dashboardView === "monthly" ? "bg-lime-400" : ""
-              }`}
+              className="flex-1 py-3 rounded-full"
+              style={dashboardView === "monthly" ? { 
+                backgroundColor: COLORS.orange,
+                shadowColor: COLORS.orange,
+                shadowOffset: { width: 0, height: 0 },
+                shadowOpacity: 0.5,
+                shadowRadius: 10,
+                elevation: 5,
+              } : {}}
             >
               <Text
-                className={`text-center font-semibold text-xs ${
-                  dashboardView === "monthly" ? "text-black" : "text-zinc-400"
-                }`}
+                className="text-center font-semibold text-xs"
+                style={{ color: dashboardView === "monthly" ? COLORS.text : COLORS.textMuted }}
               >
                 Monthly
               </Text>
@@ -296,85 +346,110 @@ export default function DashboardPage() {
 
             <TouchableOpacity
               onPress={() => setDashboardView("yearly")}
-              className={`flex-1 py-3 rounded-full ${
-                dashboardView === "yearly" ? "bg-sky-300" : ""
-              }`}
+              className="flex-1 py-3 rounded-full"
+              style={dashboardView === "yearly" ? { 
+                backgroundColor: COLORS.purple,
+                shadowColor: COLORS.purple,
+                shadowOffset: { width: 0, height: 0 },
+                shadowOpacity: 0.5,
+                shadowRadius: 10,
+                elevation: 5,
+              } : {}}
             >
               <Text
-                className={`text-center font-semibold text-xs ${
-                  dashboardView === "yearly" ? "text-black" : "text-zinc-400"
-                }`}
+                className="text-center font-semibold text-xs"
+                style={{ color: dashboardView === "yearly" ? COLORS.text : COLORS.textMuted }}
               >
                 Yearly
               </Text>
             </TouchableOpacity>
           </View>
 
-          {/* Conditional Picker: Date Picker (Monthly/Profit) OR Timeline Picker (Yearly) */}
+          {/* Conditional Picker */}
           <View className="flex-row gap-2 mt-4">
             {dashboardView === "yearly" ? (
               <>
-                {/* Timeline Picker for Yearly */}
+                {/* Timeline Picker - Glassy */}
                 <TouchableOpacity
                   onPress={() => setShowTimeframePicker(true)}
-                  className="flex-1 flex-row items-center justify-center gap-2 bg-zinc-800 py-3 rounded-full"
+                  className="flex-1 flex-row items-center justify-center gap-2 py-3 rounded-full overflow-hidden"
+                  style={{ 
+                    backgroundColor: COLORS.surface,
+                    borderWidth: 1,
+                    borderColor: COLORS.glassBorder,
+                  }}
                 >
-                  <CalendarRange size={16} color="#c4ff85" />
-                  <Text className="text-white font-semibold text-sm">
+                  <CalendarRange size={16} color={COLORS.purple} />
+                  <Text className="font-semibold text-sm" style={{ color: COLORS.text }}>
                     {timeframeOptions.find(opt => opt.value === timeframe)?.label}
                   </Text>
                 </TouchableOpacity>
 
-                {/* Sync Button */}
-                <TouchableOpacity
+                {/* Sync Button - Glassy */}
+                {/* <TouchableOpacity
                   onPress={syncAcuityData}
                   disabled={isRefreshing}
-                  className="flex-1 flex-row items-center justify-center gap-2 bg-zinc-800 py-3 rounded-full"
+                  className="flex-1 flex-row items-center justify-center gap-2 py-3 rounded-full overflow-hidden"
+                  style={{ 
+                    backgroundColor: COLORS.surface,
+                    borderWidth: 1,
+                    borderColor: COLORS.glassBorder,
+                  }}
                 >
                   <Loader2
                     size={16}
-                    color="#c4ff85"
+                    color={COLORS.purple}
                     className={isRefreshing ? "animate-spin" : ""}
                   />
-                  <Text className="text-white font-semibold text-sm">
+                  <Text className="font-semibold text-sm" style={{ color: COLORS.text }}>
                     {isRefreshing ? "Syncing..." : "Re-sync"}
                   </Text>
-                </TouchableOpacity>
+                </TouchableOpacity> */}
               </>
             ) : (
               <>
-                {/* Date Picker for Monthly/Profit */}
+                {/* Date Picker - Glassy */}
                 <TouchableOpacity
                   onPress={handleOpenDatePicker}
-                  className="flex-1 flex-row items-center justify-center gap-2 bg-zinc-800 py-3 rounded-full"
+                  className="flex-1 flex-row items-center justify-center gap-2 py-3 rounded-full overflow-hidden"
+                  style={{ 
+                    backgroundColor: COLORS.surface,
+                    borderWidth: 1,
+                    borderColor: COLORS.glassBorder,
+                  }}
                 >
-                  <Calendar size={16} color="#c4ff85" />
-                  <Text className="text-white font-semibold text-sm">
+                  <Calendar size={16} color={COLORS.orange} />
+                  <Text className="font-semibold text-sm" style={{ color: COLORS.text }}>
                     {formatSelectedDate()}
                   </Text>
                 </TouchableOpacity>
 
-                {/* Sync Button */}
-                <TouchableOpacity
+                {/* Sync Button - Glassy */}
+                {/* <TouchableOpacity
                   onPress={syncAcuityData}
                   disabled={isRefreshing}
-                  className="flex-1 flex-row items-center justify-center gap-2 bg-zinc-800 py-3 rounded-full"
+                  className="flex-1 flex-row items-center justify-center gap-2 py-3 rounded-full overflow-hidden"
+                  style={{ 
+                    backgroundColor: COLORS.surface,
+                    borderWidth: 1,
+                    borderColor: COLORS.glassBorder,
+                  }}
                 >
                   <Loader2
                     size={16}
-                    color="#c4ff85"
+                    color={COLORS.orange}
                     className={isRefreshing ? "animate-spin" : ""}
                   />
-                  <Text className="text-white font-semibold text-sm">
+                  <Text className="font-semibold text-sm" style={{ color: COLORS.text }}>
                     {isRefreshing ? "Syncing..." : "Re-sync"}
                   </Text>
-                </TouchableOpacity>
+                </TouchableOpacity> */}
               </>
             )}
           </View>
         </View>
 
-        {/* Date Picker Modal */}
+        {/* Date Picker Modal - Glassy */}
         <Modal
           visible={showDatePicker}
           transparent={true}
@@ -382,19 +457,33 @@ export default function DashboardPage() {
           onRequestClose={handleDateCancel}
         >
           <View className="flex-1 justify-center items-center bg-black/70">
-            <View className="bg-zinc-900 rounded-2xl p-6 w-[90%] max-w-md">
-              <Text className="text-white text-lg font-semibold mb-4 text-center">
+            <View 
+              className="rounded-3xl p-6 w-[90%] max-w-md overflow-hidden"
+              style={{ 
+                backgroundColor: 'rgba(37, 37, 37, 0.85)',
+                borderWidth: 1,
+                borderColor: COLORS.glassBorder,
+              }}
+            >
+              <Text className="text-lg font-semibold mb-4 text-center" style={{ color: COLORS.text }}>
                 Choose Date
               </Text>
 
-              <View className="bg-zinc-800 rounded-xl overflow-hidden">
+              <View 
+                className="rounded-2xl overflow-hidden"
+                style={{ 
+                  backgroundColor: 'rgba(24, 24, 24, 0.8)',
+                  borderWidth: 1,
+                  borderColor: COLORS.glassBorder,
+                }}
+              >
                 <DateTimePicker
                   value={tempDate}
                   mode="date"
                   display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                   onChange={handleDateChange}
                   maximumDate={new Date()}
-                  textColor="#ffffff"
+                  textColor={COLORS.text}
                   themeVariant="dark"
                 />
               </View>
@@ -402,22 +491,35 @@ export default function DashboardPage() {
               <View className="flex-row gap-3 mt-6">
                 <TouchableOpacity
                   onPress={handleDateCancel}
-                  className="flex-1 bg-zinc-700 py-3 rounded-full"
+                  className="flex-1 py-3 rounded-full"
+                  style={{ 
+                    backgroundColor: 'rgba(24, 24, 24, 0.8)',
+                    borderWidth: 1,
+                    borderColor: COLORS.glassBorder,
+                  }}
                 >
-                  <Text className="text-center text-white font-semibold">Cancel</Text>
+                  <Text className="text-center font-semibold" style={{ color: COLORS.text }}>Cancel</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={handleDateConfirm}
-                  className="flex-1 bg-lime-400 py-3 rounded-full"
+                  className="flex-1 py-3 rounded-full"
+                  style={{ 
+                    backgroundColor: COLORS.orange,
+                    shadowColor: COLORS.orange,
+                    shadowOffset: { width: 0, height: 0 },
+                    shadowOpacity: 0.5,
+                    shadowRadius: 15,
+                    elevation: 5,
+                  }}
                 >
-                  <Text className="text-center text-black font-semibold">Done</Text>
+                  <Text className="text-center font-semibold" style={{ color: COLORS.text }}>Done</Text>
                 </TouchableOpacity>
               </View>
             </View>
           </View>
         </Modal>
 
-        {/* Timeline Picker Modal */}
+        {/* Timeline Picker Modal - Glassy */}
         <Modal
           visible={showTimeframePicker}
           transparent={true}
@@ -429,17 +531,38 @@ export default function DashboardPage() {
             onPress={() => setShowTimeframePicker(false)}
             className="flex-1 bg-black/50 justify-center items-center"
           >
-            <View className="bg-zinc-900 border border-zinc-700 rounded-lg p-2 mx-4 w-64">
-              {timeframeOptions.map((option) => (
+            <View 
+              className="rounded-2xl p-2 mx-4 w-64 overflow-hidden"
+              style={{ 
+                backgroundColor: 'rgba(37, 37, 37, 0.9)',
+                borderWidth: 1, 
+                borderColor: COLORS.purpleGlow,
+                shadowColor: COLORS.purple,
+                shadowOffset: { width: 0, height: 0 },
+                shadowOpacity: 0.3,
+                shadowRadius: 20,
+                elevation: 10,
+              }}
+            >
+              {timeframeOptions.map((option, index) => (
                 <TouchableOpacity
                   key={option.value}
                   onPress={() => {
                     setTimeframe(option.value as Timeframe);
                     setShowTimeframePicker(false);
                   }}
-                  className="py-3 px-3 active:bg-zinc-800 rounded"
+                  className="py-3 px-4 rounded-xl"
+                  style={timeframe === option.value ? {
+                    backgroundColor: COLORS.purpleGlow,
+                  } : {}}
                 >
-                  <Text className={`text-sm ${timeframe === option.value ? 'text-lime-400 font-bold' : 'text-white'}`}>
+                  <Text 
+                    className="text-sm"
+                    style={{ 
+                      color: timeframe === option.value ? COLORS.yellow : COLORS.text,
+                      fontWeight: timeframe === option.value ? 'bold' : 'normal'
+                    }}
+                  >
                     {option.label}
                   </Text>
                 </TouchableOpacity>

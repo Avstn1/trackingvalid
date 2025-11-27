@@ -8,12 +8,27 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+// Color Palette
+const COLORS = {
+  background: '#181818',
+  surface: 'rgba(37, 37, 37, 0.6)',
+  glassBorder: 'rgba(255, 255, 255, 0.1)',
+  glassHighlight: 'rgba(255, 255, 255, 0.05)',
+  text: '#F7F7F7',
+  textMuted: 'rgba(247, 247, 247, 0.5)',
+  orange: '#FF5722',
+  orangeGlow: 'rgba(255, 87, 34, 0.3)',
+  purple: '#673AB7',
+  yellow: '#FFEB3B',
+};
+
 interface CustomHeaderProps {
   pageName: string;
+  userId?: string;
   onRefresh?: () => void;
 }
 
-export function CustomHeader({ pageName, onRefresh }: CustomHeaderProps) {
+export function CustomHeader({ pageName, userId, onRefresh }: CustomHeaderProps) {
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -49,21 +64,49 @@ export function CustomHeader({ pageName, onRefresh }: CustomHeaderProps) {
 
   if (loading) {
     return (
-      <View className="flex-1 justify-center items-center bg-zinc-950">
-        <ActivityIndicator size="large" color="#c4ff85" />
-        <Text className="text-white mt-4">Loading header...</Text>
+      <View 
+        className="flex-1 justify-center items-center" 
+        style={{ backgroundColor: COLORS.background }}
+      >
+        <ActivityIndicator size="large" color={COLORS.orange} />
+        <Text className="mt-4" style={{ color: COLORS.text }}>Loading header...</Text>
       </View>
     );
   }
 
   return (
     <View 
-      className="bg-zinc-850 border-b border-[rgba(196,255,133,0.10)]"
-      style={{ paddingTop: insets.top - 45, paddingBottom: 16 }}
+      style={{ 
+        paddingTop: insets.top - 45, 
+        paddingBottom: 16,
+        backgroundColor: COLORS.surface,
+        borderBottomWidth: 1,
+        borderBottomColor: COLORS.glassBorder,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 8,
+        elevation: 5,
+      }}
     >
+      {/* Top highlight line for glass effect */}
+      <View 
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 1,
+          backgroundColor: COLORS.glassHighlight,
+        }}
+      />
+
       <View className="px-5 flex-row items-center justify-between">
-        <Text className="text-white text-3xl font-bold flex-1">
-          <Text className="text-[#c4ff85]">{pageName}</Text>
+        <Text 
+          className="text-3xl font-bold flex-1"
+          style={{ color: COLORS.orange }}
+        >
+          {pageName}
         </Text>
         
         <View className="flex-row items-center gap-3">

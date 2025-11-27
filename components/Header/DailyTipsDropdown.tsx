@@ -1,8 +1,8 @@
 import { supabase } from '@/utils/supabaseClient'
+import { LinearGradient } from 'expo-linear-gradient'
 import { DollarSign } from 'lucide-react-native'
 import { useEffect, useRef, useState } from 'react'
 import {
-  ActivityIndicator,
   Animated,
   Dimensions,
   FlatList,
@@ -14,8 +14,25 @@ import {
   TextInput,
   TouchableOpacity,
   TouchableWithoutFeedback,
-  View,
+  View
 } from 'react-native'
+
+// Color Palette
+const COLORS = {
+  background: '#181818',
+  cardBg: '#1a1a1a',
+  surface: 'rgba(37, 37, 37, 0.6)',
+  surfaceSolid: '#252525',
+  glassBorder: 'rgba(255, 255, 255, 0.1)',
+  glassHighlight: 'rgba(255, 255, 255, 0.05)',
+  text: '#FFFFFF',
+  textMuted: 'rgba(255, 255, 255, 0.5)',
+  orange: '#FF5722',
+  orangeGlow: 'rgba(255, 87, 34, 0.2)',
+  purple: '#9C27B0',
+  purpleGlow: 'rgba(156, 39, 176, 0.2)',
+  yellow: '#FFEB3B',
+}
 
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -54,24 +71,21 @@ export default function DailyTipsDropdown({
   const currentDay = currentDateNow.getDate()
   const currentMonthIndex = currentDateNow.getMonth()
   
-  // Get days in selected month
   const getDaysInMonth = (month: number, year: number) => {
     return new Date(year, month + 1, 0).getDate()
   }
   
-  // Get max day for selected month (can't select future dates)
   const getMaxDayForMonth = (month: number) => {
     if (month === currentMonthIndex) {
-      return currentDay // Current month: can only select up to today
+      return currentDay
     } else {
-      return getDaysInMonth(month, selectedYear) // Past months: all days available
+      return getDaysInMonth(month, selectedYear)
     }
   }
   
   const maxDayForSelectedMonth = getMaxDayForMonth(selectedMonth)
   const daysInMonth = Array.from({ length: maxDayForSelectedMonth }, (_, i) => i + 1)
   
-  // Only show months up to current month
   const availableMonths = MONTHS.slice(0, currentMonthIndex + 1)
 
   const dateStr = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`
@@ -103,20 +117,17 @@ export default function DailyTipsDropdown({
 
   useEffect(() => {
     if (isOpen) {
-      // Reset to current date when modal opens
       const today = currentDateNow.getDate()
       const currentMonth = currentDateNow.getMonth()
       
       setSelectedDay(today)
       setSelectedMonth(currentMonth)
       
-      // Set initial scroll position immediately
       dayScrollX.setValue((today - 1) * ITEM_WIDTH)
       monthScrollX.setValue(currentMonth * MONTH_ITEM_WIDTH)
     }
   }, [isOpen])
 
-  // Adjust selected day if it exceeds max day for newly selected month
   useEffect(() => {
     const maxDay = getMaxDayForMonth(selectedMonth)
     if (selectedDay > maxDay) {
@@ -137,7 +148,6 @@ export default function DailyTipsDropdown({
     const day = index + 1
     
     if (day >= 1 && day <= maxDayForSelectedMonth) {
-      // Debounce the state update to prevent flickering
       if (scrollTimeout.current) {
         clearTimeout(scrollTimeout.current)
       }
@@ -152,7 +162,6 @@ export default function DailyTipsDropdown({
     const index = Math.round(offsetX / MONTH_ITEM_WIDTH)
     
     if (index >= 0 && index <= currentMonthIndex) {
-      // Debounce the state update to prevent flickering
       if (scrollTimeout.current) {
         clearTimeout(scrollTimeout.current)
       }
@@ -216,7 +225,6 @@ export default function DailyTipsDropdown({
 
       if (insertError) throw insertError
 
-      setIsOpen(false)
       setTipAmount('')
       onRefresh?.()
     } catch (err) {
@@ -264,9 +272,8 @@ export default function DailyTipsDropdown({
           className="items-center justify-center h-16"
         >
           <Text
-            className={`text-xl font-bold ${
-              item === selectedDay ? 'text-lime-400' : 'text-white'
-            }`}
+            className="text-xl font-bold"
+            style={{ color: COLORS.text }}
           >
             {item}
           </Text>
@@ -307,9 +314,8 @@ export default function DailyTipsDropdown({
           className="items-center justify-center h-14"
         >
           <Text
-            className={`text-lg font-bold ${
-              index === selectedMonth ? 'text-lime-400' : 'text-white'
-            }`}
+            className="text-lg font-bold"
+            style={{ color: COLORS.text }}
           >
             {item}
           </Text>
@@ -326,7 +332,7 @@ export default function DailyTipsDropdown({
         activeOpacity={0.7}
         className="w-10 h-10 rounded-full items-center justify-center"
       >
-        <DollarSign size={26} color="#ffffff" />
+        <DollarSign size={26} color={COLORS.text} />
       </TouchableOpacity>
 
       {/* Main Modal */}
@@ -334,13 +340,42 @@ export default function DailyTipsDropdown({
         <TouchableWithoutFeedback onPress={() => setIsOpen(false)}>
           <View className="flex-1 justify-center items-center bg-black/70 px-4">
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-              <View className="bg-zinc-900 rounded-2xl p-6 w-full max-w-md">
-                <Text className="text-amber-200 font-semibold text-base mb-4 text-center">
+              <View 
+                className="rounded-3xl p-6 w-full max-w-md overflow-hidden"
+                style={{
+                  backgroundColor: COLORS.cardBg,
+                  borderWidth: 1,
+                  borderColor: COLORS.glassBorder,
+                }}
+              >
+                {/* Top highlight line */}
+                <View 
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: 1,
+                    backgroundColor: COLORS.glassHighlight,
+                  }}
+                />
+
+                <Text 
+                  className="font-semibold text-base mb-4 text-center"
+                  style={{ color: COLORS.orange }}
+                >
                   Tips for {month} {selectedDay}, {year}
                 </Text>
 
                 {/* Month Picker */}
-                <View className="bg-zinc-800 rounded-xl overflow-hidden h-14 mb-3">
+                <View 
+                  className="rounded-xl overflow-hidden h-14 mb-3"
+                  style={{
+                    backgroundColor: COLORS.surfaceSolid,
+                    borderWidth: 1,
+                    borderColor: COLORS.glassBorder,
+                  }}
+                >
                   <FlatList
                     ref={monthFlatListRef}
                     data={availableMonths}
@@ -372,7 +407,14 @@ export default function DailyTipsDropdown({
                 </View>
 
                 {/* Day Picker */}
-                <View className="bg-zinc-800 rounded-xl overflow-hidden h-16 mb-4">
+                <View 
+                  className="rounded-xl overflow-hidden h-16 mb-4"
+                  style={{
+                    backgroundColor: COLORS.surfaceSolid,
+                    borderWidth: 1,
+                    borderColor: COLORS.glassBorder,
+                  }}
+                >
                   <FlatList
                     ref={dayFlatListRef}
                     data={daysInMonth}
@@ -403,72 +445,139 @@ export default function DailyTipsDropdown({
                   />
                 </View>
 
-                {/* Current Tips */}
-                <View className="py-3 rounded-lg bg-lime-500/20 border border-lime-300/20 mb-4">
-                  <Text className="text-xs text-zinc-400 text-center">Current Total</Text>
-                  <Text className="text-2xl font-bold text-lime-300 text-center">
-                    ${currentTips.toFixed(2)}
-                  </Text>
+                {/* Current Tips - Hero Card with Gradient */}
+                <View 
+                  className="rounded-2xl mb-4 overflow-hidden"
+                  style={{
+                    shadowColor: COLORS.orange,
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.3,
+                    shadowRadius: 12,
+                    elevation: 8,
+                  }}
+                >
+                  <LinearGradient
+                    colors={[COLORS.purple, COLORS.orange]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={{ padding: 2, borderRadius: 16 }}
+                  >
+                    <View 
+                      className="rounded-xl py-4 px-4"
+                      style={{ backgroundColor: COLORS.cardBg }}
+                    >
+                      <Text className="text-xs text-center mb-1" style={{ color: COLORS.textMuted }}>
+                        Current Total
+                      </Text>
+                      <Text className="text-3xl font-bold text-center" style={{ color: COLORS.text }}>
+                        ${currentTips.toFixed(2)}
+                      </Text>
+                    </View>
+                  </LinearGradient>
                 </View>
 
                 {/* Input field */}
                 <View className="mb-4">
-                  <Text className="text-xs text-zinc-400 mb-2">Tip Amount ($)</Text>
+                  <Text className="text-xs mb-2" style={{ color: COLORS.textMuted }}>
+                    Tip Amount ($)
+                  </Text>
                   <TextInput
                     value={tipAmount}
                     onChangeText={handleNumericChange}
                     placeholder="Enter amount"
-                    placeholderTextColor="#666"
+                    placeholderTextColor={COLORS.textMuted}
                     keyboardType="decimal-pad"
                     onSubmitEditing={Keyboard.dismiss}
-                    className="bg-zinc-800 border border-zinc-700 text-white rounded-lg px-3 py-2"
+                    className="rounded-xl px-4 py-3"
+                    style={{
+                      backgroundColor: COLORS.surfaceSolid,
+                      borderWidth: 1,
+                      borderColor: COLORS.glassBorder,
+                      color: COLORS.text,
+                    }}
                   />
                 </View>
 
                 {/* Replace/Add Toggle */}
-                <View className="flex-row bg-zinc-800 rounded-lg p-1 mb-4 border border-zinc-700">
+                <View 
+                  className="flex-row rounded-xl p-1 mb-4"
+                  style={{
+                    backgroundColor: COLORS.surfaceSolid,
+                    borderWidth: 1,
+                    borderColor: COLORS.glassBorder,
+                  }}
+                >
                   <TouchableOpacity
                     onPress={() => setAction('replace')}
-                    className={`flex-1 py-2 rounded-md ${
-                      action === 'replace' ? 'bg-amber-400/30' : 'bg-transparent'
-                    }`}
+                    className="flex-1 py-2 rounded-lg"
+                    style={{
+                      backgroundColor: action === 'replace' ? COLORS.purpleGlow : 'transparent',
+                    }}
                   >
                     <Text
-                      className={`text-center text-xs font-semibold ${
-                        action === 'replace' ? 'text-amber-100' : 'text-white/70'
-                      }`}
+                      className="text-center text-xs font-semibold"
+                      style={{ color: action === 'replace' ? COLORS.purple : COLORS.textMuted }}
                     >
                       Replace
                     </Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     onPress={() => setAction('add')}
-                    className={`flex-1 py-2 rounded-md ${
-                      action === 'add' ? 'bg-lime-400/30' : 'bg-transparent'
-                    }`}
+                    className="flex-1 py-2 rounded-lg"
+                    style={{
+                      backgroundColor: action === 'add' ? COLORS.orangeGlow : 'transparent',
+                    }}
                   >
                     <Text
-                      className={`text-center text-xs font-semibold ${
-                        action === 'add' ? 'text-lime-100' : 'text-white/70'
-                      }`}
+                      className="text-center text-xs font-semibold"
+                      style={{ color: action === 'add' ? COLORS.orange : COLORS.textMuted }}
                     >
                       Add
                     </Text>
                   </TouchableOpacity>
                 </View>
 
-                {/* Save Button */}
-                <TouchableOpacity
-                  onPress={handleSaveTips}
-                  disabled={loading}
-                  className={`bg-lime-400 py-3 rounded-full ${loading ? 'opacity-60' : ''}`}
-                >
-                  {loading ? (
-                    <ActivityIndicator color="#000" />
-                  ) : (
-                    <Text className="text-center text-black font-semibold">Save Tips</Text>
-                  )}
-                </TouchableOpacity>
+                {/* Action Buttons Row */}
+                <View className="flex-row gap-3">
+                  {/* Close Button */}
+                  <TouchableOpacity
+                    onPress={() => setIsOpen(false)}
+                    className="flex-1 py-3 rounded-full"
+                    style={{
+                      backgroundColor: COLORS.surfaceSolid,
+                      borderWidth: 1,
+                      borderColor: COLORS.glassBorder,
+                    }}
+                  >
+                    <Text className="text-center font-semibold" style={{ color: COLORS.text }}>
+                      Close
+                    </Text>
+                  </TouchableOpacity>
+
+                  {/* Save Button */}
+                  <TouchableOpacity
+                    onPress={handleSaveTips}
+                    disabled={loading}
+                    className="flex-1 py-3 rounded-full"
+                    style={{
+                      backgroundColor: COLORS.orange,
+                      opacity: loading ? 0.6 : 1,
+                      shadowColor: COLORS.orange,
+                      shadowOffset: { width: 0, height: 0 },
+                      shadowOpacity: 0.4,
+                      shadowRadius: 12,
+                      elevation: 5,
+                    }}
+                  >
+                    {loading ? (
+                      <ActivityIndicator color={COLORS.text} />
+                    ) : (
+                      <Text className="text-center font-semibold" style={{ color: COLORS.text }}>
+                        Save Tips
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
               </View>
             </TouchableWithoutFeedback>
           </View>

@@ -150,7 +150,7 @@ export default function DailyRevenueCard({ userId, selectedDate }: DailyRevenueC
           }}
         >
           {/* Content container */}
-          <View style={{ padding: 20 }}>
+          <View style={{ padding: 10 }}>
             {/* Subtle accent glow - positioned behind content */}
             <View
               style={{
@@ -188,7 +188,7 @@ export default function DailyRevenueCard({ userId, selectedDate }: DailyRevenueC
             </View>
 
             {/* Revenue amount */}
-            <View className="min-h-[56px] justify-center mb-3">
+            <View className="min-h-[30px] justify-center mb-3">
               {loading ? (
                 <ActivityIndicator color={COLORS.orange} size="large" />
               ) : (

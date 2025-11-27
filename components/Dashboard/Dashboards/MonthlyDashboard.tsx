@@ -221,20 +221,20 @@ export default function MonthlyDashboard({
       <View 
         className="rounded-3xl overflow-hidden"
         style={{ 
-          backgroundColor: COLORS.surface,
-          borderWidth: 1,
-          borderColor: COLORS.glassBorder,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 8 },
-          shadowOpacity: 0.3,
-          shadowRadius: 16,
-          elevation: 8,
-          minHeight: SCREEN_HEIGHT * 0.37,
+          // backgroundColor: COLORS.surface,
+          // borderWidth: 1,
+          // borderColor: COLORS.glassBorder,
+          // shadowColor: '#000',
+          // shadowOffset: { width: 0, height: 8 },
+          // shadowOpacity: 0.3,
+          // shadowRadius: 16,
+          // elevation: 8,
+          minHeight: SCREEN_HEIGHT * 0.42,
           maxHeight: SCREEN_HEIGHT * 0.37,
         }}
       >
         {/* Top highlight line */}
-        <View 
+        {/* <View 
           style={{
             position: 'absolute',
             top: 0,
@@ -244,7 +244,7 @@ export default function MonthlyDashboard({
             backgroundColor: COLORS.glassHighlight,
             zIndex: 10,
           }}
-        />
+        /> */}
 
         <FlatList
           ref={flatListRef}
@@ -268,7 +268,7 @@ export default function MonthlyDashboard({
         {/* Page Indicator Dots - Glassy style */}
         <View 
           className="flex-row justify-center items-center py-3 gap-2"
-          style={{ backgroundColor: 'rgba(0, 0, 0, 0.2)' }}
+          // style={{ backgroundColor: 'rgba(0, 0, 0, 0.2)' }}
         >
           {charts.map((_, index) => (
             <View

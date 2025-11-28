@@ -21,10 +21,8 @@ const COLORS = {
   glassHighlight: 'rgba(255, 255, 255, 0.05)',
   text: '#F7F7F7',
   textMuted: 'rgba(247, 247, 247, 0.5)',
-  orange: '#FF5722',
-  orangeGlow: 'rgba(255, 87, 34, 0.2)',
-  purple: '#9C27B0',
-  purpleGlow: 'rgba(156, 39, 176, 0.2)',
+  green: '#8bcf68ff',
+  greenGlow: '#5b8f52ff',
 };
 
 const MONTHS = [
@@ -212,7 +210,7 @@ export default function AcuityTab() {
   if (loading) {
     return (
       <View className="flex-1 justify-center items-center py-20">
-        <ActivityIndicator size="large" color={COLORS.orange} />
+        <ActivityIndicator size="large" color={COLORS.green} />
       </View>
     );
   }
@@ -263,7 +261,7 @@ export default function AcuityTab() {
               >
                 {selectedCalendar || 'No calendar selected'}
               </Text>
-              <Text style={{ color: COLORS.orange, fontSize: 18 }}>▼</Text>
+              <Text style={{ color: COLORS.green, fontSize: 18 }}>▼</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -286,7 +284,7 @@ export default function AcuityTab() {
             <Text className="text-base" style={{ color: COLORS.text }}>
               {year}
             </Text>
-            <Text style={{ color: COLORS.purple, fontSize: 18 }}>▼</Text>
+            <Text style={{ color: COLORS.green, fontSize: 18 }}>▼</Text>
           </TouchableOpacity>
         </View>
 
@@ -297,7 +295,7 @@ export default function AcuityTab() {
             disabled={syncingClients || calendarError}
             className="py-3 rounded-xl"
             style={{
-              backgroundColor: syncingClients || calendarError ? COLORS.surfaceSolid : COLORS.orange,
+              backgroundColor: syncingClients || calendarError ? COLORS.surfaceSolid : COLORS.green,
               opacity: syncingClients || calendarError ? 0.5 : 1,
             }}
           >
@@ -320,16 +318,16 @@ export default function AcuityTab() {
             style={{
               backgroundColor: COLORS.surfaceSolid,
               borderWidth: 1,
-              borderColor: syncingAppointments || calendarError ? COLORS.glassBorder : COLORS.purple,
+              borderColor: syncingAppointments || calendarError ? COLORS.glassBorder : COLORS.green,
               opacity: syncingAppointments || calendarError ? 0.5 : 1,
             }}
           >
             {syncingAppointments ? (
-              <ActivityIndicator color={COLORS.purple} />
+              <ActivityIndicator color={COLORS.green} />
             ) : (
               <Text 
                 className="text-center font-semibold"
-                style={{ color: COLORS.purple }}
+                style={{ color: COLORS.green }}
               >
                 Sync All Appointments for {year}
               </Text>
@@ -382,19 +380,19 @@ export default function AcuityTab() {
                     onPress={() => setTempCalendar(cal.name)}
                     className="flex-row items-center justify-between px-4 py-3"
                     style={{
-                      backgroundColor: tempCalendar === cal.name ? COLORS.orangeGlow : 'transparent',
+                      backgroundColor: tempCalendar === cal.name ? COLORS.greenGlow : 'transparent',
                       borderBottomWidth: 1,
                       borderBottomColor: COLORS.glassBorder,
                     }}
                   >
                     <Text 
                       className="text-base"
-                      style={{ color: tempCalendar === cal.name ? COLORS.orange : COLORS.text }}
+                      style={{ color: tempCalendar === cal.name ? COLORS.green : COLORS.text }}
                     >
                       {cal.name}
                     </Text>
                     {tempCalendar === cal.name && (
-                      <Text style={{ color: COLORS.orange }}>✓</Text>
+                      <Text style={{ color: COLORS.green }}>✓</Text>
                     )}
                   </TouchableOpacity>
                 ))
@@ -427,7 +425,7 @@ export default function AcuityTab() {
                 disabled={!tempCalendar}
                 className="flex-1 py-3 rounded-full"
                 style={{
-                  backgroundColor: tempCalendar ? COLORS.orange : COLORS.surfaceSolid,
+                  backgroundColor: tempCalendar ? COLORS.green : COLORS.surfaceSolid,
                   opacity: tempCalendar ? 1 : 0.5,
                 }}
               >
@@ -480,19 +478,19 @@ export default function AcuityTab() {
                   }}
                   className="flex-row items-center justify-between px-4 py-4"
                   style={{
-                    backgroundColor: year === y ? COLORS.purpleGlow : 'transparent',
+                    backgroundColor: year === y ? COLORS.greenGlow : 'transparent',
                     borderBottomWidth: 1,
                     borderBottomColor: COLORS.glassBorder,
                   }}
                 >
                   <Text 
                     className="text-lg font-semibold"
-                    style={{ color: year === y ? COLORS.purple : COLORS.text }}
+                    style={{ color: year === y ? COLORS.green : COLORS.text }}
                   >
                     {y}
                   </Text>
                   {year === y && (
-                    <Text style={{ color: COLORS.purple }}>✓</Text>
+                    <Text style={{ color: COLORS.green }}>✓</Text>
                   )}
                 </TouchableOpacity>
               ))}

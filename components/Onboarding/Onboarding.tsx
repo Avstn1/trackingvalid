@@ -31,6 +31,8 @@ const COLORS = {
   orangeGlow: 'rgba(255, 87, 34, 0.4)',
 };
 
+
+
 const ROLE_OPTIONS = [
   { label: 'Barber (Commission)', role: 'Barber', barber_type: 'commission' },
   { label: 'Barber (Chair Rental)', role: 'Barber', barber_type: 'rental' },

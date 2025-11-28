@@ -13,10 +13,8 @@ const COLORS = {
   glassHighlight: 'rgba(255, 255, 255, 0.05)',
   text: '#F7F7F7',
   textMuted: 'rgba(247, 247, 247, 0.5)',
-  orange: '#FF5722',
-  orangeGlow: 'rgba(255, 87, 34, 0.2)',
-  purple: '#9C27B0',
-  purpleGlow: 'rgba(156, 39, 176, 0.2)',
+  green: '#8bcf68ff',
+  greenGlow: '#5b8f52ff',
 };
 
 export default function SecuritySection() {
@@ -107,9 +105,9 @@ export default function SecuritySection() {
         disabled={updatingPassword}
         className="py-3 rounded-xl"
         style={{
-          backgroundColor: COLORS.orange,
+          backgroundColor: COLORS.green,
           opacity: updatingPassword ? 0.6 : 1,
-          shadowColor: COLORS.orange,
+          shadowColor: COLORS.green,
           shadowOffset: { width: 0, height: 0 },
           shadowOpacity: 0.4,
           shadowRadius: 12,

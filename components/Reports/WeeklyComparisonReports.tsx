@@ -15,6 +15,9 @@ const COLORS = {
   textMuted: 'rgba(247, 247, 247, 0.5)',
   orange: '#FF5722',
   orangeGlow: 'rgba(255, 87, 34, 0.2)',
+  green: '#8bcf68ff',
+  greenLight: '#beb348ff',
+  greenGlow: 'rgba(139, 207, 104, 0.2)',
 };
 
 type WeeklyComparisonReport = {
@@ -125,65 +128,79 @@ export default function WeeklyComparisonReports({
   if (loading) {
     return (
       <View className="flex-1 items-center justify-center">
-        <ActivityIndicator size="small" color={COLORS.orange} />
+        <ActivityIndicator size="small" color={COLORS.green} />
       </View>
     );
   }
 
   return (
     <>
-      <View className="flex-1 justify-center">
+      <View className="flex-1 gap-2">
         {filteredReports.length > 0 ? (
           filteredReports.map((r) => (
             <TouchableOpacity
               key={r.id}
               onPress={() => handleOpenReport(r)}
-              className="flex-1 rounded-xl px-4 justify-center overflow-hidden"
+              className="flex-1 rounded-2xl p-4 overflow-hidden"
               style={{
                 backgroundColor: COLORS.cardBg,
                 borderWidth: 1,
                 borderColor: COLORS.glassBorder,
-                shadowColor: COLORS.orange,
-                shadowOffset: { width: 0, height: 3 },
-                shadowOpacity: 0.12,
-                shadowRadius: 10,
-                elevation: 5,
+                shadowColor: COLORS.green,
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.15,
+                shadowRadius: 8,
+                elevation: 4,
               }}
             >
-              <View className="flex-row items-center gap-3">
+              {/* Top highlight line */}
+              <View 
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: 1,
+                  backgroundColor: COLORS.glassHighlight,
+                }}
+              />
+
+              <View className="flex-row items-center gap-3 h-full">
                 <View 
-                  className="p-2 rounded-lg"
-                  style={{ backgroundColor: COLORS.orangeGlow }}
+                  className="p-2 rounded-xl"
+                  style={{ backgroundColor: COLORS.greenGlow }}
                 >
-                  <FileText size={20} color={COLORS.orange} strokeWidth={2.5} />
+                  <FileText size={22} color={COLORS.green} strokeWidth={2.5} />
                 </View>
                 <View className="flex-1">
                   <Text 
-                    className="text-sm font-bold" 
+                    className="text-base font-bold mb-1" 
                     style={{ color: COLORS.text }}
                     numberOfLines={1}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.8}
                   > 
                     Weekly Comparison - {r.month} {r.year}
                   </Text>
                   <Text 
-                    className="text-xs mt-1" 
-                    style={{ color: COLORS.orange }}
+                    className="text-sm" 
+                    style={{ color: COLORS.green }}
                     numberOfLines={1}
                   >
                     Tap to view report
                   </Text>
                 </View>
-                <ChevronRight size={20} color={COLORS.orange} />
+                <ChevronRight size={20} color={COLORS.green} />
               </View>
             </TouchableOpacity>
           ))
         ) : (
           <View className="flex-1 justify-center items-center">
             <View 
-              className="p-3 rounded-lg mb-2"
+              className="p-3 rounded-xl mb-3"
               style={{ backgroundColor: 'rgba(255, 255, 255, 0.05)' }}
             >
-              <FileText size={24} color={COLORS.textMuted} strokeWidth={1.5} />
+              <FileText size={32} color={COLORS.textMuted} strokeWidth={1.5} />
             </View>
             <Text className="text-sm text-center" style={{ color: COLORS.textMuted }}>
               No comparison reports available

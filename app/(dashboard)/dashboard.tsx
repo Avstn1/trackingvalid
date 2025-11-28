@@ -4,7 +4,6 @@ import Onboarding from '@/components/Onboarding/Onboarding';
 import { supabase } from "@/utils/supabaseClient";
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as Device from 'expo-device';
-import { Calendar, CalendarRange } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Alert,
@@ -33,10 +32,8 @@ const COLORS = {
   glassHighlight: 'rgba(255, 255, 255, 0.05)',
   text: '#F7F7F7',
   textMuted: 'rgba(247, 247, 247, 0.5)',
-  orange: '#FF5722',
-  orangeGlow: 'rgba(255, 87, 34, 0.3)',
-  purple: '#673AB7',
-  purpleGlow: 'rgba(103, 58, 183, 0.3)',
+  orange: '#2f3a2d',
+  orangeGlow: '#55694b',
   yellow: '#FFEB3B',
 };
 
@@ -331,41 +328,6 @@ export default function DashboardPage() {
       >
         {/* HEADER */}
         <View className="mb-3">
-          {/* Timeline Row */}
-          <View 
-            className="flex-row items-center justify-between mt-4 rounded-2xl p-4"
-            style={{ 
-              backgroundColor: COLORS.surface,
-              borderWidth: 1,
-              borderColor: COLORS.glassBorder,
-            }}
-          >
-            <Text className="text-base font-semibold" style={{ color: COLORS.textMuted }}>
-              Timeline
-            </Text>
-            
-            <TouchableOpacity
-              onPress={handleOpenPicker}
-              className="flex-row items-center gap-2 px-4 py-2 rounded-full"
-              style={{ 
-                backgroundColor: dashboardView === "monthly" ? COLORS.orangeGlow : COLORS.purpleGlow,
-                borderWidth: 1,
-                borderColor: dashboardView === "monthly" ? COLORS.orange : COLORS.purple,
-              }}
-            >
-              {dashboardView === "monthly" ? (
-                <Calendar size={16} color={COLORS.orange} />
-              ) : (
-                <CalendarRange size={16} color={COLORS.purple} />
-              )}
-              <Text 
-                className="font-semibold text-sm" 
-                style={{ color: dashboardView === "monthly" ? COLORS.orange : COLORS.purple }}
-              >
-                {dashboardView === "monthly" ? "Monthly" : "Yearly"}
-              </Text>
-            </TouchableOpacity>
-          </View>
         </View>
 
         {/* Timeline Picker Modal with Tabs - Glassy */}
@@ -417,8 +379,8 @@ export default function DashboardPage() {
                   onPress={() => setTempDashboardView("yearly")}
                   className="flex-1 py-3 rounded-full"
                   style={tempDashboardView === "yearly" ? { 
-                    backgroundColor: COLORS.purple,
-                    shadowColor: COLORS.purple,
+                    backgroundColor: COLORS.orange,
+                    shadowColor: COLORS.orange,
                     shadowOffset: { width: 0, height: 0 },
                     shadowOpacity: 0.5,
                     shadowRadius: 10,
@@ -473,9 +435,9 @@ export default function DashboardPage() {
                         onPress={() => setTempTimeframe(option.value as Timeframe)}
                         className="py-3 px-4 rounded-xl mb-2"
                         style={tempTimeframe === option.value ? {
-                          backgroundColor: COLORS.purpleGlow,
+                          backgroundColor: COLORS.orangeGlow,
                           borderWidth: 1,
-                          borderColor: COLORS.purple,
+                          borderColor: COLORS.orange,
                         } : {
                           backgroundColor: 'rgba(24, 24, 24, 0.5)',
                           borderWidth: 1,
@@ -485,7 +447,7 @@ export default function DashboardPage() {
                         <Text 
                           className="text-sm text-center"
                           style={{ 
-                            color: tempTimeframe === option.value ? COLORS.purple : COLORS.text,
+                            color: tempTimeframe === option.value ? COLORS.orange : COLORS.text,
                             fontWeight: tempTimeframe === option.value ? 'bold' : 'normal'
                           }}
                         >
@@ -513,8 +475,8 @@ export default function DashboardPage() {
                   onPress={handleDateConfirm}
                   className="flex-1 py-3 rounded-full"
                   style={{ 
-                    backgroundColor: tempDashboardView === "monthly" ? COLORS.orange : COLORS.purple,
-                    shadowColor: tempDashboardView === "monthly" ? COLORS.orange : COLORS.purple,
+                    backgroundColor: tempDashboardView === "monthly" ? COLORS.orange : COLORS.orange,
+                    shadowColor: tempDashboardView === "monthly" ? COLORS.orange : COLORS.orange,
                     shadowOffset: { width: 0, height: 0 },
                     shadowOpacity: 0.5,
                     shadowRadius: 15,

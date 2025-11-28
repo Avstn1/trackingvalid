@@ -37,7 +37,7 @@ const TAB_BAR_STYLES = StyleSheet.create({
     paddingVertical: 8,
   },
   activeTabGlow: {
-    shadowColor: '#FF5722',
+    shadowColor: '#8bcf68ff',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.6,
     shadowRadius: 12,
@@ -54,7 +54,7 @@ export default function DashboardLayout() {
           tabBarStyle: TAB_BAR_STYLES.tabBar,
           
           tabBarInactiveTintColor: 'rgba(247, 247, 247, 0.3)',
-          tabBarActiveTintColor: '#FF5722',
+          tabBarActiveTintColor: '#8bcf68ff',
           
           tabBarButton: HapticTab,
           tabBarIconStyle: TAB_BAR_STYLES.tabBarIcon,

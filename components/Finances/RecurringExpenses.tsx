@@ -25,10 +25,8 @@ const COLORS = {
   glassHighlight: 'rgba(255, 255, 255, 0.05)',
   text: '#F7F7F7',
   textMuted: 'rgba(247, 247, 247, 0.5)',
-  orange: '#FF5722',
-  orangeGlow: 'rgba(255, 87, 34, 0.2)',
-  purple: '#9C27B0',
-  purpleGlow: 'rgba(156, 39, 176, 0.2)',
+  green: '#8bcf68ff',
+  greenGlow: '#5b8f52ff',
   red: '#dc2626',
 };
 
@@ -246,14 +244,14 @@ export default function RecurringExpenses({
                 onPress={() => setFrequency(freq)}
                 className="px-4 py-2 rounded-lg"
                 style={{
-                  backgroundColor: frequency === freq ? COLORS.orangeGlow : COLORS.surfaceSolid,
+                  backgroundColor: frequency === freq ? COLORS.greenGlow : COLORS.surfaceSolid,
                   borderWidth: 1,
-                  borderColor: frequency === freq ? COLORS.orange : COLORS.glassBorder,
+                  borderColor: frequency === freq ? COLORS.green : COLORS.glassBorder,
                 }}
               >
                 <Text
                   className="font-semibold"
-                  style={{ color: frequency === freq ? COLORS.orange : COLORS.textMuted }}
+                  style={{ color: frequency === freq ? COLORS.green : COLORS.textMuted }}
                 >
                   {freq.charAt(0).toUpperCase() + freq.slice(1)}
                 </Text>
@@ -273,14 +271,14 @@ export default function RecurringExpenses({
                   onPress={() => handleDayToggle(day)}
                   className="px-3 py-2 rounded-lg"
                   style={{
-                    backgroundColor: selectedDays.includes(day) ? COLORS.purpleGlow : COLORS.surfaceSolid,
+                    backgroundColor: selectedDays.includes(day) ? COLORS.greenGlow : COLORS.surfaceSolid,
                     borderWidth: 1,
-                    borderColor: selectedDays.includes(day) ? COLORS.purple : COLORS.glassBorder,
+                    borderColor: selectedDays.includes(day) ? COLORS.green : COLORS.glassBorder,
                   }}
                 >
                   <Text
                     className="text-xs font-semibold"
-                    style={{ color: selectedDays.includes(day) ? COLORS.purple : COLORS.textMuted }}
+                    style={{ color: selectedDays.includes(day) ? COLORS.green : COLORS.textMuted }}
                   >
                     {day}
                   </Text>
@@ -331,14 +329,14 @@ export default function RecurringExpenses({
                       onPress={() => setYearlyMonth(idx)}
                       className="px-3 py-2 rounded-lg"
                       style={{
-                        backgroundColor: yearlyMonth === idx ? COLORS.purpleGlow : COLORS.surfaceSolid,
+                        backgroundColor: yearlyMonth === idx ? COLORS.greenGlow : COLORS.surfaceSolid,
                         borderWidth: 1,
-                        borderColor: yearlyMonth === idx ? COLORS.purple : COLORS.glassBorder,
+                        borderColor: yearlyMonth === idx ? COLORS.green : COLORS.glassBorder,
                       }}
                     >
                       <Text
                         className="text-xs font-semibold"
-                        style={{ color: yearlyMonth === idx ? COLORS.purple : COLORS.textMuted }}
+                        style={{ color: yearlyMonth === idx ? COLORS.green : COLORS.textMuted }}
                       >
                         {m.slice(0, 3)}
                       </Text>
@@ -386,7 +384,7 @@ export default function RecurringExpenses({
               borderColor: COLORS.glassBorder,
             }}
           >
-            <Calendar size={16} color={COLORS.orange} />
+            <Calendar size={16} color={COLORS.green} />
             <Text className="font-medium" style={{ color: COLORS.text }}>
               {startDate.toLocaleDateString()}
             </Text>
@@ -405,7 +403,7 @@ export default function RecurringExpenses({
               borderColor: COLORS.glassBorder,
             }}
           >
-            <Calendar size={16} color={COLORS.orange} />
+            <Calendar size={16} color={COLORS.green} />
             <Text className="font-medium" style={{ color: COLORS.text }}>
               {endDate ? endDate.toLocaleDateString() : 'Not set'}
             </Text>
@@ -418,9 +416,9 @@ export default function RecurringExpenses({
           disabled={loading}
           className="py-3 rounded-xl mt-2"
           style={{
-            backgroundColor: COLORS.purple,
+            backgroundColor: COLORS.green,
             opacity: loading ? 0.6 : 1,
-            shadowColor: COLORS.purple,
+            shadowColor: COLORS.green,
             shadowOffset: { width: 0, height: 0 },
             shadowOpacity: 0.4,
             shadowRadius: 12,
@@ -499,7 +497,7 @@ export default function RecurringExpenses({
                 <TouchableOpacity
                   onPress={confirmStartDate}
                   className="flex-1 py-3 rounded-full"
-                  style={{ backgroundColor: COLORS.orange }}
+                  style={{ backgroundColor: COLORS.green }}
                 >
                   <Text className="text-center font-semibold" style={{ color: COLORS.text }}>Done</Text>
                 </TouchableOpacity>
@@ -579,7 +577,7 @@ export default function RecurringExpenses({
                 <TouchableOpacity
                   onPress={confirmEndDate}
                   className="flex-1 py-3 rounded-full"
-                  style={{ backgroundColor: COLORS.orange }}
+                  style={{ backgroundColor: COLORS.green }}
                 >
                   <Text className="text-center font-semibold" style={{ color: COLORS.text }}>Done</Text>
                 </TouchableOpacity>

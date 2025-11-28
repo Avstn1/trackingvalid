@@ -18,6 +18,9 @@ const COLORS = {
   orangeGlow: 'rgba(255, 87, 34, 0.2)',
   purple: '#673AB7',
   yellow: '#FFEB3B',
+  green: '#8bcf68ff',
+  greenLight: '#beb348ff',
+  greenGlow: 'rgba(139, 207, 104, 0.2)',
 };
 
 type WeeklyReport = {
@@ -210,21 +213,18 @@ export default function WeeklyReports({
   };
 
   const weeksList = generateWeeksList();
-  
-  const totalWeeks = weeksList.length;
-  const cardHeight = totalWeeks === 4 ? 73 : 57;
 
   if (loading) {
     return (
       <View className="items-center justify-center py-4">
-        <ActivityIndicator size="small" color={COLORS.orange} />
+        <ActivityIndicator size="small" color={COLORS.green} />
       </View>
     );
   }
 
   return (
     <>
-      <View className="gap-1.5">
+      <View className="flex-1 gap-2">
         {weeksList.length > 0 ? (
           weeksList.map((r: any) => {
             const isUpcoming = r.isUpcoming;
@@ -234,47 +234,64 @@ export default function WeeklyReports({
                 key={r.id}
                 onPress={() => !isUpcoming && handleOpenReport(r)}
                 disabled={isUpcoming}
-                className="rounded-xl p-3 overflow-hidden"
+                className="rounded-2xl p-4 overflow-hidden flex-1"
                 style={[
                   {
-                    height: cardHeight,
                     backgroundColor: isUpcoming ? 'rgba(37, 37, 37, 0.3)' : COLORS.cardBg,
                     borderWidth: 1,
                     borderColor: isUpcoming ? 'rgba(255, 255, 255, 0.05)' : COLORS.glassBorder,
-                    opacity: isUpcoming ? 0.6 : 1,
+                    opacity: isUpcoming ? 0.5 : 1,
                   },
                   !isUpcoming && {
-                    shadowColor: COLORS.orange,
+                    shadowColor: COLORS.green,
                     shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.1,
-                    shadowRadius: 6,
+                    shadowOpacity: 0.15,
+                    shadowRadius: 8,
                     elevation: 4,
                   }
                 ]}
               >
+                {/* Top highlight line */}
+                <View 
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: 1,
+                    backgroundColor: isUpcoming ? 'transparent' : COLORS.glassHighlight,
+                  }}
+                />
+
                 <View className="flex-row items-center gap-3 h-full">
                   <View 
-                    className="p-1.5 rounded-lg"
+                    className="p-2 rounded-xl"
                     style={{
-                      backgroundColor: isUpcoming ? 'rgba(255, 255, 255, 0.05)' : COLORS.orangeGlow,
+                      backgroundColor: isUpcoming ? 'rgba(255, 255, 255, 0.05)' : COLORS.greenGlow,
                     }}
                   >
                     <FileText 
-                      size={18} 
-                      color={isUpcoming ? COLORS.textMuted : COLORS.orange} 
+                      size={22} 
+                      color={isUpcoming ? COLORS.textMuted : COLORS.green} 
                       strokeWidth={2.5} 
                     />
                   </View>
                   <View className="flex-1">
                     <Text 
-                      className="text-sm font-bold"
+                      className="text-base font-bold mb-1"
                       style={{ color: isUpcoming ? COLORS.textMuted : COLORS.text }}
+                      numberOfLines={1}
+                      adjustsFontSizeToFit
+                      minimumFontScale={0.8}
                     >
                       Week {r.week_number} - {r.month} {r.year}
                     </Text>
                     <Text 
-                      className="text-xs mt-0.5"
-                      style={{ color: isUpcoming ? 'rgba(247, 247, 247, 0.3)' : COLORS.orange }}
+                      className="text-sm"
+                      style={{ color: isUpcoming ? 'rgba(247, 247, 247, 0.3)' : COLORS.green }}
+                      numberOfLines={1}
+                      adjustsFontSizeToFit
+                      minimumFontScale={0.8}
                     >
                       {isUpcoming 
                         ? `Releasing on ${formatDate(r.releaseDate)}`
@@ -282,7 +299,7 @@ export default function WeeklyReports({
                       }
                     </Text>
                   </View>
-                  {!isUpcoming && <ChevronRight size={16} color={COLORS.orange} />}
+                  {!isUpcoming && <ChevronRight size={20} color={COLORS.green} />}
                 </View>
               </TouchableOpacity>
             );

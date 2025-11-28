@@ -20,9 +20,8 @@ const COLORS = {
   glassHighlight: 'rgba(255, 255, 255, 0.05)',
   text: '#F7F7F7',
   textMuted: 'rgba(247, 247, 247, 0.5)',
-  orange: '#FF5722',
-  orangeGlow: 'rgba(255, 87, 34, 0.4)',
-  purple: '#673AB7',
+  green: '#8bcf68ff',
+  greenLight: '#beb348ff',
   yellow: '#FFEB3B',
   dotInactive: 'rgba(255, 255, 255, 0.2)',
 };
@@ -41,8 +40,6 @@ const MONTHS = [
 ];
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-const METRIC_CARD_WIDTH = (SCREEN_WIDTH - 32) * 0.44; // 44% of available width
-const METRIC_CARD_GAP = 12;
 
 export default function MonthlyDashboard({
   userId,
@@ -52,9 +49,7 @@ export default function MonthlyDashboard({
   globalRefreshKey,
 }: MonthlyDashboardProps) {
   const [activeChartIndex, setActiveChartIndex] = useState(0);
-  const [activeMetricIndex, setActiveMetricIndex] = useState(0);
   const flatListRef = useRef<FlatList>(null);
-  const metricsListRef = useRef<FlatList>(null);
   const hasAnimated = useRef(false);
 
   // Metric cards data
@@ -174,12 +169,6 @@ export default function MonthlyDashboard({
     setActiveChartIndex(index);
   };
 
-  const handleMetricScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const scrollPosition = event.nativeEvent.contentOffset.x;
-    const index = Math.round(scrollPosition / (METRIC_CARD_WIDTH + METRIC_CARD_GAP));
-    setActiveMetricIndex(Math.min(index, metricCards.length - 1));
-  };
-
   // Auto-scroll animation on first load
   useEffect(() => {
     if (!hasAnimated.current && flatListRef.current && charts.length > 0) {
@@ -214,31 +203,27 @@ export default function MonthlyDashboard({
         ).padStart(2, "0")}-${String(selectedDay).padStart(2, "0")}`}
       />
 
-      {/* Horizontal Scrollable Metric Cards */}
-      <View>
-        <FlatList
-          ref={metricsListRef}
-          data={metricCards}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          onScroll={handleMetricScroll}
-          scrollEventThrottle={16}
-          decelerationRate="fast"
-          snapToInterval={METRIC_CARD_WIDTH + METRIC_CARD_GAP}
-          snapToAlignment="start"
-          contentContainerStyle={{ paddingRight: 16 }}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item, index }) => (
-            <View
-              style={{
-                width: METRIC_CARD_WIDTH,
-                marginRight: index < metricCards.length - 1 ? METRIC_CARD_GAP : 0,
-              }}
-            >
-              {item.component}
-            </View>
-          )}
-        />
+      {/* 2x2 Grid of Metric Cards */}
+      <View className="gap-3">
+        {/* First Row */}
+        <View className="flex-row gap-3">
+          <View className="flex-1">
+            {metricCards[0]?.component}
+          </View>
+          <View className="flex-1">
+            {metricCards[1]?.component}
+          </View>
+        </View>
+        
+        {/* Second Row */}
+        <View className="flex-row gap-3">
+          <View className="flex-1">
+            {metricCards[2]?.component}
+          </View>
+          <View className="flex-1">
+            {metricCards[3]?.component}
+          </View>
+        </View>
       </View>
 
       {/* Swipeable Charts Container - Glassy */}
@@ -247,6 +232,7 @@ export default function MonthlyDashboard({
         style={{  
           minHeight: SCREEN_HEIGHT * 0.42,
           maxHeight: SCREEN_HEIGHT * 0.37,
+          marginTop: -15
         }}
       >
 
@@ -274,6 +260,9 @@ export default function MonthlyDashboard({
         {/* Page Indicator Dots - Glassy style */}
         <View 
           className="flex-row justify-center items-center py-3 gap-2"
+          style={{  
+            marginBottom: 10
+          }}
         >
           {charts.map((_, index) => (
             <View
@@ -281,8 +270,8 @@ export default function MonthlyDashboard({
               className="h-2 rounded-full"
               style={{
                 width: index === activeChartIndex ? 24 : 8,
-                backgroundColor: index === activeChartIndex ? COLORS.orange : COLORS.dotInactive,
-                shadowColor: index === activeChartIndex ? COLORS.orange : 'transparent',
+                backgroundColor: index === activeChartIndex ? COLORS.green : COLORS.dotInactive,
+                shadowColor: index === activeChartIndex ? COLORS.green : 'transparent',
                 shadowOffset: { width: 0, height: 0 },
                 shadowOpacity: index === activeChartIndex ? 0.8 : 0,
                 shadowRadius: 6,

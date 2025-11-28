@@ -25,10 +25,8 @@ const COLORS = {
   glassHighlight: 'rgba(255, 255, 255, 0.05)',
   text: '#F7F7F7',
   textMuted: 'rgba(247, 247, 247, 0.5)',
-  orange: '#FF5722',
-  orangeGlow: 'rgba(255, 87, 34, 0.2)',
-  purple: '#9C27B0',
-  purpleGlow: 'rgba(156, 39, 176, 0.2)',
+  green: '#8bcf68ff',
+  greenGlow: '#5b8f52ff',
   amber: '#fbbf24',
   amberGlow: 'rgba(251, 191, 36, 0.2)',
   red: '#dc2626',
@@ -319,7 +317,7 @@ export default function ExpensesViewer({
   if (loading) {
     return (
       <View className="py-8">
-        <ActivityIndicator size="small" color={COLORS.orange} />
+        <ActivityIndicator size="small" color={COLORS.green} />
         <Text className="text-sm text-center mt-2" style={{ color: COLORS.textMuted }}>
           Loading expenses...
         </Text>
@@ -388,14 +386,14 @@ export default function ExpensesViewer({
                             onPress={() => setEditFrequency(freq)}
                             className="px-3 py-2 rounded-lg"
                             style={{
-                              backgroundColor: editFrequency === freq ? COLORS.orangeGlow : COLORS.cardBg,
+                              backgroundColor: editFrequency === freq ? COLORS.greenGlow : COLORS.cardBg,
                               borderWidth: 1,
-                              borderColor: editFrequency === freq ? COLORS.orange : COLORS.glassBorder,
+                              borderColor: editFrequency === freq ? COLORS.green : COLORS.glassBorder,
                             }}
                           >
                             <Text
                               className="text-xs font-semibold"
-                              style={{ color: editFrequency === freq ? COLORS.orange : COLORS.textMuted }}
+                              style={{ color: editFrequency === freq ? COLORS.green : COLORS.textMuted }}
                             >
                               {freq.charAt(0).toUpperCase() + freq.slice(1)}
                             </Text>
@@ -412,14 +410,14 @@ export default function ExpensesViewer({
                               onPress={() => handleDayToggle(day)}
                               className="px-2 py-1 rounded-lg"
                               style={{
-                                backgroundColor: editSelectedDays.includes(day) ? COLORS.purpleGlow : COLORS.cardBg,
+                                backgroundColor: editSelectedDays.includes(day) ? COLORS.greenGlow : COLORS.cardBg,
                                 borderWidth: 1,
-                                borderColor: editSelectedDays.includes(day) ? COLORS.purple : COLORS.glassBorder,
+                                borderColor: editSelectedDays.includes(day) ? COLORS.green : COLORS.glassBorder,
                               }}
                             >
                               <Text
                                 className="text-xs font-semibold"
-                                style={{ color: editSelectedDays.includes(day) ? COLORS.purple : COLORS.textMuted }}
+                                style={{ color: editSelectedDays.includes(day) ? COLORS.green : COLORS.textMuted }}
                               >
                                 {day}
                               </Text>
@@ -462,14 +460,14 @@ export default function ExpensesViewer({
                                     onPress={() => setEditYearlyMonth(idx)}
                                     className="px-3 py-2 rounded-lg"
                                     style={{
-                                      backgroundColor: editYearlyMonth === idx ? COLORS.purpleGlow : COLORS.cardBg,
+                                      backgroundColor: editYearlyMonth === idx ? COLORS.greenGlow : COLORS.cardBg,
                                       borderWidth: 1,
-                                      borderColor: editYearlyMonth === idx ? COLORS.purple : COLORS.glassBorder,
+                                      borderColor: editYearlyMonth === idx ? COLORS.green : COLORS.glassBorder,
                                     }}
                                   >
                                     <Text
                                       className="text-xs font-semibold"
-                                      style={{ color: editYearlyMonth === idx ? COLORS.purple : COLORS.textMuted }}
+                                      style={{ color: editYearlyMonth === idx ? COLORS.green : COLORS.textMuted }}
                                     >
                                       {m}
                                     </Text>
@@ -513,7 +511,7 @@ export default function ExpensesViewer({
                             borderColor: COLORS.glassBorder,
                           }}
                         >
-                          <Calendar size={14} color={COLORS.orange} />
+                          <Calendar size={14} color={COLORS.green} />
                           <Text className="text-sm" style={{ color: COLORS.text }}>
                             {editStartDate.toLocaleDateString()}
                           </Text>
@@ -535,7 +533,7 @@ export default function ExpensesViewer({
                             borderColor: COLORS.glassBorder,
                           }}
                         >
-                          <Calendar size={14} color={COLORS.orange} />
+                          <Calendar size={14} color={COLORS.green} />
                           <Text className="text-sm" style={{ color: COLORS.text }}>
                             {editEndDate ? editEndDate.toLocaleDateString() : 'Not set'}
                           </Text>
@@ -558,7 +556,7 @@ export default function ExpensesViewer({
                         <TouchableOpacity
                           onPress={handleSaveEdit}
                           className="px-4 py-2 rounded-lg"
-                          style={{ backgroundColor: COLORS.orange }}
+                          style={{ backgroundColor: COLORS.green }}
                         >
                           <Text className="font-semibold text-sm" style={{ color: COLORS.text }}>Save</Text>
                         </TouchableOpacity>
@@ -711,7 +709,7 @@ export default function ExpensesViewer({
               <TouchableOpacity
                 onPress={confirmStartDate}
                 className="flex-1 py-3 rounded-full"
-                style={{ backgroundColor: COLORS.orange }}
+                style={{ backgroundColor: COLORS.green }}
               >
                 <Text className="text-center font-semibold" style={{ color: COLORS.text }}>Done</Text>
               </TouchableOpacity>
@@ -788,7 +786,7 @@ export default function ExpensesViewer({
               <TouchableOpacity
                 onPress={confirmEndDate}
                 className="flex-1 py-3 rounded-full"
-                style={{ backgroundColor: COLORS.orange }}
+                style={{ backgroundColor: COLORS.green }}
               >
                 <Text className="text-center font-semibold" style={{ color: COLORS.text }}>Done</Text>
               </TouchableOpacity>

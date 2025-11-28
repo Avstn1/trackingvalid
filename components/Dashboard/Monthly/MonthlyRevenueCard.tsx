@@ -1,4 +1,6 @@
 import { supabase } from '@/utils/supabaseClient';
+import MaskedView from '@react-native-masked-view/masked-view';
+import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
 
@@ -10,8 +12,8 @@ const COLORS = {
   glassHighlight: 'rgba(255, 255, 255, 0.05)',
   text: '#F7F7F7',
   textMuted: 'rgba(247, 247, 247, 0.5)',
-  orange: '#FF5722',
-  orangeGlow: 'rgba(255, 87, 34, 0.3)',
+  orange: '#55694b',
+  orangeGlow: '#2f3a2d',
   purple: '#673AB7',
   yellow: '#FFEB3B',
 };
@@ -161,9 +163,26 @@ export default function MonthlyRevenueCard({ userId, selectedMonth, year }: Mont
         }}
       />
 
-      <Text className="text-xs font-semibold mb-1" style={{ color: COLORS.orange }}>
-        🏆 Monthly Revenue
-      </Text>
+      <View className="flex-row items-center gap-2">
+        <Text className="text-xs">🏆</Text>
+        <MaskedView
+          maskElement={
+            <Text className="text-sm font-bold tracking-wide">
+              Monthly Revenue
+            </Text>
+          }
+        >
+          <LinearGradient
+            colors={['#8bcf68ff', '#beb348ff']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+          >
+            <Text className="text-sm font-bold tracking-wide opacity-0">
+              Monthly Revenue
+            </Text>
+          </LinearGradient>
+        </MaskedView>
+      </View>
       
       <View className="min-h-[40px] justify-center">
         {loading ? (

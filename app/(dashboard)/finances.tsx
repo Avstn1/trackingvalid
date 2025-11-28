@@ -4,9 +4,8 @@ import ExpensesViewer from '@/components/Finances/ExpensesViewer';
 import RecurringExpenses from '@/components/Finances/RecurringExpenses';
 import { CustomHeader } from '@/components/Header/CustomHeader';
 import { supabase } from '@/utils/supabaseClient';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
-import { CalendarRange, Image as ImageIcon, Plus, Trash2, X } from 'lucide-react-native';
+import { Image as ImageIcon, Plus, Trash2, X } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -17,7 +16,6 @@ import {
   Modal,
   NativeScrollEvent,
   NativeSyntheticEvent,
-  Platform,
   RefreshControl,
   ScrollView,
   Text,
@@ -37,10 +35,8 @@ const COLORS = {
   glassHighlight: 'rgba(255, 255, 255, 0.05)',
   text: '#F7F7F7',
   textMuted: 'rgba(247, 247, 247, 0.5)',
-  orange: '#FF5722',
-  orangeGlow: 'rgba(255, 87, 34, 0.2)',
-  purple: '#9C27B0',
-  purpleGlow: 'rgba(156, 39, 176, 0.2)',
+  green: '#8bcf68ff',
+  greenGlow: '#5b8f52ff',
   red: '#f87171',
   redGlow: 'rgba(248, 113, 113, 0.2)',
 };
@@ -65,16 +61,13 @@ export default function FinancesPage() {
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Date selection
+  // Date selection - defaults to today
   const currentDate = new Date();
   const currentMonthIndex = currentDate.getMonth();
   const currentYear = currentDate.getFullYear();
   
   const [selectedMonth, setSelectedMonth] = useState(MONTHS[currentMonthIndex]);
   const [selectedYear, setSelectedYear] = useState(currentYear);
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(new Date(currentYear, currentMonthIndex, 1));
-  const [tempDate, setTempDate] = useState(new Date(currentYear, currentMonthIndex, 1));
   
   // Expenses data
   const [receipts, setReceipts] = useState<Receipt[]>([]);
@@ -115,6 +108,13 @@ export default function FinancesPage() {
 
     fetchUser();
   }, []);
+
+  // Handle date change from CustomHeader
+  const handleDateChange = (month: string, year: number) => {
+    setSelectedMonth(month);
+    setSelectedYear(year);
+    setRefreshKey((prev) => prev + 1);
+  };
 
   // Fetch expenses data
   const fetchData = async () => {
@@ -220,7 +220,6 @@ export default function FinancesPage() {
 
   
   useEffect(() => {
-    // Use requestAnimationFrame to wait for render cycle
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         setComponentsReady(true);
@@ -233,36 +232,6 @@ export default function FinancesPage() {
     setRefreshing(true);
     await fetchData();
     setRefreshing(false);
-  };
-
-  // Date picker handlers
-  const handleDateChange = (event: any, date?: Date) => {
-    if (date) {
-      const normalizedDate = new Date(date.getFullYear(), date.getMonth(), 1);
-      setTempDate(normalizedDate);
-    }
-  };
-
-  const handleDateConfirm = () => {
-    setSelectedDate(tempDate);
-    setSelectedMonth(MONTHS[tempDate.getMonth()]);
-    setSelectedYear(tempDate.getFullYear());
-    setShowDatePicker(false);
-    setRefreshKey((prev) => prev + 1);
-  };
-
-  const handleDateCancel = () => {
-    setTempDate(selectedDate);
-    setShowDatePicker(false);
-  };
-
-  const handleOpenDatePicker = () => {
-    setTempDate(selectedDate);
-    setShowDatePicker(true);
-  };
-
-  const getDateLabel = () => {
-    return `${selectedMonth} ${selectedYear}`;
   };
 
   // Receipt handlers
@@ -425,7 +394,7 @@ export default function FinancesPage() {
 
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: COLORS.background }}>
-      <CustomHeader pageName="Finances" />
+      <CustomHeader pageName="Finances" onDateChange={handleDateChange} />
 
       <ScrollView
         className="flex-1 px-4"
@@ -434,8 +403,8 @@ export default function FinancesPage() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor={COLORS.orange}
-            colors={[COLORS.orange]}
+            tintColor={COLORS.green}
+            colors={[COLORS.green]}
           />
         }
       >
@@ -444,22 +413,6 @@ export default function FinancesPage() {
           <Text className="text-xs mb-3" style={{ color: COLORS.textMuted }}>
             Track your one-off and recurring expenses per month.
           </Text>
-
-          {/* Date Picker Button */}
-          <TouchableOpacity
-            onPress={handleOpenDatePicker}
-            className="flex-row items-center justify-center gap-2 py-3 rounded-full"
-            style={{
-              backgroundColor: COLORS.surfaceSolid,
-              borderWidth: 1,
-              borderColor: COLORS.glassBorder,
-            }}
-          >
-            <CalendarRange size={16} color={COLORS.orange} />
-            <Text className="font-semibold text-sm" style={{ color: COLORS.text }}>
-              {getDateLabel()}
-            </Text>
-          </TouchableOpacity>
         </View>
 
         {/* Current Total & Receipt Gallery - Side by Side */}
@@ -514,9 +467,9 @@ export default function FinancesPage() {
             <View className="flex-row items-center gap-2 mb-2">
               <View 
                 className="p-2 rounded-lg"
-                style={{ backgroundColor: COLORS.orangeGlow }}
+                style={{ backgroundColor: COLORS.greenGlow }}
               >
-                <ImageIcon size={18} color={COLORS.orange} />
+                <ImageIcon size={18} color={COLORS.green} />
               </View>
               <Text className="font-semibold text-base flex-1" style={{ color: COLORS.text }}>
                 Receipts
@@ -567,7 +520,7 @@ export default function FinancesPage() {
                 {index === 0 ? (
                   // First view: Title with Add Button
                   <View className="flex-row justify-between items-center mb-3">
-                    <Text className="text-lg font-semibold" style={{ color: COLORS.orange }}>
+                    <Text className="text-lg font-semibold" style={{ color: COLORS.green }}>
                       {item.title}
                     </Text>
                     <TouchableOpacity
@@ -578,14 +531,14 @@ export default function FinancesPage() {
                         });
                       }}
                       className="p-2 rounded-lg"
-                      style={{ backgroundColor: COLORS.orange }}
+                      style={{ backgroundColor: COLORS.green }}
                     >
                       <Plus size={20} color={COLORS.text} />
                     </TouchableOpacity>
                   </View>
                 ) : (
                   // Other views: Normal title
-                  <Text className="text-lg font-semibold mb-3" style={{ color: COLORS.purple }}>
+                  <Text className="text-lg font-semibold mb-3" style={{ color: COLORS.green }}>
                     {item.title}
                   </Text>
                 )}
@@ -602,91 +555,13 @@ export default function FinancesPage() {
                 className="h-2 rounded-full"
                 style={{
                   width: index === currentIndex ? 24 : 8,
-                  backgroundColor: index === currentIndex ? COLORS.orange : COLORS.surfaceSolid,
+                  backgroundColor: index === currentIndex ? COLORS.green : COLORS.surfaceSolid,
                 }}
               />
             ))}
           </View>
         </View>
       </ScrollView>
-
-      {/* Date Picker Modal */}
-      <Modal
-        visible={showDatePicker}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={handleDateCancel}
-      >
-        <View className="flex-1 justify-center items-center bg-black/70">
-          <View 
-            className="rounded-2xl p-6 w-[90%] max-w-md overflow-hidden"
-            style={{
-              backgroundColor: COLORS.cardBg,
-              borderWidth: 1,
-              borderColor: COLORS.glassBorder,
-            }}
-          >
-            <View 
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                height: 1,
-                backgroundColor: COLORS.glassHighlight,
-              }}
-            />
-            <Text className="text-lg font-semibold mb-4 text-center" style={{ color: COLORS.text }}>
-              Choose Month & Year
-            </Text>
-
-            <View 
-              className="rounded-xl overflow-hidden"
-              style={{
-                backgroundColor: COLORS.surfaceSolid,
-                borderWidth: 1,
-                borderColor: COLORS.glassBorder,
-              }}
-            >
-              <DateTimePicker
-                value={tempDate}
-                mode="date"
-                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                onChange={handleDateChange}
-                minimumDate={new Date(2020, 0, 1)}
-                maximumDate={new Date()}
-                textColor="#ffffff"
-                themeVariant="dark"
-              />
-            </View>
-
-            <Text className="text-xs text-center mt-3" style={{ color: COLORS.textMuted }}>
-              Day will be set to 1st of selected month
-            </Text>
-
-            <View className="flex-row gap-3 mt-6">
-              <TouchableOpacity
-                onPress={handleDateCancel}
-                className="flex-1 py-3 rounded-full"
-                style={{
-                  backgroundColor: COLORS.surfaceSolid,
-                  borderWidth: 1,
-                  borderColor: COLORS.glassBorder,
-                }}
-              >
-                <Text className="text-center font-semibold" style={{ color: COLORS.text }}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={handleDateConfirm}
-                className="flex-1 py-3 rounded-full"
-                style={{ backgroundColor: COLORS.orange }}
-              >
-                <Text className="text-center font-semibold" style={{ color: COLORS.text }}>Done</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
 
       {/* Receipt Gallery Modal */}
       <Modal
@@ -725,9 +600,9 @@ export default function FinancesPage() {
                 <View className="flex-row items-center gap-3">
                   <View 
                     className="p-2 rounded-lg"
-                    style={{ backgroundColor: COLORS.orangeGlow }}
+                    style={{ backgroundColor: COLORS.greenGlow }}
                   >
-                    <ImageIcon size={20} color={COLORS.orange} />
+                    <ImageIcon size={20} color={COLORS.green} />
                   </View>
                   <View>
                     <Text className="text-lg font-bold" style={{ color: COLORS.text }}>Receipt Gallery</Text>
@@ -833,8 +708,8 @@ export default function FinancesPage() {
                   }}
                   className="py-3.5 rounded-xl flex-row items-center justify-center gap-2"
                   style={{
-                    backgroundColor: COLORS.orange,
-                    shadowColor: COLORS.orange,
+                    backgroundColor: COLORS.green,
+                    shadowColor: COLORS.green,
                     shadowOffset: { width: 0, height: 0 },
                     shadowOpacity: 0.4,
                     shadowRadius: 12,
@@ -910,7 +785,7 @@ export default function FinancesPage() {
               <TouchableOpacity
                 onPress={handleUploadConfirm}
                 className="flex-1 py-3 rounded-full"
-                style={{ backgroundColor: COLORS.orange }}
+                style={{ backgroundColor: COLORS.green }}
               >
                 <Text className="text-center font-semibold" style={{ color: COLORS.text }}>Upload</Text>
               </TouchableOpacity>

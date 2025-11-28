@@ -17,6 +17,9 @@ const COLORS = {
   orangeGlow: 'rgba(255, 87, 34, 0.2)',
   purple: '#673AB7',
   yellow: '#FFEB3B',
+  green: '#8bcf68ff',
+  greenLight: '#beb348ff',
+  greenGlow: 'rgba(139, 207, 104, 0.2)',
 };
 
 interface Report {
@@ -64,7 +67,7 @@ export default function ReportViewerModal({
     return `${report.month} ${report.year}`;
   };
 
-  // Dark mode styled HTML content with orange accent
+  // Dark mode styled HTML content with green accent
   const styledHTML = `
     <!DOCTYPE html>
     <html>
@@ -99,7 +102,7 @@ export default function ReportViewerModal({
           font-weight: 600;
           margin-top: 16px;
           margin-bottom: 10px;
-          color: #FF5722;
+          color: #8bcf68;
           border-bottom: 2px solid #333;
           padding-bottom: 4px;
         }
@@ -159,7 +162,7 @@ export default function ReportViewerModal({
           padding: 8px 4px;
           text-align: left;
           font-weight: 600;
-          color: #FF5722;
+          color: #8bcf68;
           border-bottom: 2px solid #333;
           font-size: 10px;
           text-transform: uppercase;
@@ -224,7 +227,7 @@ export default function ReportViewerModal({
             backgroundColor: COLORS.cardBg,
             borderWidth: 1,
             borderColor: COLORS.glassBorder,
-            shadowColor: COLORS.orange,
+            shadowColor: COLORS.green,
             shadowOffset: { width: 0, height: 0 },
             shadowOpacity: 0.2,
             shadowRadius: 24,
@@ -259,7 +262,7 @@ export default function ReportViewerModal({
                 <X size={20} color={COLORS.text} />
               </TouchableOpacity>
             </View>
-            <Text className="text-sm" style={{ color: COLORS.orange }} numberOfLines={1}>
+            <Text className="text-sm" style={{ color: COLORS.green }} numberOfLines={1}>
               {getSubtitle()}
             </Text>
           </View>
@@ -292,8 +295,8 @@ export default function ReportViewerModal({
               onPress={onClose}
               className="rounded-full px-4 py-3"
               style={{
-                backgroundColor: COLORS.orange,
-                shadowColor: COLORS.orange,
+                backgroundColor: COLORS.green,
+                shadowColor: COLORS.green,
                 shadowOffset: { width: 0, height: 0 },
                 shadowOpacity: 0.4,
                 shadowRadius: 12,

@@ -1,4 +1,5 @@
 import { supabase } from '@/utils/supabaseClient';
+import MaskedView from '@react-native-masked-view/masked-view';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
@@ -12,9 +13,9 @@ const COLORS = {
   glassHighlight: 'rgba(255, 255, 255, 0.08)',
   text: '#FFFFFF',
   textMuted: 'rgba(255, 255, 255, 0.6)',
-  orange: '#FF5722',
-  orangeLight: '#FF7849',
-  orangeGlow: 'rgba(255, 87, 34, 0.25)',
+  green: '#54d33dff',
+  greenLight: '#5b8f52ff',
+  greenGlow: 'rgba(255, 87, 34, 0.25)',
   purple: '#673AB7',
   yellow: '#FFEB3B',
 };
@@ -124,16 +125,15 @@ export default function DailyRevenueCard({ userId, selectedDate }: DailyRevenueC
     <View
       style={{
         borderRadius: 24,
-        shadowColor: COLORS.orange,
+        shadowColor: COLORS.green,
         shadowOffset: { width: 0, height: 6 },
-        // shadowOpacity: 0.35,
         shadowRadius: 16,
         elevation: 10,
       }}
     >
       {/* Gradient border wrapper */}
       <LinearGradient
-        colors={[COLORS.orange, COLORS.orangeLight, COLORS.orange]}
+        colors={['#8bcf68ff', '#beb348ff', '#8bcf68ff']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={{
@@ -150,7 +150,7 @@ export default function DailyRevenueCard({ userId, selectedDate }: DailyRevenueC
           }}
         >
           {/* Content container */}
-          <View style={{ padding: 10 }}>
+          <View style={{ padding: 20 }}>
             {/* Subtle accent glow - positioned behind content */}
             <View
               style={{
@@ -160,22 +160,33 @@ export default function DailyRevenueCard({ userId, selectedDate }: DailyRevenueC
                 width: 120,
                 height: 120,
                 borderRadius: 60,
-                backgroundColor: COLORS.orange,
+                backgroundColor: COLORS.green,
                 opacity: 0.08,
               }}
             />
 
             {/* Header row */}
             <View className="flex-row items-center justify-between mb-3">
-              <Text
-                className="text-sm font-bold tracking-wide"
-                style={{ color: COLORS.orange }}
+              <MaskedView
+                maskElement={
+                  <Text className="text-sm font-bold tracking-wide">
+                    💰 DAILY REVENUE
+                  </Text>
+                }
               >
-                💰 DAILY REVENUE
-              </Text>
+                <LinearGradient
+                  colors={['#8bcf68ff', '#beb348ff']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                >
+                  <Text className="text-sm font-bold tracking-wide opacity-0">
+                    💰 DAILY REVENUE
+                  </Text>
+                </LinearGradient>
+              </MaskedView>
               <View
                 style={{
-                  backgroundColor: COLORS.orange,
+                  backgroundColor: COLORS.green,
                   paddingHorizontal: 12,
                   paddingVertical: 5,
                   borderRadius: 12,
@@ -190,7 +201,7 @@ export default function DailyRevenueCard({ userId, selectedDate }: DailyRevenueC
             {/* Revenue amount */}
             <View className="min-h-[30px] justify-center mb-3">
               {loading ? (
-                <ActivityIndicator color={COLORS.orange} size="large" />
+                <ActivityIndicator color={COLORS.green} size="large" />
               ) : (
                 <Text
                   className="text-4xl font-bold"
@@ -236,7 +247,7 @@ export default function DailyRevenueCard({ userId, selectedDate }: DailyRevenueC
 
           {/* Bottom accent line */}
           <LinearGradient
-            colors={['transparent', COLORS.orangeGlow, 'transparent']}
+            colors={['transparent', COLORS.greenGlow, 'transparent']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={{

@@ -25,8 +25,8 @@ const COLORS = {
   glassHighlight: 'rgba(255, 255, 255, 0.05)',
   text: '#F7F7F7',
   textMuted: 'rgba(247, 247, 247, 0.5)',
-  orange: '#FF5722',
-  orangeGlow: 'rgba(255, 87, 34, 0.2)',
+  green: '#8bcf68ff',
+  greenGlow: '#5b8f52ff',
   purple: '#9C27B0',
   purpleGlow: 'rgba(156, 39, 176, 0.2)',
 };
@@ -157,8 +157,8 @@ export default function Settings({ onClose }: SettingsProps) {
             onPress={handleClose}
             className="flex-row items-center gap-2"
           >
-            <Text className="text-2xl" style={{ color: COLORS.orange }}>←</Text>
-            <Text className="font-semibold" style={{ color: COLORS.orange }}>
+            <Text className="text-2xl" style={{ color: COLORS.green }}>←</Text>
+            <Text className="font-semibold" style={{ color: COLORS.green }}>
               Back
             </Text>
           </TouchableOpacity>

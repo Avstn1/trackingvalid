@@ -23,8 +23,8 @@ const COLORS = {
   glassBorder: 'rgba(255, 255, 255, 0.1)',
   text: '#F7F7F7',
   textMuted: 'rgba(247, 247, 247, 0.5)',
-  orange: '#FF5722',
-  orangeGlow: 'rgba(255, 87, 34, 0.4)',
+  green: '#8bcf68ff',
+  greenGlow: '#5b8f52ff',
 };
 
 export default function ProfileSecurityLogout() {
@@ -242,7 +242,7 @@ export default function ProfileSecurityLogout() {
   if (loading) {
     return (
       <View className="flex-1 justify-center items-center py-20">
-        <ActivityIndicator size="large" color={COLORS.orange} />
+        <ActivityIndicator size="large" color={COLORS.green} />
       </View>
     );
   }
@@ -281,8 +281,8 @@ export default function ProfileSecurityLogout() {
               disabled={uploading}
               className="absolute bottom-0 right-0 p-1.5 rounded-full"
               style={{ 
-                backgroundColor: COLORS.orange,
-                shadowColor: COLORS.orange,
+                backgroundColor: COLORS.green,
+                shadowColor: COLORS.green,
                 shadowOffset: { width: 0, height: 0 },
                 shadowOpacity: 0.5,
                 shadowRadius: 4,
@@ -344,8 +344,8 @@ export default function ProfileSecurityLogout() {
                 onPress={updateCommission}
                 className="px-5 py-2.5 rounded-xl"
                 style={{
-                  backgroundColor: COLORS.orange,
-                  shadowColor: COLORS.orange,
+                  backgroundColor: COLORS.green,
+                  shadowColor: COLORS.green,
                   shadowOffset: { width: 0, height: 2 },
                   shadowOpacity: 0.3,
                   shadowRadius: 4,

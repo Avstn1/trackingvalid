@@ -1,4 +1,6 @@
 import { supabase } from '@/utils/supabaseClient';
+import MaskedView from '@react-native-masked-view/masked-view';
+import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Text, View } from 'react-native';
 
@@ -82,9 +84,26 @@ export default function MonthlyExpensesCard({ userId, month, year }: MonthlyExpe
         }}
       />
 
-      <Text className="text-xs font-semibold mb-1" style={{ color: COLORS.red }}>
-        🧾 Monthly Expenses
-      </Text>
+      <View className="flex-row items-center gap-2">
+        <Text className="text-xs">🧾</Text>
+        <MaskedView
+          maskElement={
+            <Text className="text-sm font-bold tracking-wide">
+              Monthly Expenses
+            </Text>
+          }
+        >
+          <LinearGradient
+            colors={['#cf6868ff', '#be7348ff']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+          >
+            <Text className="text-sm font-bold tracking-wide opacity-0">
+              Monthly Expenses
+            </Text>
+          </LinearGradient>
+        </MaskedView>
+      </View>
 
       <View className="min-h-[40px] justify-center">
         {loading ? (

@@ -28,9 +28,9 @@ const COLORS = {
   glassBorder: 'rgba(255, 255, 255, 0.1)',
   text: '#F7F7F7',
   textMuted: 'rgba(247, 247, 247, 0.5)',
-  orange: '#FF5722',
-  orangeGlow: 'rgba(255, 87, 34, 0.2)',
-  orangeLight: 'rgba(255, 87, 34, 0.1)',
+  green: '#8bcf68ff',
+  greenGlow: '#beb348ff',
+  greenLight: 'rgba(72, 173, 77, 0.1)',
 }
 
 // Helper function to format relative time
@@ -308,8 +308,8 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
             <View 
               className="absolute -top-1 -right-1 w-5 h-5 rounded-full items-center justify-center"
               style={{ 
-                backgroundColor: COLORS.orange,
-                shadowColor: COLORS.orange,
+                backgroundColor: COLORS.green,
+                shadowColor: COLORS.green,
                 shadowOffset: { width: 0, height: 0 },
                 shadowOpacity: 0.5,
                 shadowRadius: 4,
@@ -365,7 +365,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
                       >
                         <Text 
                           className="font-semibold text-base tracking-wide"
-                          style={{ color: COLORS.orange }}
+                          style={{ color: COLORS.green }}
                         >
                           Notifications
                         </Text>
@@ -404,9 +404,9 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
                               activeOpacity={0.7}
                               className="px-4 py-3.5 rounded-xl mb-2"
                               style={{
-                                backgroundColor: !n.is_read ? COLORS.orangeLight : COLORS.surface,
+                                backgroundColor: !n.is_read ? COLORS.greenLight : COLORS.surface,
                                 borderWidth: 1,
-                                borderColor: !n.is_read ? COLORS.orange : COLORS.glassBorder,
+                                borderColor: !n.is_read ? COLORS.green : COLORS.glassBorder,
                               }}
                             >
                               <Text 

@@ -144,7 +144,7 @@ export default function QuarterlyRevenueChart({ userId, year, timeframe, refresh
 
   const formatTopLabel = (value: number) => {
     if (value >= 1000) {
-      return `$${(value / 1000).toFixed(1)}k`;
+      return `${(value / 1000).toFixed(1)}k`;
     }
     return `$${value}`;
   };
@@ -168,7 +168,7 @@ export default function QuarterlyRevenueChart({ userId, year, timeframe, refresh
   }));
 
   // Adjust bar width and spacing based on number of months
-  const barWidth = timeframe === 'year' ? 18 : 32;
+  const barWidth = timeframe === 'year' ? 25 : 100;
   const spacing = timeframe === 'year' ? 12 : 20;
 
   return (
@@ -179,7 +179,7 @@ export default function QuarterlyRevenueChart({ userId, year, timeframe, refresh
       >
         {title}
       </Text>
-      <View style={{ flex: 1, paddingRight: 0 }}>
+      <View style={{ flex: 1, marginTop: 45 }}>
         <BarChart
           data={barDataWithLabels}
           barWidth={barWidth}
@@ -201,6 +201,7 @@ export default function QuarterlyRevenueChart({ userId, year, timeframe, refresh
           formatYLabel={formatYLabel}
           isAnimated
           animationDuration={800}
+          disableScroll
         />
       </View>
     </View>

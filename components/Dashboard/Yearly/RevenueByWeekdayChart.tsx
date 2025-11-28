@@ -169,7 +169,7 @@ export default function RevenueByWeekdayChart({ userId, year, timeframe, refresh
 
   const formatTopLabel = (value: number) => {
     if (value >= 1000) {
-      return `${(value / 1000).toFixed(1)}k`;
+      return `$${(value / 1000).toFixed(1)}k`;
     }
     return `${value}`;
   };
@@ -193,17 +193,17 @@ export default function RevenueByWeekdayChart({ userId, year, timeframe, refresh
   }));
 
   return (
-    <View className="flex-1">
+    <View className="flex-1" style={{ width: '100%' }}>
       <Text 
         className="text-sm font-semibold mb-3" 
         style={{ color: COLORS.text }}
       >
         {title}
       </Text>
-      <View style={{ flex: 1, paddingRight: 16 }}>
+      <View style={{ flex: 1, width: '100%', marginTop: 45 }}>
         <BarChart
           data={barDataWithLabels}
-          barWidth={32}
+          barWidth={43}
           noOfSections={4}
           barBorderRadius={6}
           frontColor={COLORS.green}
@@ -214,7 +214,7 @@ export default function RevenueByWeekdayChart({ userId, year, timeframe, refresh
           yAxisTextStyle={{ color: COLORS.textMuted, fontSize: 10 }}
           xAxisLabelTextStyle={{ color: COLORS.textMuted, fontSize: 10 }}
           maxValue={roundedMax}
-          spacing={20}
+          spacing={28}
           hideRules={false}
           rulesColor="rgba(255, 255, 255, 0.1)"
           rulesType="solid"
@@ -222,6 +222,9 @@ export default function RevenueByWeekdayChart({ userId, year, timeframe, refresh
           formatYLabel={formatYLabel}
           isAnimated
           animationDuration={800}
+          initialSpacing={10}
+          endSpacing={10}
+          disableScroll
         />
       </View>
     </View>

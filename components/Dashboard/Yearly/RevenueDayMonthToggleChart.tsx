@@ -3,7 +3,7 @@ import { Dimensions, Text, TouchableOpacity, View } from 'react-native';
 import QuarterlyRevenueChart from './QuarterlyRevenueChart';
 import RevenueByWeekdayChart from './RevenueByWeekdayChart';
 
-const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get('window');
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 type Timeframe = 'year' | 'Q1' | 'Q2' | 'Q3' | 'Q4';
 
@@ -41,7 +41,7 @@ export default function RevenueDayMonthToggleChart({ userId, year, timeframe, re
         borderWidth: 1,
         borderColor: COLORS.glassBorder,
         height: SCREEN_HEIGHT * 0.35,
-        width: SCREEN_WIDTH * 0.935,
+        width: '100%',
         padding: 16,
       }}
     >

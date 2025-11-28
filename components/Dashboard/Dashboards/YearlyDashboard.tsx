@@ -167,7 +167,8 @@ export default function YearlyDashboard({
   }, [charts.length]);
 
   return (
-    <View className="gap-4">
+    <View className="gap-3">
+      <View></View>
       {/* Hero Yearly Revenue Card */}
       {metricCards[0]?.component}
 
@@ -205,34 +206,34 @@ export default function YearlyDashboard({
             </View>
           )}
         />
+      </View>
 
-        {/* Page Indicator Dots - Glassy style */}
-        <View 
-          className="flex-row justify-center items-center gap-2"
-          style={{  
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            marginBottom: 60
-          }}
-        >
-          {charts.map((_, index) => (
-            <View
-              key={index}
-              className="h-2 rounded-full"
-              style={{
-                width: index === activeChartIndex ? 24 : 8,
-                backgroundColor: index === activeChartIndex ? COLORS.green : COLORS.dotInactive,
-                shadowColor: index === activeChartIndex ? COLORS.green : 'transparent',
-                shadowOffset: { width: 0, height: 0 },
-                shadowOpacity: index === activeChartIndex ? 0.8 : 0,
-                shadowRadius: 6,
-                elevation: index === activeChartIndex ? 4 : 0,
-              }}
-            />
-          ))}
-        </View>
+              {/* Page Indicator Dots - Glassy style */}
+      <View 
+        className="flex-row justify-center items-center gap-2"
+        style={{  
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          marginBottom: -30
+        }}
+      >
+        {charts.map((_, index) => (
+          <View
+            key={index}
+            className="h-2 rounded-full"
+            style={{
+              width: index === activeChartIndex ? 24 : 8,
+              backgroundColor: index === activeChartIndex ? COLORS.green : COLORS.dotInactive,
+              shadowColor: index === activeChartIndex ? COLORS.green : 'transparent',
+              shadowOffset: { width: 0, height: 0 },
+              shadowOpacity: index === activeChartIndex ? 0.8 : 0,
+              shadowRadius: 6,
+              elevation: index === activeChartIndex ? 4 : 0,
+            }}
+          />
+        ))}
       </View>
     </View>
   );

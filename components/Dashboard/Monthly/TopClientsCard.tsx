@@ -83,8 +83,8 @@ export default function TopClientsCard({ userId, selectedMonth, selectedYear }: 
         elevation: 3,
         padding: 16,
         marginHorizontal: -14,
-        minHeight: 310,
-        maxHeight: 440,
+        minHeight: 345,
+        maxHeight: 345,
       }}
     >
       <View 

@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Dimensions, Text, TouchableOpacity, View } from 'react-native';
 import { PieChart } from 'react-native-gifted-charts';
 
-// Color Palette - matching dashboard theme
+// Color Palette - matching yearly green theme
 const COLORS_PALETTE = {
   background: '#181818',
   surface: 'rgba(37, 37, 37, 0.6)',
@@ -11,11 +11,14 @@ const COLORS_PALETTE = {
   glassHighlight: 'rgba(255, 255, 255, 0.05)',
   text: '#F7F7F7',
   textMuted: 'rgba(247, 247, 247, 0.5)',
-  orange: '#FF5722',
-  orangeGlow: 'rgba(255, 87, 34, 0.4)',
-  purple: '#673AB7',
-  yellow: '#FFEB3B',
+  green: '#8bcf68ff',
+  greenLight: '#beb348ff',
 };
+
+const CHART_COLORS = [
+  '#F6E27F', '#E7B7A3', '#A7C7E7', '#C6D8A8', '#9AD1C9',
+  '#B7A0E3', '#F5D6C6', '#F7C9D2', '#C9E5D3', '#D6D6D6',
+];
 
 interface ProfitMarginPieChartProps {
   readonly userId: string;
@@ -83,12 +86,12 @@ export default function ProfitMarginPieChart({
         setData([
           {
             value: profit,
-            color: COLORS_PALETTE.yellow,
+            color: CHART_COLORS[0],
             label: 'Profit',
           },
           {
             value: expenses,
-            color: COLORS_PALETTE.orange,
+            color: CHART_COLORS[1],
             label: 'Expenses',
           },
         ]);
@@ -119,7 +122,7 @@ export default function ProfitMarginPieChart({
           minHeight: 320,
         }}
       >
-        <ActivityIndicator color={COLORS_PALETTE.orange} size="large" />
+        <ActivityIndicator color={COLORS_PALETTE.green} size="large" />
         <Text className="mt-2 text-xs" style={{ color: COLORS_PALETTE.textMuted }}>
           Loading...
         </Text>
@@ -172,6 +175,8 @@ export default function ProfitMarginPieChart({
         elevation: 3,
         padding: 16,
         marginHorizontal: -14,
+        minHeight: 345,
+        maxHeight: 345,
       }}
     >
       {/* Subtle highlight at top */}
@@ -188,7 +193,7 @@ export default function ProfitMarginPieChart({
 
       <Text 
         className="text-base font-semibold mb-3"
-        style={{ color: COLORS_PALETTE.orange }}
+        style={{ color: COLORS_PALETTE.green }}
       >
         🥧 Profit vs Expenses
       </Text>
@@ -254,7 +259,7 @@ export default function ProfitMarginPieChart({
                     className="text-xs font-medium" 
                     numberOfLines={1}
                     style={{ 
-                      color: isSelected ? COLORS_PALETTE.orange : COLORS_PALETTE.text,
+                      color: isSelected ? COLORS_PALETTE.green : COLORS_PALETTE.text,
                       fontWeight: isSelected ? '700' : '500',
                     }}
                   >

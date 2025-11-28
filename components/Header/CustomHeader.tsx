@@ -273,7 +273,7 @@ export function CustomHeader({
             <>
               <TouchableOpacity
                 onPress={handleOpenDatePicker}
-                className="flex-row items-center gap-2 px-3 py-2 rounded-full"
+                className="flex-row items-center gap-2 px-3 py-3 rounded-full"
                 style={{
                   backgroundColor: COLORS.surfaceSolid,
                   borderWidth: 1,

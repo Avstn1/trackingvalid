@@ -4,8 +4,9 @@ import { ActivityIndicator, Animated, Image, Text, View } from 'react-native';
 
 const COLORS = {
   background: '#181818',
-  text: '#F7F7F7',
-  orange: '#FF5722',
+  text: '#FFFFFF',
+  textMuted: 'rgba(255, 255, 255, 0.7)',
+  green: '#8bcf68ff',
 };
 
 interface AuthLoadingSplashProps {
@@ -68,14 +69,13 @@ export default function AuthLoadingSplash({ message = 'Loading...' }: AuthLoadin
         >
           ShearWork
         </Text>
-        <ActivityIndicator size="large" color={COLORS.orange} />
+        <ActivityIndicator size="large" color={COLORS.green} />
         {message && (
           <Text
             style={{
               fontSize: 14,
-              color: COLORS.text,
+              color: COLORS.textMuted,
               marginTop: 16,
-              opacity: 0.7,
             }}
           >
             {message}

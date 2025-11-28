@@ -3,6 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { CircleDollarSign } from 'lucide-react-native'
 import { useEffect, useRef, useState } from 'react'
 import {
+  ActivityIndicator,
   Animated,
   Dimensions,
   FlatList,
@@ -27,11 +28,10 @@ const COLORS = {
   glassHighlight: 'rgba(255, 255, 255, 0.05)',
   text: '#FFFFFF',
   textMuted: 'rgba(255, 255, 255, 0.5)',
-  orange: '#FF5722',
-  orangeGlow: 'rgba(255, 87, 34, 0.2)',
-  purple: '#9C27B0',
-  purpleGlow: 'rgba(156, 39, 176, 0.2)',
-  yellow: '#FFEB3B',
+  green: '#8bcf68ff',
+  greenLight: '#beb348ff',
+  greenGlow: 'rgba(139, 207, 104, 0.2)',
+  greenDark: '#2f3a2d',
 }
 
 const MONTHS = [
@@ -362,7 +362,7 @@ export default function DailyTipsDropdown({
 
                 <Text 
                   className="font-semibold text-base mb-4 text-center"
-                  style={{ color: COLORS.orange }}
+                  style={{ color: COLORS.green }}
                 >
                   Tips for {month} {selectedDay}, {year}
                 </Text>
@@ -449,7 +449,7 @@ export default function DailyTipsDropdown({
                 <View 
                   className="rounded-2xl mb-4 overflow-hidden"
                   style={{
-                    shadowColor: COLORS.orange,
+                    shadowColor: COLORS.green,
                     shadowOffset: { width: 0, height: 4 },
                     shadowOpacity: 0.3,
                     shadowRadius: 12,
@@ -457,7 +457,7 @@ export default function DailyTipsDropdown({
                   }}
                 >
                   <LinearGradient
-                    colors={[COLORS.purple, COLORS.orange]}
+                    colors={[COLORS.greenLight, COLORS.green]}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
                     style={{ padding: 2, borderRadius: 16 }}
@@ -511,12 +511,12 @@ export default function DailyTipsDropdown({
                     onPress={() => setAction('replace')}
                     className="flex-1 py-2 rounded-lg"
                     style={{
-                      backgroundColor: action === 'replace' ? COLORS.purpleGlow : 'transparent',
+                      backgroundColor: action === 'replace' ? COLORS.greenGlow : 'transparent',
                     }}
                   >
                     <Text
                       className="text-center text-xs font-semibold"
-                      style={{ color: action === 'replace' ? COLORS.purple : COLORS.textMuted }}
+                      style={{ color: action === 'replace' ? COLORS.greenLight : COLORS.textMuted }}
                     >
                       Replace
                     </Text>
@@ -525,12 +525,12 @@ export default function DailyTipsDropdown({
                     onPress={() => setAction('add')}
                     className="flex-1 py-2 rounded-lg"
                     style={{
-                      backgroundColor: action === 'add' ? COLORS.orangeGlow : 'transparent',
+                      backgroundColor: action === 'add' ? COLORS.greenGlow : 'transparent',
                     }}
                   >
                     <Text
                       className="text-center text-xs font-semibold"
-                      style={{ color: action === 'add' ? COLORS.orange : COLORS.textMuted }}
+                      style={{ color: action === 'add' ? COLORS.green : COLORS.textMuted }}
                     >
                       Add
                     </Text>
@@ -560,9 +560,9 @@ export default function DailyTipsDropdown({
                     disabled={loading}
                     className="flex-1 py-3 rounded-full"
                     style={{
-                      backgroundColor: COLORS.orange,
+                      backgroundColor: COLORS.green,
                       opacity: loading ? 0.6 : 1,
-                      shadowColor: COLORS.orange,
+                      shadowColor: COLORS.green,
                       shadowOffset: { width: 0, height: 0 },
                       shadowOpacity: 0.4,
                       shadowRadius: 12,

@@ -3,8 +3,8 @@ import { Animated, Image, Text, View } from 'react-native';
 
 const COLORS = {
   background: '#181818',
-  text: '#F7F7F7',
-  orange: '#FF5722',
+  text: '#FFFFFF',
+  green: '#8bcf68ff',
 };
 
 interface CustomSplashProps {
@@ -88,14 +88,14 @@ export default function CustomSplash({ onFinish }: CustomSplashProps) {
           style={{
             height: 4,
             width: 60,
-            backgroundColor: COLORS.orange,
+            backgroundColor: COLORS.green,
             borderRadius: 2,
             marginTop: 12,
             opacity: underlineAnim,
             transform: [{
               scaleX: underlineAnim,
             }],
-            shadowColor: COLORS.orange,
+            shadowColor: COLORS.green,
             shadowOffset: { width: 0, height: 0 },
             shadowOpacity: 0.8,
             shadowRadius: 8,

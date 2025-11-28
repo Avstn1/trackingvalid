@@ -1,6 +1,20 @@
 import { supabase } from '@/utils/supabaseClient';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Dimensions, ScrollView, Text, View } from 'react-native';
+
+const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get('window');
+
+// Color Palette
+const COLORS = {
+  background: '#181818',
+  cardBg: '#1a1a1a',
+  surface: 'rgba(37, 37, 37, 0.6)',
+  glassBorder: 'rgba(255, 255, 255, 0.1)',
+  text: '#FFFFFF',
+  textMuted: 'rgba(255, 255, 255, 0.6)',
+  green: '#8bcf68ff',
+  yellow: '#FFEB3B',
+};
 
 type Timeframe = 'year' | 'Q1' | 'Q2' | 'Q3' | 'Q4';
 
@@ -8,6 +22,7 @@ interface YearlyTopClientsCardProps {
   userId: string;
   year: number;
   timeframe: Timeframe;
+  refreshKey?: number;
 }
 
 interface TopClient {
@@ -34,6 +49,7 @@ export default function YearlyTopClientsCard({
   userId,
   year,
   timeframe,
+  refreshKey,
 }: YearlyTopClientsCardProps) {
   const [clients, setClients] = useState<TopClient[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -116,60 +132,100 @@ export default function YearlyTopClientsCard({
     };
 
     fetchTopClients();
-  }, [userId, year, timeframe]);
+  }, [userId, year, timeframe, refreshKey]);
 
   const titleSuffix = timeframe === 'year' ? `${year}` : `${timeframe} ${year}`;
 
+  if (loading) {
+    return (
+      <View 
+        className="rounded-3xl overflow-hidden items-center justify-center"
+        style={{ 
+          backgroundColor: COLORS.cardBg,
+          borderWidth: 1,
+          borderColor: COLORS.glassBorder,
+          height: SCREEN_HEIGHT * 0.35,
+          width: SCREEN_WIDTH * 0.935,
+          padding: 16,
+        }}
+      >
+        <ActivityIndicator size="small" color="#8bcf68ff" />
+        <Text className="text-sm mt-2" style={{ color: COLORS.textMuted }}>
+          Loading...
+        </Text>
+      </View>
+    );
+  }
+
+  if (clients.length === 0) {
+    return (
+      <View 
+        className="rounded-3xl overflow-hidden items-center justify-center"
+        style={{ 
+          backgroundColor: COLORS.cardBg,
+          borderWidth: 1,
+          borderColor: COLORS.glassBorder,
+          height: SCREEN_HEIGHT * 0.35,
+          width: SCREEN_WIDTH * 0.935,
+          padding: 16,
+        }}
+      >
+        <Text className="text-xs text-center" style={{ color: COLORS.textMuted }}>
+          No data available for {titleSuffix}
+        </Text>
+      </View>
+    );
+  }
+
   return (
-    <View className="rounded-xl bg-zinc-900 border border-zinc-800 p-3 min-h-[280px] max-h-[400px]">
-      <Text className="text-lime-300 text-lg font-bold mb-2">
+    <View 
+      className="rounded-3xl overflow-hidden"
+      style={{ 
+        backgroundColor: COLORS.cardBg,
+        borderWidth: 1,
+        borderColor: COLORS.glassBorder,
+        height: SCREEN_HEIGHT * 0.35,
+        width: SCREEN_WIDTH * 0.935,
+        padding: 16,
+      }}
+    >
+      <Text className="text-base font-bold mb-2" style={{ color: COLORS.text }}>
         👑 Top Clients ({titleSuffix})
       </Text>
 
-      {loading ? (
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="small" color="#c4ff85" />
-        </View>
-      ) : clients.length === 0 ? (
-        <View className="flex-1 items-center justify-center">
-          <Text className="text-gray-400 text-xs text-center">
-            No data available for {titleSuffix}
-          </Text>
-        </View>
-      ) : (
-        <View className="flex-1">
-          {/* Table Header */}
-          <View className="flex-row border-b border-zinc-700 pb-2 mb-1">
-            <Text className="text-white font-semibold text-xs w-6">#</Text>
-            <Text className="text-white font-semibold text-xs flex-1 pr-2">Client</Text>
-            <Text className="text-white font-semibold text-xs w-20 text-right pr-2">Total</Text>
-            <Text className="text-white font-semibold text-xs w-14 text-right">Visits</Text>
-          </View>
+      {/* Table Header */}
+      <View className="flex-row pb-2 mb-1" style={{ borderBottomWidth: 1, borderBottomColor: 'rgba(255, 255, 255, 0.2)' }}>
+        <Text className="font-semibold text-xs w-6" style={{ color: COLORS.text }}>#</Text>
+        <Text className="font-semibold text-xs flex-1 pr-2" style={{ color: COLORS.text }}>Client</Text>
+        <Text className="font-semibold text-xs w-20 text-right pr-2" style={{ color: COLORS.text }}>Total</Text>
+        <Text className="font-semibold text-xs w-14 text-right" style={{ color: COLORS.text }}>Visits</Text>
+      </View>
 
-          {/* Table Rows */}
-          <ScrollView showsVerticalScrollIndicator={false}>
-            {clients.slice(0, 5).map((client, idx) => (
-              <View
-                key={client.client_id ?? client.client_name ?? idx}
-                className={`flex-row py-2 border-b border-zinc-700 ${
-                  idx % 2 === 0 ? 'bg-zinc-800/30' : ''
-                }`}
-              >
-                <Text className="text-white text-sm w-6">{idx + 1}</Text>
-                <Text className="text-white font-semibold text-sm flex-1 pr-2" numberOfLines={1}>
-                  {client.client_name ?? 'N/A'}
-                </Text>
-                <Text className="text-green-400 font-semibold text-sm w-20 text-right pr-2">
-                  ${client.total_paid?.toFixed(2) ?? '-'}
-                </Text>
-                <Text className="text-yellow-400 font-semibold text-sm w-14 text-right">
-                  {client.num_visits ?? '-'}
-                </Text>
-              </View>
-            ))}
-          </ScrollView>
-        </View>
-      )}
+      {/* Table Rows */}
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {clients.slice(0, 10).map((client, idx) => (
+          <View
+            key={client.client_id ?? client.client_name ?? idx}
+            className="flex-row py-2"
+            style={{
+              borderBottomWidth: 1,
+              borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+              backgroundColor: idx % 2 === 0 ? 'rgba(255, 255, 255, 0.03)' : 'transparent',
+            }}
+          >
+            <Text className="text-sm w-6" style={{ color: COLORS.text }}>{idx + 1}</Text>
+            <Text className="font-semibold text-sm flex-1 pr-2" style={{ color: COLORS.text }} numberOfLines={1}>
+              {client.client_name ?? 'N/A'}
+            </Text>
+            <Text className="font-semibold text-sm w-20 text-right pr-2" style={{ color: COLORS.green }}>
+              ${client.total_paid?.toFixed(2) ?? '-'}
+            </Text>
+            <Text className="font-semibold text-sm w-14 text-right" style={{ color: COLORS.yellow }}>
+              {client.num_visits ?? '-'}
+            </Text>
+          </View>
+        ))}
+      </ScrollView>
     </View>
   );
 }

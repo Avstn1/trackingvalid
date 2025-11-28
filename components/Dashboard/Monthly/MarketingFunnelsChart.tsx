@@ -2,7 +2,7 @@ import { supabase } from '@/utils/supabaseClient';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
 
-// Color Palette - matching dashboard theme
+// Color Palette - matching yearly green theme
 const COLORS_PALETTE = {
   background: '#181818',
   surface: 'rgba(37, 37, 37, 0.6)',
@@ -10,16 +10,13 @@ const COLORS_PALETTE = {
   glassHighlight: 'rgba(255, 255, 255, 0.05)',
   text: '#F7F7F7',
   textMuted: 'rgba(247, 247, 247, 0.5)',
-  orange: '#FF5722',
-  orangeGlow: 'rgba(255, 87, 34, 0.4)',
-  purple: '#673AB7',
-  yellow: '#FFEB3B',
+  green: '#8bcf68ff',
 };
 
 const COLORS = {
-  newClients: COLORS_PALETTE.orange,
-  returningClients: COLORS_PALETTE.purple,
-  retention: COLORS_PALETTE.yellow,
+  newClients: '#9AC8CD',
+  returningClients: '#748E63',
+  retention: '#B19470',
 };
 
 export interface MarketingFunnel {
@@ -69,7 +66,6 @@ export default function MarketingFunnelsChart({
             f.source &&
             f.source !== 'Unknown' &&
             f.source !== 'Returning Client' &&
-            // Filter out sources where all values are 0
             ((f.new_clients || 0) > 0 || (f.returning_clients || 0) > 0 || (f.retention || 0) > 0)
         );
 
@@ -132,7 +128,7 @@ export default function MarketingFunnelsChart({
           minHeight: 280,
         }}
       >
-        <ActivityIndicator size="small" color={COLORS_PALETTE.orange} />
+        <ActivityIndicator size="small" color={COLORS_PALETTE.green} />
         <Text className="text-sm mt-2" style={{ color: COLORS_PALETTE.textMuted }}>
           Loading...
         </Text>
@@ -177,9 +173,10 @@ export default function MarketingFunnelsChart({
         elevation: 3,
         padding: 16,
         marginHorizontal: -14,
+        minHeight: 345,
+        maxHeight: 345,
       }}
     >
-      {/* Subtle highlight at top */}
       <View 
         style={{
           position: 'absolute',
@@ -191,43 +188,23 @@ export default function MarketingFunnelsChart({
         }}
       />
 
-      {/* Title and Legend in one row */}
       <View className="flex-row items-center justify-between mb-3">
-        <Text 
-          className="text-base font-semibold"
-          style={{ color: COLORS_PALETTE.orange }}
-        >
+        <Text className="text-base font-semibold" style={{ color: COLORS_PALETTE.green }}>
           📣 Marketing Funnels
         </Text>
 
-        {/* Legend beside title */}
         <View className="flex-row gap-2">
           <View className="flex-row items-center gap-1">
-            <View 
-              className="w-2 h-2 rounded-full" 
-              style={{ backgroundColor: COLORS.newClients }} 
-            />
-            <Text className="text-[9px]" style={{ color: COLORS_PALETTE.text }}>
-              New
-            </Text>
+            <View className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS.newClients }} />
+            <Text className="text-[9px]" style={{ color: COLORS_PALETTE.text }}>New</Text>
           </View>
           <View className="flex-row items-center gap-1">
-            <View 
-              className="w-2 h-2 rounded-full" 
-              style={{ backgroundColor: COLORS.returningClients }} 
-            />
-            <Text className="text-[9px]" style={{ color: COLORS_PALETTE.text }}>
-              Ret
-            </Text>
+            <View className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS.returningClients }} />
+            <Text className="text-[9px]" style={{ color: COLORS_PALETTE.text }}>Ret</Text>
           </View>
           <View className="flex-row items-center gap-1">
-            <View 
-              className="w-2 h-2 rounded-full" 
-              style={{ backgroundColor: COLORS.retention }} 
-            />
-            <Text className="text-[9px]" style={{ color: COLORS_PALETTE.text }}>
-              %
-            </Text>
+            <View className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS.retention }} />
+            <Text className="text-[9px]" style={{ color: COLORS_PALETTE.text }}>%</Text>
           </View>
         </View>
       </View>
@@ -239,13 +216,11 @@ export default function MarketingFunnelsChart({
           const newWidth = maxValue > 0 ? (newClients / maxValue) * 100 : 0;
           const returningWidth = maxValue > 0 ? (returningClients / maxValue) * 100 : 0;
 
-          // Calculate dynamic spacing based on number of items (max 6)
           const itemCount = data.length;
           const isLast = idx === itemCount - 1;
           
           return (
             <View key={idx} style={{ flex: 1, marginBottom: isLast ? 0 : 8 }}>
-              {/* Source Name */}
               <Text 
                 className="text-[10px] font-semibold mb-0.5" 
                 numberOfLines={1}
@@ -254,7 +229,6 @@ export default function MarketingFunnelsChart({
                 {item.source}
               </Text>
 
-              {/* New Clients Bar */}
               <View className="flex-row items-center mb-0.5">
                 <View
                   className="h-2 rounded"
@@ -264,15 +238,11 @@ export default function MarketingFunnelsChart({
                     minWidth: 10,
                   }}
                 />
-                <Text 
-                  className="text-[9px] ml-1.5"
-                  style={{ color: COLORS_PALETTE.text }}
-                >
+                <Text className="text-[9px] ml-1.5" style={{ color: COLORS_PALETTE.text }}>
                   {newClients}
                 </Text>
               </View>
 
-              {/* Returning Clients Bar */}
               <View className="flex-row items-center mb-0.5">
                 <View
                   className="h-2 rounded"
@@ -282,15 +252,11 @@ export default function MarketingFunnelsChart({
                     minWidth: 10,
                   }}
                 />
-                <Text 
-                  className="text-[9px] ml-1.5"
-                  style={{ color: COLORS_PALETTE.text }}
-                >
+                <Text className="text-[9px] ml-1.5" style={{ color: COLORS_PALETTE.text }}>
                   {returningClients}
                 </Text>
               </View>
 
-              {/* Retention Bar */}
               <View className="flex-row items-center">
                 <View
                   className="h-1.5 rounded"
@@ -300,10 +266,7 @@ export default function MarketingFunnelsChart({
                     minWidth: 10,
                   }}
                 />
-                <Text 
-                  className="text-[9px] ml-1.5"
-                  style={{ color: COLORS_PALETTE.textMuted }}
-                >
+                <Text className="text-[9px] ml-1.5" style={{ color: COLORS_PALETTE.textMuted }}>
                   {item.retention?.toFixed(0)}%
                 </Text>
               </View>

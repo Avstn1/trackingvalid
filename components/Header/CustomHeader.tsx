@@ -3,7 +3,6 @@ import DailyTipsDropdown from '@/components/Header/DailyTipsDropdown';
 import NotificationsDropdown from '@/components/Header/NotificationsDropdown';
 import SettingsPage from '@/components/Profile/Settings/Settings';
 import { supabase } from "@/utils/supabaseClient";
-import DateTimePicker from '@react-native-community/datetimepicker';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { LinearGradient } from 'expo-linear-gradient';
 import { CalendarRange, Settings } from 'lucide-react-native';
@@ -12,12 +11,12 @@ import {
   ActivityIndicator,
   Dimensions,
   Modal,
-  Platform,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import DayPicker from './DayPicker';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -30,8 +29,8 @@ const COLORS = {
   glassHighlight: 'rgba(255, 255, 255, 0.05)',
   text: '#F7F7F7',
   textMuted: 'rgba(247, 247, 247, 0.5)',
-  green: '#54d33dff',
-  greenLight: '#5b8f52ff',
+  green: '#8bcf68ff',
+  greenLight: '#beb348ff',
   yellow: '#FFEB3B',
 };
 
@@ -40,14 +39,42 @@ const MONTHS = [
   "July", "August", "September", "October", "November", "December",
 ];
 
+type Timeframe = 'year' | 'Q1' | 'Q2' | 'Q3' | 'Q4';
+
+const timeframeOptions = [
+  { label: 'Year', value: 'year' },
+  { label: 'Q1 (Jan-Mar)', value: 'Q1' },
+  { label: 'Q2 (Apr-Jun)', value: 'Q2' },
+  { label: 'Q3 (Jul-Sep)', value: 'Q3' },
+  { label: 'Q4 (Oct-Dec)', value: 'Q4' },
+];
+
 interface CustomHeaderProps {
   pageName: string;
   userId?: string;
   onRefresh?: () => void;
   onDateChange?: (month: string, year: number) => void;
+  // Dashboard-specific props
+  dashboardView?: "monthly" | "yearly";
+  onDashboardViewChange?: (view: "monthly" | "yearly") => void;
+  timeframe?: Timeframe;
+  onTimeframeChange?: (timeframe: Timeframe) => void;
+  selectedDate?: Date;
+  onDateSelect?: (date: Date) => void;
 }
 
-export function CustomHeader({ pageName, userId, onRefresh, onDateChange }: CustomHeaderProps) {
+export function CustomHeader({ 
+  pageName, 
+  userId, 
+  onRefresh, 
+  onDateChange,
+  dashboardView = "monthly",
+  onDashboardViewChange,
+  timeframe = 'year',
+  onTimeframeChange,
+  selectedDate,
+  onDateSelect,
+}: CustomHeaderProps) {
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
@@ -59,13 +86,16 @@ export function CustomHeader({ pageName, userId, onRefresh, onDateChange }: Cust
   const currentYear = currentDate.getFullYear();
   
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(new Date(currentYear, currentMonthIndex, 1));
-  const [tempDate, setTempDate] = useState(new Date(currentYear, currentMonthIndex, 1));
+  const [localSelectedDate, setLocalSelectedDate] = useState(selectedDate || new Date(currentYear, currentMonthIndex, 1));
+  const [tempDate, setTempDate] = useState(selectedDate || new Date(currentYear, currentMonthIndex, 1));
+  const [tempDashboardView, setTempDashboardView] = useState(dashboardView);
+  const [tempTimeframe, setTempTimeframe] = useState(timeframe);
 
   const [componentsReady, setComponentsReady] = useState(false);
 
   // Check if this page should show the date picker
   const showsDatePicker = ['Dashboard', 'Finances', 'Reports'].includes(pageName);
+  const isDashboard = pageName === 'Dashboard';
 
   useEffect(() => {
     const fetchUserAndProfile = async () => {
@@ -101,6 +131,22 @@ export function CustomHeader({ pageName, userId, onRefresh, onDateChange }: Cust
     });
   }, []);
 
+  // Update local state when props change
+  useEffect(() => {
+    if (selectedDate) {
+      setLocalSelectedDate(selectedDate);
+      setTempDate(selectedDate);
+    }
+  }, [selectedDate]);
+
+  useEffect(() => {
+    setTempDashboardView(dashboardView);
+  }, [dashboardView]);
+
+  useEffect(() => {
+    setTempTimeframe(timeframe);
+  }, [timeframe]);
+
   const handleCloseSettings = () => {
     setShowSettings(false);
   };
@@ -114,29 +160,48 @@ export function CustomHeader({ pageName, userId, onRefresh, onDateChange }: Cust
   };
 
   const handleDateConfirm = () => {
-    setSelectedDate(tempDate);
-    const month = MONTHS[tempDate.getMonth()];
-    const year = tempDate.getFullYear();
-    setShowDatePicker(false);
-    
-    // Notify parent component
-    if (onDateChange) {
-      onDateChange(month, year);
+    if (isDashboard) {
+      // Dashboard mode
+      if (onDashboardViewChange) {
+        onDashboardViewChange(tempDashboardView);
+      }
+      if (onTimeframeChange) {
+        onTimeframeChange(tempTimeframe);
+      }
+      if (onDateSelect) {
+        onDateSelect(tempDate);
+      }
+      setLocalSelectedDate(tempDate);
+      setShowDatePicker(false);
+    } else {
+      // Finances/Reports mode
+      setLocalSelectedDate(tempDate);
+      const month = MONTHS[tempDate.getMonth()];
+      const year = tempDate.getFullYear();
+      setShowDatePicker(false);
+      
+      if (onDateChange) {
+        onDateChange(month, year);
+      }
     }
   };
 
   const handleDateCancel = () => {
-    setTempDate(selectedDate);
+    setTempDate(localSelectedDate);
+    setTempDashboardView(dashboardView);
+    setTempTimeframe(timeframe);
     setShowDatePicker(false);
   };
 
   const handleOpenDatePicker = () => {
-    setTempDate(selectedDate);
+    setTempDate(localSelectedDate);
+    setTempDashboardView(dashboardView);
+    setTempTimeframe(timeframe);
     setShowDatePicker(true);
   };
 
   const getDateLabel = () => {
-    return `${MONTHS[selectedDate.getMonth()]} ${selectedDate.getFullYear()}`;
+    return `${MONTHS[localSelectedDate.getMonth()]} ${localSelectedDate.getFullYear()}`;
   };
 
   if (loading) {
@@ -208,7 +273,7 @@ export function CustomHeader({ pageName, userId, onRefresh, onDateChange }: Cust
             <>
               <TouchableOpacity
                 onPress={handleOpenDatePicker}
-                className="flex-row items-center gap-2 px-3 py-2 rounded-full"
+                className="flex-row items-center gap-2 px-3 py-3 rounded-full"
                 style={{
                   backgroundColor: COLORS.surfaceSolid,
                   borderWidth: 1,
@@ -242,79 +307,19 @@ export function CustomHeader({ pageName, userId, onRefresh, onDateChange }: Cust
         <SettingsPage onClose={handleCloseSettings} />
       </Modal>
 
-      {/* Date Picker Modal */}
       {showsDatePicker && (
-        <Modal
+        <DayPicker
           visible={showDatePicker}
-          transparent={true}
-          animationType="fade"
-          onRequestClose={handleDateCancel}
-        >
-          <View className="flex-1 justify-center items-center bg-black/70">
-            <View 
-              className="rounded-3xl p-6 overflow-hidden"
-              style={{ 
-                width: SCREEN_WIDTH * 0.9,
-                maxWidth: 400,
-                backgroundColor: 'rgba(37, 37, 37, 0.95)',
-                borderWidth: 1,
-                borderColor: COLORS.glassBorder,
-              }}
-            >
-              <Text className="text-lg font-semibold mb-4 text-center" style={{ color: COLORS.text }}>
-                Choose Month & Year
-              </Text>
-
-              <View 
-                className="rounded-2xl overflow-hidden"
-                style={{ 
-                  backgroundColor: COLORS.cardBg,
-                  borderWidth: 1,
-                  borderColor: COLORS.glassBorder,
-                }}
-              >
-                <DateTimePicker
-                  value={tempDate}
-                  mode="date"
-                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                  onChange={handleDateChange}
-                  minimumDate={new Date(2020, 0, 1)}
-                  maximumDate={new Date()}
-                  textColor={COLORS.text}
-                  themeVariant="dark"
-                />
-              </View>
-
-              <Text className="text-xs text-center mt-3" style={{ color: COLORS.textMuted }}>
-                Day will be set to 1st of selected month
-              </Text>
-
-              <View className="flex-row gap-3 mt-6">
-                <TouchableOpacity
-                  onPress={handleDateCancel}
-                  className="flex-1 py-3 rounded-full"
-                  style={{ 
-                    backgroundColor: COLORS.cardBg,
-                    borderWidth: 1,
-                    borderColor: COLORS.glassBorder,
-                  }}
-                >
-                  <Text className="text-center font-semibold" style={{ color: COLORS.text }}>Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={handleDateConfirm}
-                  className="flex-1 py-3 rounded-full"
-                  style={{ 
-                    backgroundColor: COLORS.green,
-                    elevation: 5,
-                  }}
-                >
-                  <Text className="text-center font-semibold" style={{ color: COLORS.text }}>Done</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        </Modal>
+          onClose={handleDateCancel}
+          onConfirm={handleDateConfirm}
+          isDashboard={isDashboard}
+          dashboardView={tempDashboardView}
+          onDashboardViewChange={setTempDashboardView}
+          timeframe={tempTimeframe}
+          onTimeframeChange={setTempTimeframe}
+          tempDate={tempDate}
+          onDateChange={handleDateChange}
+        />
       )}
     </View>
   );

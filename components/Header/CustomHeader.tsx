@@ -1,3 +1,4 @@
+import AuthLoadingSplash from '@/components/AuthLoadingSpash';
 import DailyTipsDropdown from '@/components/Header/DailyTipsDropdown';
 import NotificationsDropdown from '@/components/Header/NotificationsDropdown';
 import SettingsPage from '@/components/Profile/Settings/Settings';
@@ -12,6 +13,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 
 const COLORS = {
   background: '#181818',
@@ -37,6 +39,8 @@ export function CustomHeader({ pageName, userId, onRefresh }: CustomHeaderProps)
   const [loading, setLoading] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
   const insets = useSafeAreaInsets();
+
+  const [componentsReady, setComponentsReady] = useState(false);
 
   useEffect(() => {
     const fetchUserAndProfile = async () => {
@@ -64,6 +68,15 @@ export function CustomHeader({ pageName, userId, onRefresh }: CustomHeaderProps)
     fetchUserAndProfile();
   }, []);
 
+  useEffect(() => {
+    // Use requestAnimationFrame to wait for render cycle
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setComponentsReady(true);
+      });
+    });
+  }, []);
+
   const handleCloseSettings = () => {
     setShowSettings(false);
   };
@@ -76,6 +89,11 @@ export function CustomHeader({ pageName, userId, onRefresh }: CustomHeaderProps)
       </View>
     );
   }
+
+  if (!componentsReady) {
+    return <AuthLoadingSplash message="Loading dashboard data..." />;
+  }
+
 
   return (
     <View 

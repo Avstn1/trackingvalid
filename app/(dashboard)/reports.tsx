@@ -58,6 +58,8 @@ export default function ReportsPage() {
   const [tempDate, setTempDate] = useState(new Date(currentYear, currentMonthIndex, 1));
   const [refreshKey, setRefreshKey] = useState(0);
 
+  const [componentsReady, setComponentsReady] = useState(false);
+
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -75,6 +77,15 @@ export default function ReportsPage() {
     };
 
     fetchUser();
+  }, []);
+
+  useEffect(() => {
+    // Use requestAnimationFrame to wait for render cycle
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setComponentsReady(true);
+      });
+    });
   }, []);
 
   const handleDateChange = (event: any, date?: Date) => {
@@ -116,6 +127,10 @@ export default function ReportsPage() {
         <Text className="text-lg" style={{ color: '#ef4444' }}>{error}</Text>
       </View>
     );
+  }
+
+  if (!componentsReady) {
+    return <AuthLoadingSplash message="Loading dashboard data..." />;
   }
 
   return (

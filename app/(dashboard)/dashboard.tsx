@@ -290,6 +290,7 @@ export default function DashboardPage() {
 
   const handleOnboardingComplete = async () => {
     setShowOnboarding(false);
+    // Reload the dashboard after onboarding
     await fetchUserAndProfile();
   };
 

@@ -94,6 +94,8 @@ export default function FinancesPage() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const flatListRef = useRef<FlatList>(null);
 
+  const [componentsReady, setComponentsReady] = useState(false);
+
   // Fetch user
   useEffect(() => {
     const fetchUser = async () => {
@@ -215,6 +217,16 @@ export default function FinancesPage() {
       fetchData();
     }
   }, [user, selectedMonth, selectedYear, refreshKey]);
+
+  
+  useEffect(() => {
+    // Use requestAnimationFrame to wait for render cycle
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setComponentsReady(true);
+      });
+    });
+  }, []);
 
   // Pull to refresh
   const onRefresh = async () => {

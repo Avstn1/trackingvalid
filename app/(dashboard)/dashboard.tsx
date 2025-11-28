@@ -1,8 +1,8 @@
 // app/(dashboard)/dashboard.tsx
 import AuthLoadingSplash from '@/components/AuthLoadingSpash';
+import Onboarding from '@/components/Onboarding/Onboarding';
 import { supabase } from "@/utils/supabaseClient";
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { BlurView } from 'expo-blur';
 import * as Device from 'expo-device';
 import { Calendar, CalendarRange } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
@@ -40,8 +40,6 @@ const COLORS = {
   yellow: '#FFEB3B',
 };
 
-const ProfitLossDashboard = (props: any) => <View className="p-5"><Text style={{ color: COLORS.text }} className="text-xl">Profit/Loss Dashboard</Text></View>;
-
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December",
@@ -62,34 +60,6 @@ const getLocalMonthYear = () => {
   return { month: MONTHS[now.getMonth()], year: now.getFullYear() };
 };
 
-// Glassy container component
-const GlassContainer = ({ 
-  children, 
-  style = {}, 
-  intensity = 40,
-  className = ""
-}: { 
-  children: React.ReactNode; 
-  style?: any;
-  intensity?: number;
-  className?: string;
-}) => (
-  <View 
-    className={`overflow-hidden ${className}`}
-    style={[{
-      borderRadius: 9999,
-      borderWidth: 1,
-      borderColor: COLORS.glassBorder,
-    }, style]}
-  >
-    <BlurView intensity={intensity} tint="dark" style={{ flex: 1 }}>
-      <View style={{ backgroundColor: COLORS.glassHighlight, flex: 1 }}>
-        {children}
-      </View>
-    </BlurView>
-  </View>
-);
-
 export default function DashboardPage() {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
@@ -108,46 +78,75 @@ export default function DashboardPage() {
   const [timeframe, setTimeframe] = useState<Timeframe>('year');
   const [tempDashboardView, setTempDashboardView] = useState<"monthly" | "yearly">("monthly");
   const [tempTimeframe, setTempTimeframe] = useState<Timeframe>('year');
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   const hasSyncedInitially = useRef(false);
   const firstSyncAfterConnect = useRef(false);
 
   const { expoPushToken } = usePushNotifications()
 
-  // Fetch user and profile
+  // Check onboarding status FIRST
   useEffect(() => {
-    const fetchUserAndProfile = async () => {
+    const checkOnboardingStatus = async () => {
       try {
-        setLoading(true);
         const { data: { user }, error: authError } = await supabase.auth.getUser();
         if (authError) throw authError;
         if (!user) throw new Error("No user session found.");
-        setUser(user);
 
-        const { data: profileData, error: profileError } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("user_id", user.id)
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('onboarded')
+          .eq('user_id', user.id)
           .maybeSingle();
 
-        if (profileError) throw profileError;
-        setProfile(profileData);
-
-        setIsAdmin(["admin", "owner"].includes(profileData?.role?.toLowerCase()));
-
-        if (profileData?.acuity_access_token && !profileData?.last_acuity_sync) {
-          firstSyncAfterConnect.current = true;
+        if (!profileError && profile?.onboarded === false) {
+          setShowOnboarding(true);
+          setLoading(false);
+          return; // Stop here, don't load anything else
         }
+
+        // If onboarded, continue with normal loading
+        fetchUserAndProfile();
       } catch (err: any) {
         console.error(err);
         setError(err.message);
-      } finally {
         setLoading(false);
       }
     };
 
-    fetchUserAndProfile();
+    checkOnboardingStatus();
   }, []);
+
+  // Fetch user and profile (only called after onboarding check passes)
+  const fetchUserAndProfile = async () => {
+    try {
+      setLoading(true);
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError) throw authError;
+      if (!user) throw new Error("No user session found.");
+      setUser(user);
+
+      const { data: profileData, error: profileError } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (profileError) throw profileError;
+      setProfile(profileData);
+
+      setIsAdmin(["admin", "owner"].includes(profileData?.role?.toLowerCase()));
+
+      if (profileData?.acuity_access_token && !profileData?.last_acuity_sync) {
+        firstSyncAfterConnect.current = true;
+      }
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Initial sync
   useEffect(() => {
@@ -289,12 +288,26 @@ export default function DashboardPage() {
     setShowDatePicker(false);
   };
 
-  const formatSelectedDate = () => {
-    return `${MONTHS[selectedDate.getMonth()].slice(0, 3)} ${selectedDate.getDate()}, ${selectedDate.getFullYear()}`;
+  const handleOnboardingComplete = async () => {
+    setShowOnboarding(false);
+    await fetchUserAndProfile();
   };
 
   if (loading) {
     return <AuthLoadingSplash message="Loading dashboard..." />;
+  }
+
+  // Show onboarding modal if user hasn't completed onboarding
+  if (showOnboarding) {
+    return (
+      <Modal
+        visible={true}
+        animationType="slide"
+        presentationStyle="fullScreen"
+      >
+        <Onboarding onComplete={handleOnboardingComplete} />
+      </Modal>
+    );
   }
 
   if (error) {

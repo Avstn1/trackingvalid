@@ -23,7 +23,6 @@ export default function LogoutSection() {
 
   return (
     <View className="items-center py-3">
-      <Text className="text-white text-lg font-bold mb-2">Logout</Text>
       <Text className="text-zinc-400 text-xs text-center mb-4">
         You will be signed out of your account immediately.
       </Text>

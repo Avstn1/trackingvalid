@@ -1,6 +1,6 @@
 import { supabase } from '@/utils/supabaseClient'
 import { LinearGradient } from 'expo-linear-gradient'
-import { DollarSign } from 'lucide-react-native'
+import { CircleDollarSign } from 'lucide-react-native'
 import { useEffect, useRef, useState } from 'react'
 import {
   Animated,
@@ -332,7 +332,7 @@ export default function DailyTipsDropdown({
         activeOpacity={0.7}
         className="w-10 h-10 rounded-full items-center justify-center"
       >
-        <DollarSign size={26} color={COLORS.text} />
+        <CircleDollarSign  size={27} color={COLORS.text} />
       </TouchableOpacity>
 
       {/* Main Modal */}

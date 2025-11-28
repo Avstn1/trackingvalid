@@ -1,4 +1,5 @@
 // app/(dashboard)/expenses.tsx
+import AuthLoadingSplash from '@/components/AuthLoadingSpash';
 import ExpensesViewer from '@/components/Finances/ExpensesViewer';
 import RecurringExpenses from '@/components/Finances/RecurringExpenses';
 import { CustomHeader } from '@/components/Header/CustomHeader';
@@ -25,6 +26,24 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+// Color Palette
+const COLORS = {
+  background: '#181818',
+  cardBg: '#1a1a1a',
+  surface: 'rgba(37, 37, 37, 0.6)',
+  surfaceSolid: '#252525',
+  glassBorder: 'rgba(255, 255, 255, 0.1)',
+  glassHighlight: 'rgba(255, 255, 255, 0.05)',
+  text: '#F7F7F7',
+  textMuted: 'rgba(247, 247, 247, 0.5)',
+  orange: '#FF5722',
+  orangeGlow: 'rgba(255, 87, 34, 0.2)',
+  purple: '#9C27B0',
+  purpleGlow: 'rgba(156, 39, 176, 0.2)',
+  red: '#f87171',
+  redGlow: 'rgba(248, 113, 113, 0.2)',
+};
 
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -264,12 +283,9 @@ export default function FinancesPage() {
     try {
       const fileName = `${user.id}/${selectedYear}-${selectedMonth}-${Date.now()}.jpg`;
 
-      // For React Native, we need to use a different approach
-      // Create a file object that Supabase can handle
       const fileExt = uploadingImage.split('.').pop();
       const filePath = fileName;
 
-      // Use fetch to get the file as an ArrayBuffer, then convert to Uint8Array
       const response = await fetch(uploadingImage);
       const arrayBuffer = await response.arrayBuffer();
       const uint8Array = new Uint8Array(arrayBuffer);
@@ -384,24 +400,19 @@ export default function FinancesPage() {
   ];
 
   if (loading) {
-    return (
-      <View className="flex-1 justify-center items-center bg-zinc-950">
-        <ActivityIndicator size="large" color="#c4ff85" />
-        <Text className="text-white mt-4">Loading expenses...</Text>
-      </View>
-    );
+    return <AuthLoadingSplash message="Loading expenses..." />;
   }
 
   if (error) {
     return (
-      <View className="flex-1 justify-center items-center bg-zinc-950">
-        <Text className="text-red-500 text-lg">{error}</Text>
+      <View className="flex-1 justify-center items-center" style={{ backgroundColor: COLORS.background }}>
+        <Text className="text-lg" style={{ color: COLORS.red }}>{error}</Text>
       </View>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-zinc-950">
+    <SafeAreaView className="flex-1" style={{ backgroundColor: COLORS.background }}>
       <CustomHeader pageName="Finances" />
 
       <ScrollView
@@ -411,24 +422,29 @@ export default function FinancesPage() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor="#c4ff85"
-            colors={['#c4ff85']}
+            tintColor={COLORS.orange}
+            colors={[COLORS.orange]}
           />
         }
       >
         {/* Header */}
         <View className="my-4">
-          <Text className="text-zinc-400 text-xs mb-3">
+          <Text className="text-xs mb-3" style={{ color: COLORS.textMuted }}>
             Track your one-off and recurring expenses per month.
           </Text>
 
           {/* Date Picker Button */}
           <TouchableOpacity
             onPress={handleOpenDatePicker}
-            className="flex-row items-center justify-center gap-2 bg-zinc-800 py-3 rounded-full"
+            className="flex-row items-center justify-center gap-2 py-3 rounded-full"
+            style={{
+              backgroundColor: COLORS.surfaceSolid,
+              borderWidth: 1,
+              borderColor: COLORS.glassBorder,
+            }}
           >
-            <CalendarRange size={16} color="#c4ff85" />
-            <Text className="text-white font-semibold text-sm">
+            <CalendarRange size={16} color={COLORS.orange} />
+            <Text className="font-semibold text-sm" style={{ color: COLORS.text }}>
               {getDateLabel()}
             </Text>
           </TouchableOpacity>
@@ -437,11 +453,28 @@ export default function FinancesPage() {
         {/* Current Total & Receipt Gallery - Side by Side */}
         <View className="flex-row gap-3 mb-4">
           {/* Current Total */}
-          <View className="flex-1 bg-zinc-900 rounded-2xl p-4">
-            <Text className="text-zinc-400 text-xs mb-1">
+          <View 
+            className="flex-1 rounded-2xl p-4 overflow-hidden"
+            style={{
+              backgroundColor: COLORS.surface,
+              borderWidth: 1,
+              borderColor: COLORS.glassBorder,
+            }}
+          >
+            <View 
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: 1,
+                backgroundColor: COLORS.glassHighlight,
+              }}
+            />
+            <Text className="text-xs mb-1" style={{ color: COLORS.textMuted }}>
               Current Total
             </Text>
-            <Text className="text-lime-300 font-bold text-2xl">
+            <Text className="font-bold text-2xl" style={{ color: COLORS.text }}>
               ${currentExpense.toFixed(2)}
             </Text>
           </View>
@@ -449,24 +482,62 @@ export default function FinancesPage() {
           {/* Receipt Gallery Button */}
           <TouchableOpacity
             onPress={() => setShowReceiptGallery(true)}
-            className="flex-1 bg-zinc-900 rounded-2xl p-4 justify-center"
+            className="flex-1 rounded-2xl p-4 justify-center overflow-hidden"
+            style={{
+              backgroundColor: COLORS.surface,
+              borderWidth: 1,
+              borderColor: COLORS.glassBorder,
+            }}
           >
+            <View 
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: 1,
+                backgroundColor: COLORS.glassHighlight,
+              }}
+            />
             <View className="flex-row items-center gap-2 mb-2">
-              <View className="bg-lime-400/20 p-2 rounded-lg">
-                <ImageIcon size={18} color="#c4ff85" />
+              <View 
+                className="p-2 rounded-lg"
+                style={{ backgroundColor: COLORS.orangeGlow }}
+              >
+                <ImageIcon size={18} color={COLORS.orange} />
               </View>
-              <Text className="text-white font-semibold text-base flex-1">
+              <Text className="font-semibold text-base flex-1" style={{ color: COLORS.text }}>
                 Receipts
               </Text>
             </View>
-            <Text className="text-zinc-400 text-xs">
+            <Text className="text-xs" style={{ color: COLORS.textMuted }}>
               {receipts.length} uploaded
             </Text>
           </TouchableOpacity>
         </View>
 
         {/* Swipeable Expense Views */}
-        <View className="bg-zinc-900 rounded-2xl overflow-hidden mb-6 min-h-[550px] max-h-[45%]">
+        <View 
+          className="rounded-2xl overflow-hidden mb-6"
+          style={{
+            backgroundColor: COLORS.surface,
+            borderWidth: 1,
+            borderColor: COLORS.glassBorder,
+            minHeight: 550,
+            maxHeight: '45%',
+          }}
+        >
+          <View 
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: 1,
+              backgroundColor: COLORS.glassHighlight,
+              zIndex: 1,
+            }}
+          />
           <FlatList
             ref={flatListRef}
             data={expenseViews}
@@ -484,7 +555,7 @@ export default function FinancesPage() {
                 {index === 0 ? (
                   // First view: Title with Add Button
                   <View className="flex-row justify-between items-center mb-3">
-                    <Text className="text-lime-300 text-lg font-semibold">
+                    <Text className="text-lg font-semibold" style={{ color: COLORS.orange }}>
                       {item.title}
                     </Text>
                     <TouchableOpacity
@@ -494,14 +565,15 @@ export default function FinancesPage() {
                           animated: true,
                         });
                       }}
-                      className="bg-lime-400 p-2 rounded-lg"
+                      className="p-2 rounded-lg"
+                      style={{ backgroundColor: COLORS.orange }}
                     >
-                      <Plus size={20} color="#000" />
+                      <Plus size={20} color={COLORS.text} />
                     </TouchableOpacity>
                   </View>
                 ) : (
                   // Other views: Normal title
-                  <Text className="text-lime-300 text-lg font-semibold mb-3">
+                  <Text className="text-lg font-semibold mb-3" style={{ color: COLORS.purple }}>
                     {item.title}
                   </Text>
                 )}
@@ -515,11 +587,11 @@ export default function FinancesPage() {
             {expenseViews.map((_, index) => (
               <View
                 key={index}
-                className={`h-2 rounded-full ${
-                  index === currentIndex
-                    ? 'w-6 bg-lime-400'
-                    : 'w-2 bg-zinc-700'
-                }`}
+                className="h-2 rounded-full"
+                style={{
+                  width: index === currentIndex ? 24 : 8,
+                  backgroundColor: index === currentIndex ? COLORS.orange : COLORS.surfaceSolid,
+                }}
               />
             ))}
           </View>
@@ -530,16 +602,40 @@ export default function FinancesPage() {
       <Modal
         visible={showDatePicker}
         transparent={true}
-        animationType="none"
+        animationType="fade"
         onRequestClose={handleDateCancel}
       >
         <View className="flex-1 justify-center items-center bg-black/70">
-          <View className="bg-zinc-900 rounded-2xl p-6 w-[90%] max-w-md">
-            <Text className="text-white text-lg font-semibold mb-4 text-center">
+          <View 
+            className="rounded-2xl p-6 w-[90%] max-w-md overflow-hidden"
+            style={{
+              backgroundColor: COLORS.cardBg,
+              borderWidth: 1,
+              borderColor: COLORS.glassBorder,
+            }}
+          >
+            <View 
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: 1,
+                backgroundColor: COLORS.glassHighlight,
+              }}
+            />
+            <Text className="text-lg font-semibold mb-4 text-center" style={{ color: COLORS.text }}>
               Choose Month & Year
             </Text>
 
-            <View className="bg-zinc-800 rounded-xl overflow-hidden">
+            <View 
+              className="rounded-xl overflow-hidden"
+              style={{
+                backgroundColor: COLORS.surfaceSolid,
+                borderWidth: 1,
+                borderColor: COLORS.glassBorder,
+              }}
+            >
               <DateTimePicker
                 value={tempDate}
                 mode="date"
@@ -552,22 +648,28 @@ export default function FinancesPage() {
               />
             </View>
 
-            <Text className="text-zinc-400 text-xs text-center mt-3">
+            <Text className="text-xs text-center mt-3" style={{ color: COLORS.textMuted }}>
               Day will be set to 1st of selected month
             </Text>
 
             <View className="flex-row gap-3 mt-6">
               <TouchableOpacity
                 onPress={handleDateCancel}
-                className="flex-1 bg-zinc-700 py-3 rounded-full"
+                className="flex-1 py-3 rounded-full"
+                style={{
+                  backgroundColor: COLORS.surfaceSolid,
+                  borderWidth: 1,
+                  borderColor: COLORS.glassBorder,
+                }}
               >
-                <Text className="text-center text-white font-semibold">Cancel</Text>
+                <Text className="text-center font-semibold" style={{ color: COLORS.text }}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={handleDateConfirm}
-                className="flex-1 bg-lime-400 py-3 rounded-full"
+                className="flex-1 py-3 rounded-full"
+                style={{ backgroundColor: COLORS.orange }}
               >
-                <Text className="text-center text-black font-semibold">Done</Text>
+                <Text className="text-center font-semibold" style={{ color: COLORS.text }}>Done</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -578,39 +680,56 @@ export default function FinancesPage() {
       <Modal
         visible={showReceiptGallery}
         transparent={true}
-        animationType="none"
+        animationType="fade"
         onRequestClose={() => setShowReceiptGallery(false)}
       >
-        {/* Tap outside to close */}
         <TouchableOpacity 
           activeOpacity={1}
           onPress={() => setShowReceiptGallery(false)}
           className="flex-1 justify-center items-center bg-black/80 px-4"
         >
-          {/* Prevent closing when tapping modal content */}
           <TouchableOpacity
             activeOpacity={1}
             onPress={(e) => e.stopPropagation()}
           >
-            <View className="bg-zinc-900 rounded-3xl w-full max-w-md overflow-hidden min-h-[700px]" style={{ maxHeight: '85%' }}>
+            <View 
+              className="rounded-3xl w-full max-w-md overflow-hidden"
+              style={{ 
+                backgroundColor: COLORS.cardBg,
+                borderWidth: 1,
+                borderColor: COLORS.glassBorder,
+                minHeight: 700, 
+                maxHeight: '85%' 
+              }}
+            >
               {/* Modal Header */}
-              <View className="flex-row items-center justify-between px-6 py-4 border-b border-zinc-800">
+              <View 
+                className="flex-row items-center justify-between px-6 py-4"
+                style={{
+                  borderBottomWidth: 1,
+                  borderBottomColor: COLORS.glassBorder,
+                }}
+              >
                 <View className="flex-row items-center gap-3">
-                  <View className="bg-lime-400/20 p-2 rounded-lg">
-                    <ImageIcon size={20} color="#c4ff85" />
+                  <View 
+                    className="p-2 rounded-lg"
+                    style={{ backgroundColor: COLORS.orangeGlow }}
+                  >
+                    <ImageIcon size={20} color={COLORS.orange} />
                   </View>
                   <View>
-                    <Text className="text-white text-lg font-bold">Receipt Gallery</Text>
-                    <Text className="text-zinc-400 text-xs">
+                    <Text className="text-lg font-bold" style={{ color: COLORS.text }}>Receipt Gallery</Text>
+                    <Text className="text-xs" style={{ color: COLORS.textMuted }}>
                       {receipts.length} receipt{receipts.length !== 1 ? 's' : ''}
                     </Text>
                   </View>
                 </View>
                 <TouchableOpacity
                   onPress={() => setShowReceiptGallery(false)}
-                  className="bg-zinc-800 p-2 rounded-full"
+                  className="p-2 rounded-full"
+                  style={{ backgroundColor: COLORS.surfaceSolid }}
                 >
-                  <X size={18} color="#fff" />
+                  <X size={18} color={COLORS.text} />
                 </TouchableOpacity>
               </View>
 
@@ -618,13 +737,16 @@ export default function FinancesPage() {
               <ScrollView className="flex-1 px-6 py-4" showsVerticalScrollIndicator={false}>
                 {receipts.length === 0 ? (
                   <View className="justify-center items-center py-16">
-                    <View className="bg-zinc-800 p-4 rounded-full mb-4">
-                      <ImageIcon size={40} color="#71717a" />
+                    <View 
+                      className="p-4 rounded-full mb-4"
+                      style={{ backgroundColor: COLORS.surfaceSolid }}
+                    >
+                      <ImageIcon size={40} color={COLORS.textMuted} />
                     </View>
-                    <Text className="text-zinc-400 text-base text-center mb-2">
+                    <Text className="text-base text-center mb-2" style={{ color: COLORS.textMuted }}>
                       No receipts yet
                     </Text>
-                    <Text className="text-zinc-500 text-sm text-center">
+                    <Text className="text-sm text-center" style={{ color: COLORS.textMuted }}>
                       Upload your first receipt below
                     </Text>
                   </View>
@@ -638,8 +760,13 @@ export default function FinancesPage() {
                           setShowReceiptGallery(false);
                           setSelectedReceipt({ url: r.url, label: r.label || '' });
                         }}
-                        className="relative rounded-xl overflow-hidden border-2 border-zinc-700"
-                        style={{ width: '47%', aspectRatio: 1 }}
+                        className="relative rounded-xl overflow-hidden"
+                        style={{ 
+                          width: '47%', 
+                          aspectRatio: 1,
+                          borderWidth: 2,
+                          borderColor: COLORS.glassBorder,
+                        }}
                       >
                         <Image
                           source={{ uri: r.url }}
@@ -647,8 +774,11 @@ export default function FinancesPage() {
                           resizeMode="cover"
                         />
                         {r.label && (
-                          <View className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2">
-                            <Text className="text-white font-semibold text-xs" numberOfLines={1}>
+                          <View 
+                            className="absolute bottom-0 left-0 right-0 p-2"
+                            style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
+                          >
+                            <Text className="font-semibold text-xs" numberOfLines={1} style={{ color: COLORS.text }}>
                               {r.label}
                             </Text>
                           </View>
@@ -659,12 +789,13 @@ export default function FinancesPage() {
                             handleDeleteReceipt(r.id, r.path);
                           }}
                           disabled={loadingDelete === r.id}
-                          className="absolute top-2 right-2 bg-red-600 p-1.5 rounded-full"
+                          className="absolute top-2 right-2 p-1.5 rounded-full"
+                          style={{ backgroundColor: COLORS.red }}
                         >
                           {loadingDelete === r.id ? (
-                            <ActivityIndicator size="small" color="#fff" />
+                            <ActivityIndicator size="small" color={COLORS.text} />
                           ) : (
-                            <Trash2 size={12} color="#fff" />
+                            <Trash2 size={12} color={COLORS.text} />
                           )}
                         </TouchableOpacity>
                       </TouchableOpacity>
@@ -674,19 +805,32 @@ export default function FinancesPage() {
               </ScrollView>
 
               {/* Upload Button Footer */}
-              <View className="px-6 py-4 border-t border-zinc-800">
+              <View 
+                className="px-6 py-4"
+                style={{
+                  borderTopWidth: 1,
+                  borderTopColor: COLORS.glassBorder,
+                }}
+              >
                 <TouchableOpacity
                   onPress={() => {
                     setShowReceiptGallery(false);
-                    // Delay to ensure modal closes before picker opens
                     setTimeout(() => {
                       handlePickImage();
                     }, 200);
                   }}
-                  className="bg-lime-400 py-3.5 rounded-xl flex-row items-center justify-center gap-2"
+                  className="py-3.5 rounded-xl flex-row items-center justify-center gap-2"
+                  style={{
+                    backgroundColor: COLORS.orange,
+                    shadowColor: COLORS.orange,
+                    shadowOffset: { width: 0, height: 0 },
+                    shadowOpacity: 0.4,
+                    shadowRadius: 12,
+                    elevation: 5,
+                  }}
                 >
-                  <Plus size={20} color="#000" />
-                  <Text className="text-black font-bold text-base">Upload Receipt</Text>
+                  <Plus size={20} color={COLORS.text} />
+                  <Text className="font-bold text-base" style={{ color: COLORS.text }}>Upload Receipt</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -698,36 +842,65 @@ export default function FinancesPage() {
       <Modal
         visible={showReceiptModal}
         transparent={true}
-        animationType="none"
+        animationType="fade"
         onRequestClose={handleUploadCancel}
       >
         <View className="flex-1 justify-center items-center bg-black/70 px-4">
-          <View className="bg-zinc-900 rounded-2xl p-6 w-full max-w-md">
-            <Text className="text-white text-lg font-semibold mb-2">
+          <View 
+            className="rounded-2xl p-6 w-full max-w-md overflow-hidden"
+            style={{
+              backgroundColor: COLORS.cardBg,
+              borderWidth: 1,
+              borderColor: COLORS.glassBorder,
+            }}
+          >
+            <View 
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: 1,
+                backgroundColor: COLORS.glassHighlight,
+              }}
+            />
+            <Text className="text-lg font-semibold mb-2" style={{ color: COLORS.text }}>
               Label your receipt
             </Text>
-            <Text className="text-zinc-400 text-sm mb-4">
+            <Text className="text-sm mb-4" style={{ color: COLORS.textMuted }}>
               Leave blank to default to today&apos;s date.
             </Text>
             <TextInput
               value={receiptLabel}
               onChangeText={setReceiptLabel}
               placeholder="Enter receipt label"
-              placeholderTextColor="#71717a"
-              className="px-4 py-3 rounded-xl bg-zinc-800 text-white border border-zinc-700 mb-6"
+              placeholderTextColor={COLORS.textMuted}
+              className="px-4 py-3 rounded-xl mb-6"
+              style={{
+                backgroundColor: COLORS.surfaceSolid,
+                color: COLORS.text,
+                borderWidth: 1,
+                borderColor: COLORS.glassBorder,
+              }}
             />
             <View className="flex-row gap-3">
               <TouchableOpacity
                 onPress={handleUploadCancel}
-                className="flex-1 bg-zinc-700 py-3 rounded-full"
+                className="flex-1 py-3 rounded-full"
+                style={{
+                  backgroundColor: COLORS.surfaceSolid,
+                  borderWidth: 1,
+                  borderColor: COLORS.glassBorder,
+                }}
               >
-                <Text className="text-center text-white font-semibold">Cancel</Text>
+                <Text className="text-center font-semibold" style={{ color: COLORS.text }}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={handleUploadConfirm}
-                className="flex-1 bg-lime-400 py-3 rounded-full"
+                className="flex-1 py-3 rounded-full"
+                style={{ backgroundColor: COLORS.orange }}
               >
-                <Text className="text-center text-black font-semibold">Upload</Text>
+                <Text className="text-center font-semibold" style={{ color: COLORS.text }}>Upload</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -739,7 +912,7 @@ export default function FinancesPage() {
         <Modal
           visible={true}
           transparent={true}
-          animationType="none"
+          animationType="fade"
           onRequestClose={() => {
             setSelectedReceipt(null);
             if (viewerOpenedFromGallery) {
@@ -748,7 +921,6 @@ export default function FinancesPage() {
             }
           }}
         >
-          {/* Tap outside to close */}
           <TouchableOpacity 
             activeOpacity={1} 
             onPress={() => {
@@ -758,10 +930,10 @@ export default function FinancesPage() {
                 setViewerOpenedFromGallery(false);
               }
             }}
-            className="flex-1 bg-zinc-900/95"
+            className="flex-1"
+            style={{ backgroundColor: 'rgba(24, 24, 24, 0.95)' }}
           >
             <SafeAreaView className="flex-1 justify-center items-center p-4">
-              {/* Prevent closing when tapping the image */}
               <TouchableOpacity 
                 activeOpacity={1} 
                 onPress={(e) => e.stopPropagation()}
@@ -773,8 +945,15 @@ export default function FinancesPage() {
                   resizeMode="contain"
                 />
                 {selectedReceipt.label && (
-                  <View className="bg-zinc-800 px-6 py-3 rounded-full mt-4 self-center">
-                    <Text className="text-white font-semibold text-center text-base">
+                  <View 
+                    className="px-6 py-3 rounded-full mt-4 self-center"
+                    style={{
+                      backgroundColor: COLORS.surfaceSolid,
+                      borderWidth: 1,
+                      borderColor: COLORS.glassBorder,
+                    }}
+                  >
+                    <Text className="font-semibold text-center text-base" style={{ color: COLORS.text }}>
                       {selectedReceipt.label}
                     </Text>
                   </View>

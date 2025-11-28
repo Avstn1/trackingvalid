@@ -1,16 +1,46 @@
 import { supabase } from '@/utils/supabaseClient';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Dimensions, Text, View } from 'react-native';
-import { PieChart } from 'react-native-chart-kit';
+import { ActivityIndicator, Dimensions, Text, TouchableOpacity, View } from 'react-native';
+import { PieChart } from 'react-native-gifted-charts';
+
+// Color Palette - matching dashboard theme
+const COLORS_PALETTE = {
+  background: '#181818',
+  surface: 'rgba(37, 37, 37, 0.6)',
+  glassBorder: 'rgba(255, 255, 255, 0.1)',
+  glassHighlight: 'rgba(255, 255, 255, 0.05)',
+  text: '#F7F7F7',
+  textMuted: 'rgba(247, 247, 247, 0.5)',
+  orange: '#FF5722',
+  orangeGlow: 'rgba(255, 87, 34, 0.4)',
+  purple: '#673AB7',
+  yellow: '#FFEB3B',
+};
 
 interface ProfitMarginPieChartProps {
-  userId: string;
-  selectedMonth: string;
-  selectedYear: number;
-  refreshKey?: number;
+  readonly userId: string;
+  readonly selectedMonth: string;
+  readonly selectedYear: number;
+  readonly refreshKey?: number;
 }
 
-const COLORS = ['#aeea00', '#ff6d00'];
+// Center label component for the pie chart
+const CenterLabel = ({ totalAmount }: { totalAmount: number }) => (
+  <View className="items-center justify-center">
+    <Text 
+      className="text-lg font-bold"
+      style={{ color: COLORS_PALETTE.text }}
+    >
+      ${totalAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+    </Text>
+    <Text 
+      className="text-xs"
+      style={{ color: COLORS_PALETTE.textMuted }}
+    >
+      Total
+    </Text>
+  </View>
+);
 
 export default function ProfitMarginPieChart({
   userId,
@@ -18,8 +48,9 @@ export default function ProfitMarginPieChart({
   selectedYear,
   refreshKey,
 }: ProfitMarginPieChartProps) {
-  const [data, setData] = useState<{ name: string; population: number; color: string }[]>([]);
+  const [data, setData] = useState<{ value: number; color: string; label: string }[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const screenWidth = Dimensions.get('window').width;
 
   useEffect(() => {
@@ -51,14 +82,14 @@ export default function ProfitMarginPieChart({
 
         setData([
           {
-            name: 'Profit',
-            population: profit,
-            color: COLORS[0],
+            value: profit,
+            color: COLORS_PALETTE.yellow,
+            label: 'Profit',
           },
           {
-            name: 'Expenses',
-            population: expenses,
-            color: COLORS[1],
+            value: expenses,
+            color: COLORS_PALETTE.orange,
+            label: 'Expenses',
           },
         ]);
       } catch (err) {
@@ -77,71 +108,166 @@ export default function ProfitMarginPieChart({
 
   if (loading) {
     return (
-      <View className="p-4 rounded-xl bg-zinc-900 border border-zinc-800 h-[200px] justify-center items-center">
-        <ActivityIndicator color="#c4ff85" size="large" />
-        <Text className="text-zinc-400 mt-2 text-xs">Loading...</Text>
+      <View 
+        className="rounded-xl overflow-hidden justify-center items-center"
+        style={{
+          backgroundColor: COLORS_PALETTE.surface,
+          borderWidth: 1,
+          borderColor: COLORS_PALETTE.glassBorder,
+          padding: 16,
+          marginHorizontal: -14,
+          minHeight: 320,
+        }}
+      >
+        <ActivityIndicator color={COLORS_PALETTE.orange} size="large" />
+        <Text className="mt-2 text-xs" style={{ color: COLORS_PALETTE.textMuted }}>
+          Loading...
+        </Text>
       </View>
     );
   }
 
   if (data.length === 0) {
     return (
-      <View className="p-4 rounded-xl bg-zinc-900 border border-zinc-800 h-[200px] justify-center items-center">
-        <Text className="text-lime-300 opacity-70 text-sm">
+      <View 
+        className="rounded-xl overflow-hidden justify-center items-center"
+        style={{
+          backgroundColor: COLORS_PALETTE.surface,
+          borderWidth: 1,
+          borderColor: COLORS_PALETTE.glassBorder,
+          padding: 16,
+          marginHorizontal: -14,
+          minHeight: 320,
+        }}
+      >
+        <Text className="text-sm" style={{ color: COLORS_PALETTE.textMuted }}>
           No data yet for {selectedMonth}
         </Text>
       </View>
     );
   }
 
-  const totalAmount = data.reduce((sum, item) => sum + item.population, 0);
+  const chartSize = Math.min(screenWidth * 0.5, 200);
+  const revenue = data.find(item => item.label === 'Profit')?.value || 0;
+  const expenses = data.find(item => item.label === 'Expenses')?.value || 0;
+  const totalAmount = revenue + expenses; // This is the total revenue
+  
+  // Prepare legend data with percentages
+  const legendData = data.map((item, index) => ({
+    ...item,
+    percentage: ((item.value / totalAmount) * 100).toFixed(1),
+    index,
+  }));
 
   return (
-    <View className="p-4 rounded-xl bg-zinc-900 border border-zinc-800">
-      <Text className="text-lime-300 text-base font-semibold mb-3">
+    <View 
+      className="rounded-xl overflow-hidden"
+      style={{
+        backgroundColor: COLORS_PALETTE.surface,
+        borderWidth: 1,
+        borderColor: COLORS_PALETTE.glassBorder,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 8,
+        elevation: 3,
+        padding: 16,
+        marginHorizontal: -14,
+      }}
+    >
+      {/* Subtle highlight at top */}
+      <View 
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 1,
+          backgroundColor: COLORS_PALETTE.glassHighlight,
+        }}
+      />
+
+      <Text 
+        className="text-base font-semibold mb-3"
+        style={{ color: COLORS_PALETTE.orange }}
+      >
         🥧 Profit vs Expenses
       </Text>
 
-      <View className="flex-row h-[200px] pl-5">
-        {/* Pie Chart - 1/2 of space */}
-        <View className="flex-1 items-center justify-center">
+      <View className="flex-row" style={{ minHeight: 270 }}>
+        {/* Pie Chart */}
+        <View className="flex-1 items-center justify-center" style={{ paddingVertical: 10, paddingLeft: 40}}>
           <PieChart
             data={data}
-            width={screenWidth / 2.4}
-            height={200}
-            chartConfig={{
-              color: (opacity = 1) => `rgba(196, 255, 133, ${opacity})`,
+            radius={chartSize * 0.42}
+            innerRadius={chartSize * 0.24}
+            innerCircleColor={COLORS_PALETTE.background}
+            focusOnPress
+            onPress={(item: { index: number }) => {
+              setSelectedIndex(selectedIndex === item.index ? null : item.index);
             }}
-            accessor="population"
-            backgroundColor="transparent"
-            paddingLeft="35"
-            absolute
-            hasLegend={false}
+            textColor={COLORS_PALETTE.text}
+            textSize={10}
+            showText
+            textBackgroundColor={COLORS_PALETTE.background}
+            textBackgroundRadius={4}
+            donut
+            centerLabelComponent={() => <CenterLabel totalAmount={totalAmount} />}
+            semiCircle={false}
+            animationDuration={800}
           />
         </View>
 
-        {/* Custom Legend - 1/2 of space */}
-        <View className="flex-1 pl-10 pt-5 mt-12">
-          {data.map((item, index) => {
-            const percentage = ((item.population / totalAmount) * 100).toFixed(1);
+        {/* Custom Legend - Interactive */}
+        <View className="flex-1 pl-4 justify-center">
+          {legendData.map((item, index) => {
+            const isSelected = selectedIndex === index;
             return (
-              <View key={index} className="flex-row items-center mb-2.5">
-                {/* Color indicator */}
+              <TouchableOpacity
+                key={`${item.label}-${index}`}
+                activeOpacity={0.7}
+                onPress={() => setSelectedIndex(isSelected ? null : index)}
+                className="flex-row items-center mb-3"
+                style={{
+                  opacity: selectedIndex !== null && selectedIndex !== index ? 0.5 : 1,
+                  transform: [{ scale: isSelected ? 1.05 : 1 }],
+                  paddingLeft: 20
+                }}
+              >
+                {/* Color indicator with glow effect when selected */}
                 <View 
-                  className="w-3 h-3 rounded-full mr-2" 
-                  style={{ backgroundColor: item.color }}
+                  className="rounded-full mr-2.5"
+                  style={{
+                    width: isSelected ? 14 : 12,
+                    height: isSelected ? 14 : 12,
+                    backgroundColor: item.color,
+                    shadowColor: isSelected ? item.color : 'transparent',
+                    shadowOffset: { width: 0, height: 0 },
+                    shadowOpacity: isSelected ? 0.8 : 0,
+                    shadowRadius: isSelected ? 6 : 0,
+                    elevation: isSelected ? 4 : 0,
+                  }}
                 />
                 
                 {/* Info */}
                 <View className="flex-1">
-                  <Text className="text-white text-xs font-medium" numberOfLines={1}>
-                    {item.name}
+                  <Text 
+                    className="text-xs font-medium" 
+                    numberOfLines={1}
+                    style={{ 
+                      color: isSelected ? COLORS_PALETTE.orange : COLORS_PALETTE.text,
+                      fontWeight: isSelected ? '700' : '500',
+                    }}
+                  >
+                    {item.label}
                   </Text>
-                  <Text className="text-zinc-400 text-[10px]">
-                    {formatCurrency(item.population)} ({percentage}%)
+                  <Text 
+                    className="text-[10px] mt-0.5"
+                    style={{ color: COLORS_PALETTE.textMuted }}
+                  >
+                    {formatCurrency(item.value)} ({item.percentage}%)
                   </Text>
                 </View>
-              </View>
+              </TouchableOpacity>
             );
           })}
         </View>

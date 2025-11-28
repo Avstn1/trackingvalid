@@ -8,7 +8,7 @@ import ProfitLossTrendChart from '@/components/Dashboard/Monthly/ProfitLossTrend
 import ProfitMarginPieChart from '@/components/Dashboard/Monthly/ProfitMarginPieChart';
 import ServiceBreakdownChart from '@/components/Dashboard/Monthly/ServiceBreakdownChart';
 import TopClientsCard from '@/components/Dashboard/Monthly/TopClientsCard';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Dimensions, FlatList, NativeScrollEvent, NativeSyntheticEvent, View } from 'react-native';
 
 // Color Palette
@@ -55,6 +55,7 @@ export default function MonthlyDashboard({
   const [activeMetricIndex, setActiveMetricIndex] = useState(0);
   const flatListRef = useRef<FlatList>(null);
   const metricsListRef = useRef<FlatList>(null);
+  const hasAnimated = useRef(false);
 
   // Metric cards data
   const metricCards = [
@@ -179,6 +180,29 @@ export default function MonthlyDashboard({
     setActiveMetricIndex(Math.min(index, metricCards.length - 1));
   };
 
+  // Auto-scroll animation on first load
+  useEffect(() => {
+    if (!hasAnimated.current && flatListRef.current && charts.length > 0) {
+      hasAnimated.current = true;
+      
+      // Start at the last chart
+      setTimeout(() => {
+        flatListRef.current?.scrollToIndex({
+          index: charts.length - 1,
+          animated: false,
+        });
+        
+        // Then scroll back to the first chart
+        setTimeout(() => {
+          flatListRef.current?.scrollToIndex({
+            index: 0,
+            animated: true,
+          });
+        }, 500);
+      }, 10);
+    }
+  }, [charts.length]);
+
   return (
     <View className="gap-4">
       {/* Hero Daily Revenue Card */}
@@ -220,31 +244,11 @@ export default function MonthlyDashboard({
       {/* Swipeable Charts Container - Glassy */}
       <View 
         className="rounded-3xl overflow-hidden"
-        style={{ 
-          // backgroundColor: COLORS.surface,
-          // borderWidth: 1,
-          // borderColor: COLORS.glassBorder,
-          // shadowColor: '#000',
-          // shadowOffset: { width: 0, height: 8 },
-          // shadowOpacity: 0.3,
-          // shadowRadius: 16,
-          // elevation: 8,
+        style={{  
           minHeight: SCREEN_HEIGHT * 0.42,
           maxHeight: SCREEN_HEIGHT * 0.37,
         }}
       >
-        {/* Top highlight line */}
-        {/* <View 
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            height: 1,
-            backgroundColor: COLORS.glassHighlight,
-            zIndex: 10,
-          }}
-        /> */}
 
         <FlatList
           ref={flatListRef}
@@ -259,8 +263,10 @@ export default function MonthlyDashboard({
           snapToAlignment="start"
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <View style={{ width: SCREEN_WIDTH - 32 }} className="p-4">
-              {item.component}
+            <View style={{ width: SCREEN_WIDTH - 31.5 }}>
+              <View style={{ padding: 16, flex: 1 }}>
+                {item.component}
+              </View>
             </View>
           )}
         />
@@ -268,7 +274,6 @@ export default function MonthlyDashboard({
         {/* Page Indicator Dots - Glassy style */}
         <View 
           className="flex-row justify-center items-center py-3 gap-2"
-          // style={{ backgroundColor: 'rgba(0, 0, 0, 0.2)' }}
         >
           {charts.map((_, index) => (
             <View

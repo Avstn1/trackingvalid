@@ -2,6 +2,20 @@ import { supabase } from '@/utils/supabaseClient';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
 
+// Color Palette - matching dashboard theme
+const COLORS_PALETTE = {
+  background: '#181818',
+  surface: 'rgba(37, 37, 37, 0.6)',
+  glassBorder: 'rgba(255, 255, 255, 0.1)',
+  glassHighlight: 'rgba(255, 255, 255, 0.05)',
+  text: '#F7F7F7',
+  textMuted: 'rgba(247, 247, 247, 0.5)',
+  orange: '#FF5722',
+  orangeGlow: 'rgba(255, 87, 34, 0.4)',
+  purple: '#673AB7',
+  yellow: '#FFEB3B',
+};
+
 interface TopClientsCardProps {
   userId?: string;
   selectedMonth?: string;
@@ -59,52 +73,128 @@ export default function TopClientsCard({ userId, selectedMonth, selectedYear }: 
   }, [userId ?? '', selectedMonth ?? '', selectedYear ?? 0]);
 
   return (
-    <View className="rounded-xl bg-zinc-900 border border-zinc-800 p-3 flex-1 min-h-[310px] max-h-[440px]">
-      <Text className="text-lg font-bold mb-2 text-white">
+    <View 
+      className="rounded-xl overflow-hidden flex-1"
+      style={{
+        backgroundColor: COLORS_PALETTE.surface,
+        borderWidth: 1,
+        borderColor: COLORS_PALETTE.glassBorder,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 8,
+        elevation: 3,
+        padding: 16,
+        marginHorizontal: -14,
+        minHeight: 310,
+        maxHeight: 440,
+      }}
+    >
+      {/* Subtle highlight at top */}
+      <View 
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 1,
+          backgroundColor: COLORS_PALETTE.glassHighlight,
+        }}
+      />
+
+      <Text 
+        className="text-base font-semibold mb-3"
+        style={{ color: COLORS_PALETTE.orange }}
+      >
         🏆 Top Clients
       </Text>
 
       {loading ? (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="small" color="#c4ff85" />
-          <Text className="text-sm text-gray-400 mt-2">Loading...</Text>
+          <ActivityIndicator size="small" color={COLORS_PALETTE.orange} />
+          <Text className="text-sm mt-2" style={{ color: COLORS_PALETTE.textMuted }}>
+            Loading...
+          </Text>
         </View>
       ) : clients.length === 0 ? (
         <View className="flex-1 items-center justify-center">
-          <Text className="text-sm text-gray-400 text-center">
+          <Text 
+            className="text-sm text-center"
+            style={{ color: COLORS_PALETTE.textMuted }}
+          >
             No data available for {selectedMonth} {selectedYear ?? ''}
           </Text>
         </View>
       ) : (
         <View className="flex-1">
-        {/* Table Header */}
-            <View className="flex-row border-b border-zinc-700 pb-2 mb-2">
-                <Text className="text-white font-semibold text-xs w-6">#</Text>
-                <Text className="text-white font-semibold text-xs flex-1">Client</Text>
-                <Text className="text-white font-semibold text-xs flex-1 text-right">Total</Text>
-                <Text className="text-white font-semibold text-xs flex-1 text-right">Visits</Text>
-            </View>
+          {/* Table Header */}
+          <View 
+            className="flex-row pb-2 mb-2"
+            style={{ borderBottomWidth: 1, borderBottomColor: COLORS_PALETTE.glassBorder }}
+          >
+            <Text 
+              className="font-semibold text-xs w-6"
+              style={{ color: COLORS_PALETTE.text }}
+            >
+              #
+            </Text>
+            <Text 
+              className="font-semibold text-xs flex-1"
+              style={{ color: COLORS_PALETTE.text }}
+            >
+              Client
+            </Text>
+            <Text 
+              className="font-semibold text-xs flex-1 text-right"
+              style={{ color: COLORS_PALETTE.text }}
+            >
+              Total
+            </Text>
+            <Text 
+              className="font-semibold text-xs flex-1 text-right"
+              style={{ color: COLORS_PALETTE.text }}
+            >
+              Visits
+            </Text>
+          </View>
 
-            {/* Table Rows */}
-            {clients.slice(0, 5).map((client, idx) => (
+          {/* Table Rows */}
+          {clients.slice(0, 5).map((client, idx) => (
             <View
-                key={client.id}
-                className={`flex-row py-4 pr-3 border-b border-zinc-700 ${
-                    idx % 2 === 0 ? 'bg-zinc-800/30' : ''
-                }`}
-                >
-                <Text className="text-white text-sm w-6">{idx + 1}</Text>
-                <Text className="text-white font-semibold text-sm flex-1" numberOfLines={1}>
-                    {client.client_name ?? 'N/A'}
-                </Text>
-                <Text className="text-green-400 font-semibold text-sm flex-1 text-right">
-                    ${client.total_paid?.toFixed(2) ?? '-'}
-                </Text>
-                <Text className="text-yellow-400 font-semibold text-sm flex-1 text-right">
-                    {client.num_visits ?? '-'}
-                </Text>
+              key={client.id}
+              className="flex-row py-4 pr-3"
+              style={{
+                borderBottomWidth: idx < clients.slice(0, 5).length - 1 ? 1 : 0,
+                borderBottomColor: COLORS_PALETTE.glassBorder,
+                backgroundColor: idx % 2 === 0 ? 'rgba(255, 255, 255, 0.02)' : 'transparent',
+              }}
+            >
+              <Text 
+                className="text-sm w-6"
+                style={{ color: COLORS_PALETTE.text }}
+              >
+                {idx + 1}
+              </Text>
+              <Text 
+                className="font-semibold text-sm flex-1" 
+                numberOfLines={1}
+                style={{ color: COLORS_PALETTE.text }}
+              >
+                {client.client_name ?? 'N/A'}
+              </Text>
+              <Text 
+                className="font-semibold text-sm flex-1 text-right"
+                style={{ color: COLORS_PALETTE.orange }}
+              >
+                ${client.total_paid?.toFixed(2) ?? '-'}
+              </Text>
+              <Text 
+                className="font-semibold text-sm flex-1 text-right"
+                style={{ color: COLORS_PALETTE.yellow }}
+              >
+                {client.num_visits ?? '-'}
+              </Text>
             </View>
-        ))}
+          ))}
         </View>
       )}
     </View>

@@ -1,6 +1,6 @@
 import { supabase } from '@/utils/supabaseClient'
 import { useEffect, useState } from 'react'
-import { ActivityIndicator, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, Keyboard, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native'
 import Toast from 'react-native-toast-message'
 
 interface AdminRevenueEditorProps {
@@ -84,16 +84,22 @@ export default function AdminRevenueEditor({ barberId, month, year }: AdminReven
 
   return (
     <View className="bg-zinc-900 p-4 rounded-xl shadow-md">
-      <Text className="text-white text-lg font-semibold mb-2">Edit Monthly Revenue</Text>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View>
+          <Text className="text-white text-lg font-semibold mb-2">Edit Monthly Revenue</Text>
 
-      <TextInput
-        value={revenue}
-        onChangeText={handleChange}
-        placeholder="Enter revenue..."
-        placeholderTextColor="#a1a1aa"
-        keyboardType="decimal-pad"
-        className="w-full bg-zinc-800 text-white border border-zinc-700 rounded-md p-2 mb-3"
-      />
+          <TextInput
+            value={revenue}
+            onChangeText={handleChange}
+            placeholder="Enter revenue..."
+            placeholderTextColor="#a1a1aa"
+            keyboardType="decimal-pad"
+            returnKeyType="done"
+            onSubmitEditing={Keyboard.dismiss}
+            className="w-full bg-zinc-800 text-white border border-zinc-700 rounded-md p-2 mb-3"
+          />
+        </View>
+      </TouchableWithoutFeedback>
 
       <TouchableOpacity
         onPress={handleUpdate}

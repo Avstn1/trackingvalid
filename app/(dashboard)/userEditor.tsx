@@ -5,6 +5,7 @@ import { CalendarRange, ChevronDown } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Keyboard,
   Modal,
   Platform,
   Text,
@@ -150,62 +151,62 @@ export default function UserEditor() {
     <SafeAreaView className="flex-1 bg-zinc-950">
       <CustomHeader pageName="Data Editor" />
 
-      <View
-        className="flex-1 px-4"
-      >
-        {/* Date Picker Button */}
-        <View className="my-4">
-          <TouchableOpacity
-            onPress={handleOpenDatePicker}
-            className="flex-row items-center justify-center gap-2 bg-zinc-800 py-3 rounded-full"
-          >
-            <CalendarRange size={16} color="#c4ff85" />
-            <Text className="text-white font-semibold text-sm">
-              {getDateLabel()}
-            </Text>
-          </TouchableOpacity>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View className="flex-1 px-4">
+          {/* Date Picker Button */}
+          <View className="my-4">
+            <TouchableOpacity
+              onPress={handleOpenDatePicker}
+              className="flex-row items-center justify-center gap-2 bg-zinc-800 py-3 rounded-full"
+            >
+              <CalendarRange size={16} color="#c4ff85" />
+              <Text className="text-white font-semibold text-sm">
+                {getDateLabel()}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Section Dropdown Button */}
+          <View className="mb-6">
+            <TouchableOpacity
+              onPress={handleOpenSectionPicker}
+              className="bg-zinc-900/90 px-4 py-3 rounded-full border border-zinc-700 flex-row items-center justify-between"
+            >
+              <Text className="text-white text-sm font-semibold">
+                {getActiveSectionLabel()}
+              </Text>
+              <ChevronDown size={18} color="#fff" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Main Content */}
+          <View className="gap-6 mb-8">
+            {activeTab === 'revenue' && (
+              <View className='max-h-[80%]'>
+                <RevenueEditor barberId={user.id} month={selectedMonth} year={selectedYear} />
+              </View>
+            )}
+
+            {activeTab === 'clients' && (
+              <View className='max-h-[83%]'>
+                <TopClientsEditor barberId={user.id} month={selectedMonth} year={selectedYear} />
+              </View>
+            )}
+
+            {activeTab === 'breakdown' && (
+              <View className='max-h-[100%]'>
+                <ServiceBreakdownEditor month={selectedMonth} barberId={user.id} />
+              </View>
+            )}
+
+            {activeTab === 'funnels' && (
+              <View className='max-h-[85%]'>
+                <MarketingFunnelsEditor month={selectedMonth} barberId={user.id} />
+              </View>
+            )}
+          </View>
         </View>
-
-        {/* Section Dropdown Button */}
-        <View className="mb-6">
-          <TouchableOpacity
-            onPress={handleOpenSectionPicker}
-            className="bg-zinc-900/90 px-4 py-3 rounded-full border border-zinc-700 flex-row items-center justify-between"
-          >
-            <Text className="text-white text-sm font-semibold">
-              {getActiveSectionLabel()}
-            </Text>
-            <ChevronDown size={18} color="#fff" />
-          </TouchableOpacity>
-        </View>
-
-        {/* Main Content */}
-        <View className="gap-6 mb-8">
-          {activeTab === 'revenue' && (
-            <View className='max-h-[80%]'>
-              <RevenueEditor barberId={user.id} month={selectedMonth} year={selectedYear} />
-            </View>
-          )}
-
-          {activeTab === 'clients' && (
-            <View className='max-h-[83%]'>
-              <TopClientsEditor barberId={user.id} month={selectedMonth} year={selectedYear} />
-            </View>
-          )}
-
-          {activeTab === 'breakdown' && (
-            <View className='max-h-[100%]'>
-              <ServiceBreakdownEditor month={selectedMonth} barberId={user.id} />
-            </View>
-          )}
-
-          {activeTab === 'funnels' && (
-            <View className='max-h-[85%]'>
-              <MarketingFunnelsEditor month={selectedMonth} barberId={user.id} />
-            </View>
-          )}
-        </View>
-      </View>
+      </TouchableWithoutFeedback>
 
       {/* Date Picker Modal */}
       <Modal

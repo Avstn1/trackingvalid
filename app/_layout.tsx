@@ -1,13 +1,49 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import "../global.css";
 
+import CustomSplash from '@/components/CustomSplash';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+
+// Prevent the splash screen from auto-hiding
+SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  const [appIsReady, setAppIsReady] = useState(false);
+  const [showCustomSplash, setShowCustomSplash] = useState(true);
+
+  useEffect(() => {
+    async function prepare() {
+      try {
+        // Hide the native splash screen
+        await SplashScreen.hideAsync();
+        
+        // Load your resources here (fonts, data, etc.)
+        // Example: await Font.loadAsync({ ... });
+        // You can add a small delay if needed
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+      } catch (e) {
+        console.warn(e);
+      } finally {
+        setAppIsReady(true);
+      }
+    }
+
+    prepare();
+  }, []);
+
+  const handleSplashFinish = () => {
+    setShowCustomSplash(false);
+  };
+
+  if (!appIsReady || showCustomSplash) {
+    return <CustomSplash onFinish={handleSplashFinish} />;
+  }
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>

@@ -1,7 +1,31 @@
-import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity } from 'react-native';
+import { supabase } from '@/utils/supabaseClient';
+import { useRouter } from 'expo-router';
 import { Eye, EyeOff } from 'lucide-react-native';
-import React from 'react';
+import React, { useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  Keyboard,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
+
+// Color Palette matching the dashboard
+const COLORS = {
+  background: '#181818',
+  surface: 'rgba(37, 37, 37, 0.6)',
+  surfaceSolid: '#252525',
+  glassBorder: 'rgba(255, 255, 255, 0.1)',
+  text: '#F7F7F7',
+  textMuted: 'rgba(247, 247, 247, 0.5)',
+  orange: '#FF5722',
+  orangeGlow: 'rgba(255, 87, 34, 0.4)',
+  red: '#ef4444',
+};
 
 export default function SignUpPage() {
   const [email, setEmail] = useState('');
@@ -9,103 +33,257 @@ export default function SignUpPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
-  const handleSignUp = () => {
-    console.log('Sign up pressed', { email, password, confirmPassword });
-    // No functionality - just UI
+  const handleSignUp = async () => {
+    if (!email || !password || !confirmPassword) {
+      Alert.alert('Error', 'Please fill in all fields');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Alert.alert('Error', "Passwords don't match!");
+      return;
+    }
+
+    if (password.length < 6) {
+      Alert.alert('Error', 'Password must be at least 6 characters');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const { data: userProfile, error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+
+      if (error) {
+        Alert.alert('Sign Up Failed', error.message);
+        setLoading(false);
+        return;
+      }
+
+      // Log successful signup
+      if (userProfile.user) {
+        await supabase.from('system_logs').insert({
+          source: userProfile.user.id,
+          action: 'user_signup',
+          status: 'success',
+          details: `User ${userProfile.user.email} signed up.`,
+        });
+      }
+
+      Alert.alert(
+        'Success',
+        'Check your email to confirm your account!',
+        [
+          {
+            text: 'OK',
+            onPress: () => router.replace('/(auth)/login'),
+          },
+        ]
+      );
+    } catch (err) {
+      console.error('Sign up error:', err);
+      Alert.alert('Error', 'An unexpected error occurred');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const passwordMatch = password && confirmPassword && password === confirmPassword;
 
   return (
-    <View className="flex-1 justify-center items-center bg-zinc-950 px-5">
-      <View className="w-full max-w-md bg-zinc-900 rounded-2xl p-8 shadow-lg border border-zinc-800">
-        <Text className="text-3xl font-bold mb-6 text-center text-blue-500">
-          Sign Up
-        </Text>
-
-        <View className="gap-4">
-          <TextInput
-            className="w-full p-3 rounded-lg border border-zinc-800 bg-zinc-950 text-white"
-            placeholder="Email"
-            placeholderTextColor="#888"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-
-          <View className="relative">
-            <TextInput
-              className="w-full p-3 rounded-lg border border-zinc-800 bg-zinc-950 text-white pr-12"
-              placeholder="Password"
-              placeholderTextColor="#888"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={!showPassword}
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <View
+        className="flex-1 justify-center items-center px-5"
+        style={{ backgroundColor: COLORS.background }}
+      >
+        <View
+          className="w-full max-w-md rounded-3xl p-8 shadow-lg"
+          style={{
+            backgroundColor: COLORS.surface,
+            borderWidth: 1,
+            borderColor: COLORS.glassBorder,
+          }}
+        >
+          {/* Logo and App Name */}
+          <View className="items-center mb-8">
+            <Image
+              source={require('@/assets/images/shearworklogo.png')}
+              style={{
+                width: 64,
+                height: 64,
+                marginBottom: 16,
+                shadowColor: COLORS.orange,
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.3,
+                shadowRadius: 12,
+              }}
+              resizeMode="contain"
             />
-            <TouchableOpacity
-              className="absolute right-3 top-3"
-              onPress={() => setShowPassword(!showPassword)}
+            <Text
+              className="text-4xl font-bold tracking-tight"
+              style={{ color: COLORS.text }}
             >
-              {showPassword ? (
-                <EyeOff size={18} color="#888" />
+              ShearWork
+            </Text>
+            <View
+              className="h-1 w-16 rounded-full mt-2"
+              style={{
+                backgroundColor: COLORS.orange,
+                shadowColor: COLORS.orange,
+                shadowOffset: { width: 0, height: 0 },
+                shadowOpacity: 0.8,
+                shadowRadius: 8,
+                elevation: 4,
+              }}
+            />
+          </View>
+
+          <View className="gap-4">
+            <TextInput
+              className="w-full p-4 rounded-xl text-white"
+              style={{
+                backgroundColor: COLORS.surfaceSolid,
+                borderWidth: 1,
+                borderColor: COLORS.glassBorder,
+                color: COLORS.text,
+              }}
+              placeholder="Email"
+              placeholderTextColor={COLORS.textMuted}
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              editable={!loading}
+              returnKeyType="next"
+            />
+
+            <View className="relative">
+              <TextInput
+                className="w-full p-4 rounded-xl text-white"
+                style={{
+                  backgroundColor: COLORS.surfaceSolid,
+                  borderWidth: 1,
+                  borderColor: COLORS.glassBorder,
+                  color: COLORS.text,
+                  paddingRight: 48,
+                }}
+                placeholder="Password"
+                placeholderTextColor={COLORS.textMuted}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+                editable={!loading}
+                returnKeyType="next"
+              />
+              <TouchableOpacity
+                style={{
+                  position: 'absolute',
+                  right: 16,
+                  top: 16,
+                }}
+                onPress={() => setShowPassword(!showPassword)}
+                disabled={loading}
+              >
+                {showPassword ? (
+                  <EyeOff size={20} color={COLORS.textMuted} />
+                ) : (
+                  <Eye size={20} color={COLORS.textMuted} />
+                )}
+              </TouchableOpacity>
+            </View>
+
+            <View className="relative">
+              <TextInput
+                className="w-full p-4 rounded-xl text-white"
+                style={{
+                  backgroundColor: COLORS.surfaceSolid,
+                  borderWidth: 1,
+                  borderColor: confirmPassword
+                    ? passwordMatch
+                      ? COLORS.glassBorder
+                      : COLORS.red
+                    : COLORS.glassBorder,
+                  color: COLORS.text,
+                  paddingRight: 48,
+                }}
+                placeholder="Confirm Password"
+                placeholderTextColor={COLORS.textMuted}
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                secureTextEntry={!showConfirm}
+                editable={!loading}
+                returnKeyType="done"
+                onSubmitEditing={handleSignUp}
+              />
+              <TouchableOpacity
+                style={{
+                  position: 'absolute',
+                  right: 16,
+                  top: 16,
+                }}
+                onPress={() => setShowConfirm(!showConfirm)}
+                disabled={loading}
+              >
+                {showConfirm ? (
+                  <EyeOff size={20} color={COLORS.textMuted} />
+                ) : (
+                  <Eye size={20} color={COLORS.textMuted} />
+                )}
+              </TouchableOpacity>
+            </View>
+
+            {confirmPassword && !passwordMatch && (
+              <Text className="text-sm -mt-2" style={{ color: COLORS.red }}>
+                Passwords don't match
+              </Text>
+            )}
+
+            <TouchableOpacity
+              className="w-full py-4 rounded-xl mt-2"
+              style={{
+                backgroundColor: loading ? COLORS.surfaceSolid : COLORS.orange,
+                opacity: loading ? 0.5 : 1,
+                shadowColor: COLORS.orange,
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: loading ? 0 : 0.4,
+                shadowRadius: 12,
+                elevation: loading ? 0 : 8,
+              }}
+              onPress={handleSignUp}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color={COLORS.text} />
               ) : (
-                <Eye size={18} color="#888" />
+                <Text
+                  className="font-bold text-center text-base"
+                  style={{ color: COLORS.text }}
+                >
+                  Sign Up
+                </Text>
               )}
             </TouchableOpacity>
           </View>
 
-          <View className="relative">
-            <TextInput
-              className={`w-full p-3 rounded-lg bg-zinc-950 text-white pr-12 ${
-                confirmPassword
-                  ? passwordMatch
-                    ? 'border border-zinc-800'
-                    : 'border border-red-500'
-                  : 'border border-zinc-800'
-              }`}
-              placeholder="Confirm Password"
-              placeholderTextColor="#888"
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              secureTextEntry={!showConfirm}
-            />
-            <TouchableOpacity
-              className="absolute right-3 top-3"
-              onPress={() => setShowConfirm(!showConfirm)}
-            >
-              {showConfirm ? (
-                <EyeOff size={18} color="#888" />
-              ) : (
-                <Eye size={18} color="#888" />
-              )}
-            </TouchableOpacity>
+          <View className="mt-6 items-center">
+            <Text style={{ color: COLORS.textMuted, fontSize: 14 }}>
+              Already have an account?{' '}
+              <Text
+                style={{ color: COLORS.orange, fontWeight: '600' }}
+                onPress={() => !loading && router.push('/(auth)/login')}
+              >
+                Log in
+              </Text>
+            </Text>
           </View>
-
-          {confirmPassword && !passwordMatch && (
-            <Text className="text-red-500 text-sm -mt-2">
-              Passwords don&apos;t match
-            </Text>
-          )}
-
-          <TouchableOpacity 
-            className="w-full bg-zinc-800 hover:bg-zinc-700 py-3 rounded-lg mt-2"
-            onPress={handleSignUp}
-          >
-            <Text className="text-white font-semibold text-center text-base">
-              Sign Up
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        <View className="mt-4 items-center">
-          <Text className="text-zinc-400 text-sm">
-            Already have an account?{' '}
-            <Text className="text-blue-500">Log in</Text>
-          </Text>
         </View>
       </View>
-    </View>
+    </TouchableWithoutFeedback>
   );
 }

@@ -20,6 +20,19 @@ import Animated, {
 } from 'react-native-reanimated'
 import Toast from 'react-native-toast-message'
 
+// Color Palette
+const COLORS = {
+  background: '#181818',
+  surface: 'rgba(37, 37, 37, 0.6)',
+  surfaceSolid: '#252525',
+  glassBorder: 'rgba(255, 255, 255, 0.1)',
+  text: '#F7F7F7',
+  textMuted: 'rgba(247, 247, 247, 0.5)',
+  orange: '#FF5722',
+  orangeGlow: 'rgba(255, 87, 34, 0.2)',
+  orangeLight: 'rgba(255, 87, 34, 0.1)',
+}
+
 // Helper function to format relative time
 const getRelativeTime = (dateString: string): string => {
   const date = new Date(dateString)
@@ -178,7 +191,6 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
     .onUpdate((event) => {
       if (event.translationY > 0) {
         translateY.value = event.translationY
-        // Fade backdrop as user drags
         const progress = Math.min(event.translationY / 300, 1)
         opacity.value = 1 - progress
       }
@@ -220,7 +232,6 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
           .single()
 
         if (error) {
-          // PGRST116 = Row not found
           if (error.code === 'PGRST116') {
             console.error('Report not found:', n.reference)
             Toast.show({
@@ -292,10 +303,20 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
           className="relative p-2 rounded-full active:bg-white/10"
           onPress={() => setOpen(!open)}
         >
-          <Bell color="white" size={24} />
+          <Bell color={COLORS.text} size={24} />
           {unreadCount > 0 && (
-            <View className="absolute -top-1 -right-1 bg-[#c4ff85] w-5 h-5 rounded-full items-center justify-center shadow-sm">
-              <Text className="text-black text-[10px] font-bold">
+            <View 
+              className="absolute -top-1 -right-1 w-5 h-5 rounded-full items-center justify-center"
+              style={{ 
+                backgroundColor: COLORS.orange,
+                shadowColor: COLORS.orange,
+                shadowOffset: { width: 0, height: 0 },
+                shadowOpacity: 0.5,
+                shadowRadius: 4,
+                elevation: 3,
+              }}
+            >
+              <Text className="text-white text-[10px] font-bold">
                 {unreadCount}
               </Text>
             </View>
@@ -312,77 +333,112 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
           <GestureHandlerRootView style={{ flex: 1 }}>
             <Animated.View style={[{ flex: 1 }, backdropStyle]}>
               <Pressable 
-                className="flex-1 bg-black/60"
+                className="flex-1"
+                style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)' }}
                 onPress={closeModal}
               >
-              <GestureDetector gesture={panGesture}>
-                <Animated.View 
-                  style={animatedStyle}
-                  className="absolute bottom-0 left-0 right-0 bg-zinc-900 rounded-t-3xl border-t border-zinc-800 max-h-[80%]"
-                >
-                  <Pressable onPress={(e) => e.stopPropagation()}>
-                    {/* Handle bar */}
-                    <View className="items-center pt-4 pb-2">
-                      <View className="w-12 h-1.5 bg-zinc-700 rounded-full" />
-                    </View>
-
-                    {/* Header */}
-                    <View className="flex-row justify-between items-center px-6 py-4 border-b border-zinc-800">
-                      <Text className="font-semibold text-[#c4ff85] text-base tracking-wide">
-                        Notifications
-                      </Text>
-                      <TouchableOpacity
-                        onPress={handleMarkAllRead}
-                        activeOpacity={0.6}
-                        className="px-2 py-1"
-                      >
-                        <Text className="text-zinc-400 text-xs font-medium">
-                          Mark all read
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-
-                    {/* Notifications list */}
-                    {notifications.length === 0 ? (
-                      <View className="p-12 items-center">
-                        <Bell color="#71717a" size={32} strokeWidth={1.5} />
-                        <Text className="text-gray-400 text-sm mt-3">No notifications</Text>
+                <GestureDetector gesture={panGesture}>
+                  <Animated.View 
+                    style={[
+                      animatedStyle,
+                      { 
+                        backgroundColor: COLORS.surfaceSolid,
+                        borderTopWidth: 1,
+                        borderTopColor: COLORS.glassBorder,
+                      }
+                    ]}
+                    className="absolute bottom-0 left-0 right-0 rounded-t-3xl max-h-[80%]"
+                  >
+                    <Pressable onPress={(e) => e.stopPropagation()}>
+                      {/* Handle bar */}
+                      <View className="items-center pt-4 pb-2">
+                        <View 
+                          className="w-12 h-1.5 rounded-full"
+                          style={{ backgroundColor: COLORS.glassBorder }}
+                        />
                       </View>
-                    ) : (
-                      <ScrollView 
-                        className="px-4"
-                        showsVerticalScrollIndicator={false}
-                        contentContainerStyle={{ paddingBottom: 32, paddingTop: 8 }}
+
+                      {/* Header */}
+                      <View 
+                        className="flex-row justify-between items-center px-6 py-4"
+                        style={{ borderBottomWidth: 1, borderBottomColor: COLORS.glassBorder }}
                       >
-                        {notifications.map((n) => (
-                          <TouchableOpacity
-                            key={n.id}
-                            onPress={() => handleClickNotification(n)}
-                            activeOpacity={0.7}
-                            className={`px-4 py-3.5 rounded-xl mb-2 border ${
-                              !n.is_read 
-                                ? 'bg-[#c4ff85]/10 border-[#c4ff85]/20' 
-                                : 'bg-zinc-800/50 border-zinc-800'
-                            }`}
+                        <Text 
+                          className="font-semibold text-base tracking-wide"
+                          style={{ color: COLORS.orange }}
+                        >
+                          Notifications
+                        </Text>
+                        <TouchableOpacity
+                          onPress={handleMarkAllRead}
+                          activeOpacity={0.6}
+                          className="px-2 py-1"
+                        >
+                          <Text 
+                            className="text-xs font-medium"
+                            style={{ color: COLORS.textMuted }}
                           >
-                            <Text className={`text-sm text-white mb-1 ${!n.is_read ? 'font-semibold' : 'font-medium'}`}>
-                              {n.header}
-                            </Text>
-                            <Text className="text-xs text-gray-400 mb-2 leading-5">
-                              {n.message}
-                            </Text>
-                            <Text className="text-[10px] text-gray-500">
-                              {getRelativeTime(n.created_at)}
-                            </Text>
-                          </TouchableOpacity>
-                        ))}
-                      </ScrollView>
-                    )}
-                  </Pressable>
-                </Animated.View>
-              </GestureDetector>
-            </Pressable>
-          </Animated.View>
+                            Mark all read
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+
+                      {/* Notifications list */}
+                      {notifications.length === 0 ? (
+                        <View className="p-12 items-center">
+                          <Bell color={COLORS.textMuted} size={32} strokeWidth={1.5} />
+                          <Text className="text-sm mt-3" style={{ color: COLORS.textMuted }}>
+                            No notifications
+                          </Text>
+                        </View>
+                      ) : (
+                        <ScrollView 
+                          className="px-4"
+                          showsVerticalScrollIndicator={false}
+                          contentContainerStyle={{ paddingBottom: 32, paddingTop: 8 }}
+                        >
+                          {notifications.map((n) => (
+                            <TouchableOpacity
+                              key={n.id}
+                              onPress={() => handleClickNotification(n)}
+                              activeOpacity={0.7}
+                              className="px-4 py-3.5 rounded-xl mb-2"
+                              style={{
+                                backgroundColor: !n.is_read ? COLORS.orangeLight : COLORS.surface,
+                                borderWidth: 1,
+                                borderColor: !n.is_read ? COLORS.orange : COLORS.glassBorder,
+                              }}
+                            >
+                              <Text 
+                                className="text-sm mb-1"
+                                style={{ 
+                                  color: COLORS.text,
+                                  fontWeight: !n.is_read ? '600' : '400'
+                                }}
+                              >
+                                {n.header}
+                              </Text>
+                              <Text 
+                                className="text-xs mb-2 leading-5"
+                                style={{ color: COLORS.textMuted }}
+                              >
+                                {n.message}
+                              </Text>
+                              <Text 
+                                className="text-[10px]"
+                                style={{ color: COLORS.textMuted, opacity: 0.7 }}
+                              >
+                                {getRelativeTime(n.created_at)}
+                              </Text>
+                            </TouchableOpacity>
+                          ))}
+                        </ScrollView>
+                      )}
+                    </Pressable>
+                  </Animated.View>
+                </GestureDetector>
+              </Pressable>
+            </Animated.View>
           </GestureHandlerRootView>
         </Modal>
       </View>

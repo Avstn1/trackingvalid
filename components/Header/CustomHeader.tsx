@@ -1,14 +1,18 @@
 import DailyTipsDropdown from '@/components/Header/DailyTipsDropdown';
 import NotificationsDropdown from '@/components/Header/NotificationsDropdown';
+import SettingsPage from '@/components/Profile/Settings/Settings';
 import { supabase } from "@/utils/supabaseClient";
+import { Settings } from 'lucide-react-native';
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Text, View,
+  Modal,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-// Color Palette
 const COLORS = {
   background: '#181818',
   surface: 'rgba(37, 37, 37, 0.6)',
@@ -18,7 +22,7 @@ const COLORS = {
   textMuted: 'rgba(247, 247, 247, 0.5)',
   orange: '#FF5722',
   orangeGlow: 'rgba(255, 87, 34, 0.3)',
-  purple: '#673AB7',
+  purple: '#9C27B0',
   yellow: '#FFEB3B',
 };
 
@@ -31,8 +35,7 @@ interface CustomHeaderProps {
 export function CustomHeader({ pageName, userId, onRefresh }: CustomHeaderProps) {
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  
+  const [showSettings, setShowSettings] = useState(false);
   const insets = useSafeAreaInsets();
 
   useEffect(() => {
@@ -53,7 +56,6 @@ export function CustomHeader({ pageName, userId, onRefresh }: CustomHeaderProps)
         setProfile(profileData);
       } catch (err: any) {
         console.error(err);
-        setError(err.message);
       } finally {
         setLoading(false);
       }
@@ -62,12 +64,13 @@ export function CustomHeader({ pageName, userId, onRefresh }: CustomHeaderProps)
     fetchUserAndProfile();
   }, []);
 
+  const handleCloseSettings = () => {
+    setShowSettings(false);
+  };
+
   if (loading) {
     return (
-      <View 
-        className="flex-1 justify-center items-center" 
-        style={{ backgroundColor: COLORS.background }}
-      >
+      <View className="flex-1 justify-center items-center" style={{ backgroundColor: COLORS.background }}>
         <ActivityIndicator size="large" color={COLORS.orange} />
         <Text className="mt-4" style={{ color: COLORS.text }}>Loading header...</Text>
       </View>
@@ -77,7 +80,7 @@ export function CustomHeader({ pageName, userId, onRefresh }: CustomHeaderProps)
   return (
     <View 
       style={{ 
-        paddingTop: insets.top - 45, 
+        paddingTop: insets.top - 45,
         paddingBottom: 16,
         backgroundColor: COLORS.surface,
         borderBottomWidth: 1,
@@ -102,18 +105,33 @@ export function CustomHeader({ pageName, userId, onRefresh }: CustomHeaderProps)
       />
 
       <View className="px-5 flex-row items-center justify-between">
-        <Text 
-          className="text-3xl font-bold flex-1"
-          style={{ color: COLORS.orange }}
-        >
+        <Text className="text-3xl font-bold flex-1" style={{ color: COLORS.orange }}>
           {pageName}
         </Text>
         
         <View className="flex-row items-center gap-3">
-          <DailyTipsDropdown barberId={profile.user_id} onRefresh={onRefresh} />
-          <NotificationsDropdown userId={profile.user_id} />
+          {pageName === "Profile" ? (
+            <TouchableOpacity onPress={() => setShowSettings(true)}>
+              <Settings size={24} color={COLORS.orange} />
+            </TouchableOpacity>
+          ) : (
+            <>
+              <DailyTipsDropdown barberId={profile.user_id} onRefresh={onRefresh} />
+              <NotificationsDropdown userId={profile.user_id} />
+            </>
+          )}
         </View>
       </View>
+
+      {/* Settings Modal */}
+      <Modal
+        visible={showSettings}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={handleCloseSettings}
+      >
+        <SettingsPage onClose={handleCloseSettings} />
+      </Modal>
     </View>
   );
 }

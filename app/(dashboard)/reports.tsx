@@ -1,4 +1,5 @@
 // app/(dashboard)/reports.tsx
+import AuthLoadingSplash from '@/components/AuthLoadingSpash';
 import { CustomHeader } from '@/components/Header/CustomHeader';
 import MonthlyReports from '@/components/Reports/MonthlyReports';
 import WeeklyComparisonReports from '@/components/Reports/WeeklyComparisonReports';
@@ -8,13 +9,12 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { CalendarRange } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
   Dimensions,
   Modal,
   Platform,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -107,12 +107,7 @@ export default function ReportsPage() {
   };
 
   if (loading) {
-    return (
-      <View className="flex-1 justify-center items-center" style={{ backgroundColor: COLORS.background }}>
-        <ActivityIndicator size="large" color={COLORS.orange} />
-        <Text className="mt-4" style={{ color: COLORS.text }}>Loading reports...</Text>
-      </View>
-    );
+    return <AuthLoadingSplash message="Loading reports..." />;
   }
 
   if (error) {

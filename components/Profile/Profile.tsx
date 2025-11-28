@@ -15,6 +15,18 @@ import {
   View,
 } from 'react-native';
 
+// Color Palette
+const COLORS = {
+  background: '#181818',
+  surface: 'rgba(37, 37, 37, 0.6)',
+  surfaceSolid: '#252525',
+  glassBorder: 'rgba(255, 255, 255, 0.1)',
+  text: '#F7F7F7',
+  textMuted: 'rgba(247, 247, 247, 0.5)',
+  orange: '#FF5722',
+  orangeGlow: 'rgba(255, 87, 34, 0.4)',
+};
+
 export default function ProfileSecurityLogout() {
   const router = useRouter();
   
@@ -95,7 +107,7 @@ export default function ProfileSecurityLogout() {
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.8,
@@ -230,13 +242,15 @@ export default function ProfileSecurityLogout() {
   if (loading) {
     return (
       <View className="flex-1 justify-center items-center py-20">
-        <ActivityIndicator size="large" color="#c4ff85" />
+        <ActivityIndicator size="large" color={COLORS.orange} />
       </View>
     );
   }
 
   if (!profile || !authUser) {
-    return <Text className="text-white">Loading...</Text>;
+    return (
+      <Text style={{ color: COLORS.text }}>Loading...</Text>
+    );
   }
 
   return (
@@ -247,38 +261,68 @@ export default function ProfileSecurityLogout() {
     >
       {/* PROFILE SECTION */}
       <View className="mb-1">
-        <Text className="text-white text-lg font-bold mb-4">Profile Information</Text>
+        <Text 
+          className="text-lg font-bold mb-4"
+          style={{ color: COLORS.text }}
+        >
+          Profile Information
+        </Text>
 
         {/* Avatar Section */}
         <View className="items-center mb-4">
           <View className="relative mb-3">
             <Image
               source={{ uri: profile.avatar_url || 'https://via.placeholder.com/150' }}
-              className="w-20 h-20 rounded-full bg-zinc-800"
+              className="w-20 h-20 rounded-full"
+              style={{ backgroundColor: COLORS.surfaceSolid }}
             />
             <TouchableOpacity
               onPress={handleAvatarChange}
               disabled={uploading}
-              className="absolute bottom-0 right-0 bg-lime-400 p-1.5 rounded-full"
+              className="absolute bottom-0 right-0 p-1.5 rounded-full"
+              style={{ 
+                backgroundColor: COLORS.orange,
+                shadowColor: COLORS.orange,
+                shadowOffset: { width: 0, height: 0 },
+                shadowOpacity: 0.5,
+                shadowRadius: 4,
+                elevation: 3,
+              }}
             >
               {uploading ? (
-                <ActivityIndicator size="small" color="#000" />
+                <ActivityIndicator size="small" color={COLORS.text} />
               ) : (
-                <Camera size={14} color="#000" />
+                <Camera size={14} color={COLORS.text} />
               )}
             </TouchableOpacity>
           </View>
-          <Text className="text-white text-base font-semibold">
+          <Text 
+            className="text-base font-semibold"
+            style={{ color: COLORS.text }}
+          >
             {profile.full_name}
           </Text>
-          <Text className="text-zinc-400 text-xs capitalize">{profile.role}</Text>
-          <Text className="text-zinc-400 text-xs">{authUser.email}</Text>
+          <Text 
+            className="text-xs capitalize"
+            style={{ color: COLORS.textMuted }}
+          >
+            {profile.role}
+          </Text>
+          <Text 
+            className="text-xs"
+            style={{ color: COLORS.textMuted }}
+          >
+            {authUser.email}
+          </Text>
         </View>
 
         {/* Commission Rate */}
         {profile.barber_type === 'commission' && (
           <View className="mt-4">
-            <Text className="text-white text-sm font-medium mb-2">
+            <Text 
+              className="text-sm font-medium mb-2"
+              style={{ color: COLORS.text }}
+            >
               Commission Rate (%)
             </Text>
             <View className="flex-row items-center gap-2">
@@ -287,91 +331,55 @@ export default function ProfileSecurityLogout() {
                 onChangeText={setCommission}
                 keyboardType="numeric"
                 placeholder="0"
-                placeholderTextColor="#71717a"
-                className="flex-1 bg-zinc-800 border border-zinc-700 px-3 py-2.5 rounded-xl text-white"
+                placeholderTextColor={COLORS.textMuted}
+                className="flex-1 px-3 py-2.5 rounded-xl"
+                style={{
+                  backgroundColor: COLORS.surfaceSolid,
+                  borderWidth: 1,
+                  borderColor: COLORS.glassBorder,
+                  color: COLORS.text,
+                }}
               />
               <TouchableOpacity
                 onPress={updateCommission}
-                className="bg-lime-400 px-5 py-2.5 rounded-xl"
+                className="px-5 py-2.5 rounded-xl"
+                style={{
+                  backgroundColor: COLORS.orange,
+                  shadowColor: COLORS.orange,
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.3,
+                  shadowRadius: 4,
+                  elevation: 3,
+                }}
               >
-                <Text className="text-black font-bold text-sm">Save</Text>
+                <Text 
+                  className="font-bold text-sm"
+                  style={{ color: COLORS.text }}
+                >
+                  Save
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
         )}
 
         {profile.barber_type === 'rental' && (
-          <View className="p-3 bg-zinc-800 border border-zinc-700 rounded-xl mt-4 mb-3">
-            <Text className="text-zinc-300 text-xs">
+          <View 
+            className="p-3 rounded-xl mt-4 mb-3"
+            style={{
+              backgroundColor: COLORS.surface,
+              borderWidth: 1,
+              borderColor: COLORS.glassBorder,
+            }}
+          >
+            <Text 
+              className="text-xs"
+              style={{ color: COLORS.textMuted }}
+            >
               You are registered as a <Text className="font-semibold">Rental Barber</Text>.
             </Text>
           </View>
         )}
-      </View>
-
-      {/* DIVIDER */}
-      <View className="h-px bg-zinc-800 mb-3" />
-
-      {/* SECURITY SECTION */}
-      <View className="mb-6">
-        <Text className="text-white text-lg font-bold mb-4">Security</Text>
-
-        <View className="mb-3">
-          <Text className="text-white text-sm mb-1.5">Current Password</Text>
-          <TextInput
-            secureTextEntry
-            value={oldPassword}
-            onChangeText={setOldPassword}
-            placeholder="Enter current password"
-            placeholderTextColor="#71717a"
-            className="w-full px-3 py-2.5 bg-zinc-800 border border-zinc-700 rounded-xl text-white"
-          />
-        </View>
-
-        <View className="mb-4">
-          <Text className="text-white text-sm mb-1.5">New Password</Text>
-          <TextInput
-            secureTextEntry
-            value={newPassword}
-            onChangeText={setNewPassword}
-            placeholder="Enter new password"
-            placeholderTextColor="#71717a"
-            className="w-full px-3 py-2.5 bg-zinc-800 border border-zinc-700 rounded-xl text-white"
-          />
-        </View>
-
-        <TouchableOpacity
-          onPress={updatePassword}
-          disabled={updatingPassword}
-          className={`py-2.5 rounded-xl ${
-            updatingPassword ? 'bg-lime-400 opacity-50' : 'bg-lime-400'
-          }`}
-        >
-          {updatingPassword ? (
-            <ActivityIndicator color="#000" />
-          ) : (
-            <Text className="text-black text-center font-bold text-sm">Update Password</Text>
-          )}
-        </TouchableOpacity>
-      </View>
-
-      {/* DIVIDER */}
-      <View className="h-px bg-zinc-800 mb-1" />
-
-      {/* LOGOUT SECTION */}
-      <View className="items-center py-3">
-        <Text className="text-white text-lg font-bold mb-2">Logout</Text>
-        
-        <Text className="text-zinc-400 text-xs text-center mb-4">
-          You will be signed out of your account immediately.
-        </Text>
-
-        <TouchableOpacity
-          onPress={logout}
-          className="bg-red-600 px-6 py-2.5 rounded-xl"
-        >
-          <Text className="text-white text-center font-bold text-sm">Logout</Text>
-        </TouchableOpacity>
       </View>
     </ScrollView>
   );

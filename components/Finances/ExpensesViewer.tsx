@@ -15,6 +15,26 @@ import {
   View,
 } from 'react-native';
 
+// Color Palette
+const COLORS = {
+  background: '#181818',
+  cardBg: '#1a1a1a',
+  surface: 'rgba(37, 37, 37, 0.6)',
+  surfaceSolid: '#252525',
+  glassBorder: 'rgba(255, 255, 255, 0.1)',
+  glassHighlight: 'rgba(255, 255, 255, 0.05)',
+  text: '#F7F7F7',
+  textMuted: 'rgba(247, 247, 247, 0.5)',
+  orange: '#FF5722',
+  orangeGlow: 'rgba(255, 87, 34, 0.2)',
+  purple: '#9C27B0',
+  purpleGlow: 'rgba(156, 39, 176, 0.2)',
+  amber: '#fbbf24',
+  amberGlow: 'rgba(251, 191, 36, 0.2)',
+  red: '#dc2626',
+  redGlow: 'rgba(220, 38, 38, 0.2)',
+};
+
 interface ExpensesViewerProps {
   barberId: string;
   month: string;
@@ -299,8 +319,8 @@ export default function ExpensesViewer({
   if (loading) {
     return (
       <View className="py-8">
-        <ActivityIndicator size="small" color="#c4ff85" />
-        <Text className="text-zinc-400 text-sm text-center mt-2">
+        <ActivityIndicator size="small" color={COLORS.orange} />
+        <Text className="text-sm text-center mt-2" style={{ color: COLORS.textMuted }}>
           Loading expenses...
         </Text>
       </View>
@@ -313,7 +333,7 @@ export default function ExpensesViewer({
     <View className="flex-1">
       {expenses.length === 0 ? (
         <View className="flex-1 justify-center items-center py-12">
-          <Text className="text-sm text-zinc-400">No recurring expenses found.</Text>
+          <Text className="text-sm" style={{ color: COLORS.textMuted }}>No recurring expenses found.</Text>
         </View>
       ) : (
         <View className="flex-1">
@@ -322,7 +342,12 @@ export default function ExpensesViewer({
               {expenses.map((exp) => (
                 <View
                   key={exp.id}
-                  className="bg-zinc-800 border border-zinc-700 rounded-xl p-4"
+                  className="rounded-xl p-4 overflow-hidden"
+                  style={{
+                    backgroundColor: COLORS.surfaceSolid,
+                    borderWidth: 1,
+                    borderColor: COLORS.glassBorder,
+                  }}
                 >
                   {editingId === exp.id ? (
                     // Edit Mode
@@ -331,16 +356,28 @@ export default function ExpensesViewer({
                         value={editLabel}
                         onChangeText={setEditLabel}
                         placeholder="Label"
-                        placeholderTextColor="#71717a"
-                        className="px-3 py-2 bg-zinc-700 text-white border border-zinc-600 rounded-lg"
+                        placeholderTextColor={COLORS.textMuted}
+                        className="px-3 py-2 rounded-lg"
+                        style={{
+                          backgroundColor: COLORS.cardBg,
+                          color: COLORS.text,
+                          borderWidth: 1,
+                          borderColor: COLORS.glassBorder,
+                        }}
                       />
                       <TextInput
                         value={editAmount}
                         onChangeText={setEditAmount}
                         placeholder="Amount"
-                        placeholderTextColor="#71717a"
+                        placeholderTextColor={COLORS.textMuted}
                         keyboardType="decimal-pad"
-                        className="px-3 py-2 bg-zinc-700 text-white border border-zinc-600 rounded-lg"
+                        className="px-3 py-2 rounded-lg"
+                        style={{
+                          backgroundColor: COLORS.cardBg,
+                          color: COLORS.text,
+                          borderWidth: 1,
+                          borderColor: COLORS.glassBorder,
+                        }}
                       />
 
                       {/* Frequency Selector */}
@@ -349,16 +386,16 @@ export default function ExpensesViewer({
                           <TouchableOpacity
                             key={freq}
                             onPress={() => setEditFrequency(freq)}
-                            className={`px-3 py-2 rounded-lg ${
-                              editFrequency === freq
-                                ? 'bg-lime-400/20 border-lime-400'
-                                : 'bg-zinc-700 border-zinc-600'
-                            } border`}
+                            className="px-3 py-2 rounded-lg"
+                            style={{
+                              backgroundColor: editFrequency === freq ? COLORS.orangeGlow : COLORS.cardBg,
+                              borderWidth: 1,
+                              borderColor: editFrequency === freq ? COLORS.orange : COLORS.glassBorder,
+                            }}
                           >
                             <Text
-                              className={`text-xs font-semibold ${
-                                editFrequency === freq ? 'text-lime-300' : 'text-zinc-400'
-                              }`}
+                              className="text-xs font-semibold"
+                              style={{ color: editFrequency === freq ? COLORS.orange : COLORS.textMuted }}
                             >
                               {freq.charAt(0).toUpperCase() + freq.slice(1)}
                             </Text>
@@ -373,18 +410,16 @@ export default function ExpensesViewer({
                             <TouchableOpacity
                               key={day}
                               onPress={() => handleDayToggle(day)}
-                              className={`px-2 py-1 rounded-lg ${
-                                editSelectedDays.includes(day)
-                                  ? 'bg-lime-400/20 border-lime-400'
-                                  : 'bg-zinc-700 border-zinc-600'
-                              } border`}
+                              className="px-2 py-1 rounded-lg"
+                              style={{
+                                backgroundColor: editSelectedDays.includes(day) ? COLORS.purpleGlow : COLORS.cardBg,
+                                borderWidth: 1,
+                                borderColor: editSelectedDays.includes(day) ? COLORS.purple : COLORS.glassBorder,
+                              }}
                             >
                               <Text
-                                className={`text-xs font-semibold ${
-                                  editSelectedDays.includes(day)
-                                    ? 'text-lime-300'
-                                    : 'text-zinc-400'
-                                }`}
+                                className="text-xs font-semibold"
+                                style={{ color: editSelectedDays.includes(day) ? COLORS.purple : COLORS.textMuted }}
                               >
                                 {day}
                               </Text>
@@ -396,14 +431,20 @@ export default function ExpensesViewer({
                       {/* Monthly Day */}
                       {editFrequency === 'monthly' && (
                         <View>
-                          <Text className="text-zinc-400 text-xs mb-2">Day of Month</Text>
+                          <Text className="text-xs mb-2" style={{ color: COLORS.textMuted }}>Day of Month</Text>
                           <TextInput
                             value={editMonthlyDay}
                             onChangeText={setEditMonthlyDay}
                             placeholder="1-31"
-                            placeholderTextColor="#71717a"
+                            placeholderTextColor={COLORS.textMuted}
                             keyboardType="number-pad"
-                            className="px-3 py-2 bg-zinc-700 text-white border border-zinc-600 rounded-lg w-24"
+                            className="px-3 py-2 rounded-lg w-24"
+                            style={{
+                              backgroundColor: COLORS.cardBg,
+                              color: COLORS.text,
+                              borderWidth: 1,
+                              borderColor: COLORS.glassBorder,
+                            }}
                           />
                         </View>
                       )}
@@ -412,25 +453,23 @@ export default function ExpensesViewer({
                       {editFrequency === 'yearly' && (
                         <View className="gap-2">
                           <View>
-                            <Text className="text-zinc-400 text-xs mb-2">Month</Text>
+                            <Text className="text-xs mb-2" style={{ color: COLORS.textMuted }}>Month</Text>
                             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                               <View className="flex-row gap-2">
                                 {MONTHS.map((m, idx) => (
                                   <TouchableOpacity
                                     key={idx}
                                     onPress={() => setEditYearlyMonth(idx)}
-                                    className={`px-3 py-2 rounded-lg ${
-                                      editYearlyMonth === idx
-                                        ? 'bg-lime-400/20 border-lime-400'
-                                        : 'bg-zinc-700 border-zinc-600'
-                                    } border`}
+                                    className="px-3 py-2 rounded-lg"
+                                    style={{
+                                      backgroundColor: editYearlyMonth === idx ? COLORS.purpleGlow : COLORS.cardBg,
+                                      borderWidth: 1,
+                                      borderColor: editYearlyMonth === idx ? COLORS.purple : COLORS.glassBorder,
+                                    }}
                                   >
                                     <Text
-                                      className={`text-xs font-semibold ${
-                                        editYearlyMonth === idx
-                                          ? 'text-lime-300'
-                                          : 'text-zinc-400'
-                                      }`}
+                                      className="text-xs font-semibold"
+                                      style={{ color: editYearlyMonth === idx ? COLORS.purple : COLORS.textMuted }}
                                     >
                                       {m}
                                     </Text>
@@ -440,14 +479,20 @@ export default function ExpensesViewer({
                             </ScrollView>
                           </View>
                           <View>
-                            <Text className="text-zinc-400 text-xs mb-2">Day</Text>
+                            <Text className="text-xs mb-2" style={{ color: COLORS.textMuted }}>Day</Text>
                             <TextInput
                               value={editYearlyDay}
                               onChangeText={setEditYearlyDay}
                               placeholder="1-31"
-                              placeholderTextColor="#71717a"
+                              placeholderTextColor={COLORS.textMuted}
                               keyboardType="number-pad"
-                              className="px-3 py-2 bg-zinc-700 text-white border border-zinc-600 rounded-lg w-24"
+                              className="px-3 py-2 rounded-lg w-24"
+                              style={{
+                                backgroundColor: COLORS.cardBg,
+                                color: COLORS.text,
+                                borderWidth: 1,
+                                borderColor: COLORS.glassBorder,
+                              }}
                             />
                           </View>
                         </View>
@@ -455,16 +500,21 @@ export default function ExpensesViewer({
 
                       {/* Start Date */}
                       <View>
-                        <Text className="text-zinc-400 text-xs mb-2">Start Date</Text>
+                        <Text className="text-xs mb-2" style={{ color: COLORS.textMuted }}>Start Date</Text>
                         <TouchableOpacity
                           onPress={() => {
                             setTempStartDate(editStartDate);
                             setShowStartPicker(true);
                           }}
-                          className="flex-row items-center gap-2 px-3 py-2 bg-zinc-700 border border-zinc-600 rounded-lg"
+                          className="flex-row items-center gap-2 px-3 py-2 rounded-lg"
+                          style={{
+                            backgroundColor: COLORS.cardBg,
+                            borderWidth: 1,
+                            borderColor: COLORS.glassBorder,
+                          }}
                         >
-                          <Calendar size={14} color="#c4ff85" />
-                          <Text className="text-white text-sm">
+                          <Calendar size={14} color={COLORS.orange} />
+                          <Text className="text-sm" style={{ color: COLORS.text }}>
                             {editStartDate.toLocaleDateString()}
                           </Text>
                         </TouchableOpacity>
@@ -472,16 +522,21 @@ export default function ExpensesViewer({
 
                       {/* End Date */}
                       <View>
-                        <Text className="text-zinc-400 text-xs mb-2">End Date (Optional)</Text>
+                        <Text className="text-xs mb-2" style={{ color: COLORS.textMuted }}>End Date (Optional)</Text>
                         <TouchableOpacity
                           onPress={() => {
                             setTempEndDate(editEndDate || new Date());
                             setShowEndPicker(true);
                           }}
-                          className="flex-row items-center gap-2 px-3 py-2 bg-zinc-700 border border-zinc-600 rounded-lg"
+                          className="flex-row items-center gap-2 px-3 py-2 rounded-lg"
+                          style={{
+                            backgroundColor: COLORS.cardBg,
+                            borderWidth: 1,
+                            borderColor: COLORS.glassBorder,
+                          }}
                         >
-                          <Calendar size={14} color="#c4ff85" />
-                          <Text className="text-white text-sm">
+                          <Calendar size={14} color={COLORS.orange} />
+                          <Text className="text-sm" style={{ color: COLORS.text }}>
                             {editEndDate ? editEndDate.toLocaleDateString() : 'Not set'}
                           </Text>
                         </TouchableOpacity>
@@ -491,15 +546,21 @@ export default function ExpensesViewer({
                       <View className="flex-row gap-2 justify-end mt-2">
                         <TouchableOpacity
                           onPress={cancelEdit}
-                          className="px-4 py-2 bg-zinc-700 rounded-lg"
+                          className="px-4 py-2 rounded-lg"
+                          style={{
+                            backgroundColor: COLORS.cardBg,
+                            borderWidth: 1,
+                            borderColor: COLORS.glassBorder,
+                          }}
                         >
-                          <Text className="text-white font-semibold text-sm">Cancel</Text>
+                          <Text className="font-semibold text-sm" style={{ color: COLORS.text }}>Cancel</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                           onPress={handleSaveEdit}
-                          className="px-4 py-2 bg-lime-400 rounded-lg"
+                          className="px-4 py-2 rounded-lg"
+                          style={{ backgroundColor: COLORS.orange }}
                         >
-                          <Text className="text-black font-semibold text-sm">Save</Text>
+                          <Text className="font-semibold text-sm" style={{ color: COLORS.text }}>Save</Text>
                         </TouchableOpacity>
                       </View>
                     </View>
@@ -507,16 +568,16 @@ export default function ExpensesViewer({
                     // View Mode
                     <View className="flex-row justify-between items-start">
                       <View className="flex-1">
-                        <Text className="text-white font-semibold text-base mb-1">
+                        <Text className="font-semibold text-base mb-1" style={{ color: COLORS.text }}>
                           {exp.label}
                         </Text>
-                        <Text className="text-zinc-400 text-sm">
+                        <Text className="text-sm" style={{ color: COLORS.textMuted }}>
                           ${exp.amount.toFixed(2)} — {exp.frequency}
                           {exp.frequency === 'weekly' && exp.weekly_days?.length
                             ? ` (${exp.weekly_days.join(', ')})`
                             : ''}
                         </Text>
-                        <Text className="text-zinc-500 text-xs mt-1">
+                        <Text className="text-xs mt-1" style={{ color: COLORS.textMuted }}>
                           {new Date(exp.start_date).toLocaleDateString()}
                           {exp.end_date
                             ? ` → ${new Date(exp.end_date).toLocaleDateString()}`
@@ -526,15 +587,17 @@ export default function ExpensesViewer({
                       <View className="flex-row gap-2">
                         <TouchableOpacity
                           onPress={() => startEdit(exp)}
-                          className="bg-amber-500/30 p-2 rounded-lg"
+                          className="p-2 rounded-lg"
+                          style={{ backgroundColor: COLORS.amberGlow }}
                         >
-                          <Edit2 size={16} color="#fbbf24" />
+                          <Edit2 size={16} color={COLORS.amber} />
                         </TouchableOpacity>
                         <TouchableOpacity
                           onPress={() => handleDelete(exp.id)}
-                          className="bg-red-600/30 p-2 rounded-lg"
+                          className="p-2 rounded-lg"
+                          style={{ backgroundColor: COLORS.redGlow }}
                         >
-                          <Trash2 size={16} color="#dc2626" />
+                          <Trash2 size={16} color={COLORS.red} />
                         </TouchableOpacity>
                       </View>
                     </View>
@@ -546,27 +609,41 @@ export default function ExpensesViewer({
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <View className="flex-row items-center justify-center gap-3 py-4 border-t border-zinc-800">
+            <View 
+              className="flex-row items-center justify-center gap-3 py-4"
+              style={{
+                borderTopWidth: 1,
+                borderTopColor: COLORS.glassBorder,
+              }}
+            >
               <TouchableOpacity
                 disabled={page === 1}
                 onPress={() => setPage((p) => p - 1)}
-                className={`px-4 py-2 rounded-lg ${
-                  page === 1 ? 'bg-zinc-800 opacity-50' : 'bg-zinc-700'
-                }`}
+                className="px-4 py-2 rounded-lg"
+                style={{
+                  backgroundColor: COLORS.surfaceSolid,
+                  borderWidth: 1,
+                  borderColor: COLORS.glassBorder,
+                  opacity: page === 1 ? 0.5 : 1,
+                }}
               >
-                <Text className="text-white font-semibold text-sm">Previous</Text>
+                <Text className="font-semibold text-sm" style={{ color: COLORS.text }}>Previous</Text>
               </TouchableOpacity>
-              <Text className="text-white font-medium">
+              <Text className="font-medium" style={{ color: COLORS.text }}>
                 {page} / {totalPages}
               </Text>
               <TouchableOpacity
                 disabled={page === totalPages}
                 onPress={() => setPage((p) => p + 1)}
-                className={`px-4 py-2 rounded-lg ${
-                  page === totalPages ? 'bg-zinc-800 opacity-50' : 'bg-zinc-700'
-                }`}
+                className="px-4 py-2 rounded-lg"
+                style={{
+                  backgroundColor: COLORS.surfaceSolid,
+                  borderWidth: 1,
+                  borderColor: COLORS.glassBorder,
+                  opacity: page === totalPages ? 0.5 : 1,
+                }}
               >
-                <Text className="text-white font-semibold text-sm">Next</Text>
+                <Text className="font-semibold text-sm" style={{ color: COLORS.text }}>Next</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -581,11 +658,35 @@ export default function ExpensesViewer({
         onRequestClose={() => setShowStartPicker(false)}
       >
         <View className="flex-1 justify-center items-center bg-black/70">
-          <View className="bg-zinc-900 rounded-2xl p-6 w-[90%] max-w-md">
-            <Text className="text-white text-lg font-semibold mb-4 text-center">
+          <View 
+            className="rounded-2xl p-6 w-[90%] max-w-md overflow-hidden"
+            style={{
+              backgroundColor: COLORS.cardBg,
+              borderWidth: 1,
+              borderColor: COLORS.glassBorder,
+            }}
+          >
+            <View 
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: 1,
+                backgroundColor: COLORS.glassHighlight,
+              }}
+            />
+            <Text className="text-lg font-semibold mb-4 text-center" style={{ color: COLORS.text }}>
               Select Start Date
             </Text>
-            <View className="bg-zinc-800 rounded-xl overflow-hidden">
+            <View 
+              className="rounded-xl overflow-hidden"
+              style={{
+                backgroundColor: COLORS.surfaceSolid,
+                borderWidth: 1,
+                borderColor: COLORS.glassBorder,
+              }}
+            >
               <DateTimePicker
                 value={tempStartDate}
                 mode="date"
@@ -598,15 +699,21 @@ export default function ExpensesViewer({
             <View className="flex-row gap-3 mt-6">
               <TouchableOpacity
                 onPress={() => setShowStartPicker(false)}
-                className="flex-1 bg-zinc-700 py-3 rounded-full"
+                className="flex-1 py-3 rounded-full"
+                style={{
+                  backgroundColor: COLORS.surfaceSolid,
+                  borderWidth: 1,
+                  borderColor: COLORS.glassBorder,
+                }}
               >
-                <Text className="text-center text-white font-semibold">Cancel</Text>
+                <Text className="text-center font-semibold" style={{ color: COLORS.text }}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={confirmStartDate}
-                className="flex-1 bg-lime-400 py-3 rounded-full"
+                className="flex-1 py-3 rounded-full"
+                style={{ backgroundColor: COLORS.orange }}
               >
-                <Text className="text-center text-black font-semibold">Done</Text>
+                <Text className="text-center font-semibold" style={{ color: COLORS.text }}>Done</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -621,11 +728,35 @@ export default function ExpensesViewer({
         onRequestClose={() => setShowEndPicker(false)}
       >
         <View className="flex-1 justify-center items-center bg-black/70">
-          <View className="bg-zinc-900 rounded-2xl p-6 w-[90%] max-w-md">
-            <Text className="text-white text-lg font-semibold mb-4 text-center">
+          <View 
+            className="rounded-2xl p-6 w-[90%] max-w-md overflow-hidden"
+            style={{
+              backgroundColor: COLORS.cardBg,
+              borderWidth: 1,
+              borderColor: COLORS.glassBorder,
+            }}
+          >
+            <View 
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: 1,
+                backgroundColor: COLORS.glassHighlight,
+              }}
+            />
+            <Text className="text-lg font-semibold mb-4 text-center" style={{ color: COLORS.text }}>
               Select End Date
             </Text>
-            <View className="bg-zinc-800 rounded-xl overflow-hidden">
+            <View 
+              className="rounded-xl overflow-hidden"
+              style={{
+                backgroundColor: COLORS.surfaceSolid,
+                borderWidth: 1,
+                borderColor: COLORS.glassBorder,
+              }}
+            >
               <DateTimePicker
                 value={tempEndDate}
                 mode="date"
@@ -638,21 +769,28 @@ export default function ExpensesViewer({
             <View className="flex-row gap-3 mt-6">
               <TouchableOpacity
                 onPress={clearEndDate}
-                className="flex-1 bg-red-600 py-3 rounded-full"
+                className="flex-1 py-3 rounded-full"
+                style={{ backgroundColor: COLORS.red }}
               >
-                <Text className="text-center text-white font-semibold">Clear</Text>
+                <Text className="text-center font-semibold" style={{ color: COLORS.text }}>Clear</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => setShowEndPicker(false)}
-                className="flex-1 bg-zinc-700 py-3 rounded-full"
+                className="flex-1 py-3 rounded-full"
+                style={{
+                  backgroundColor: COLORS.surfaceSolid,
+                  borderWidth: 1,
+                  borderColor: COLORS.glassBorder,
+                }}
               >
-                <Text className="text-center text-white font-semibold">Cancel</Text>
+                <Text className="text-center font-semibold" style={{ color: COLORS.text }}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={confirmEndDate}
-                className="flex-1 bg-lime-400 py-3 rounded-full"
+                className="flex-1 py-3 rounded-full"
+                style={{ backgroundColor: COLORS.orange }}
               >
-                <Text className="text-center text-black font-semibold">Done</Text>
+                <Text className="text-center font-semibold" style={{ color: COLORS.text }}>Done</Text>
               </TouchableOpacity>
             </View>
           </View>

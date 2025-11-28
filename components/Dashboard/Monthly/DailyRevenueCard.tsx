@@ -1,6 +1,24 @@
 import { supabase } from '@/utils/supabaseClient';
+import MaskedView from '@react-native-masked-view/masked-view';
+import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
+
+// Color Palette
+const COLORS = {
+  background: '#181818',
+  cardBg: '#1a1a1a',
+  surface: 'rgba(37, 37, 37, 0.6)',
+  glassBorder: 'rgba(255, 255, 255, 0.1)',
+  glassHighlight: 'rgba(255, 255, 255, 0.08)',
+  text: '#FFFFFF',
+  textMuted: 'rgba(255, 255, 255, 0.6)',
+  green: '#54d33dff',
+  greenLight: '#5b8f52ff',
+  greenGlow: 'rgba(255, 87, 34, 0.25)',
+  purple: '#673AB7',
+  yellow: '#FFEB3B',
+};
 
 interface DailyRevenueCardProps {
   userId: string;
@@ -104,29 +122,141 @@ export default function DailyRevenueCard({ userId, selectedDate }: DailyRevenueC
       : null;
 
   return (
-    <View className="rounded-xl bg-zinc-900 border border-zinc-800 p-2.5">
-      <Text className="text-lime-300 text-xs font-semibold mb-1">💰 Daily Revenue</Text>
-      
-      <View className="min-h-[40px] justify-center mb-1">
-        {loading ? (
-          <ActivityIndicator color="#c4ff85" size="small" />
-        ) : (
-          <Text className="text-xl font-bold text-lime-200" numberOfLines={1} adjustsFontSizeToFit>
-            {revenue !== null ? formatCurrency(revenue) : 'No data'}
-          </Text>
-        )}
-      </View>
-      
-      {change !== null ? (
-        <Text 
-          className={`text-xs font-semibold ${change > 0 ? 'text-green-400' : change < 0 ? 'text-red-400' : 'text-gray-400'}`}
-          numberOfLines={1}
+    <View
+      style={{
+        borderRadius: 24,
+        shadowColor: COLORS.green,
+        shadowOffset: { width: 0, height: 6 },
+        shadowRadius: 16,
+        elevation: 10,
+      }}
+    >
+      {/* Gradient border wrapper */}
+      <LinearGradient
+        colors={['#8bcf68ff', '#beb348ff', '#8bcf68ff']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={{
+          borderRadius: 24,
+          padding: 2,
+        }}
+      >
+        {/* Inner card with solid dark background */}
+        <View
+          style={{
+            borderRadius: 22,
+            backgroundColor: COLORS.cardBg,
+            overflow: 'hidden',
+          }}
         >
-          {change > 0 ? `+${change}%` : `${change}%`} <Text className="text-gray-500">vs. last</Text>
-        </Text>
-      ) : (
-        <Text className="text-xs text-gray-500">—</Text>
-      )}
+          {/* Content container */}
+          <View style={{ padding: 20 }}>
+            {/* Subtle accent glow - positioned behind content */}
+            <View
+              style={{
+                position: 'absolute',
+                top: -30,
+                right: -30,
+                width: 120,
+                height: 120,
+                borderRadius: 60,
+                backgroundColor: COLORS.green,
+                opacity: 0.08,
+              }}
+            />
+
+            {/* Header row */}
+            <View className="flex-row items-center justify-between mb-3">
+              <MaskedView
+                maskElement={
+                  <Text className="text-sm font-bold tracking-wide">
+                    💰 DAILY REVENUE
+                  </Text>
+                }
+              >
+                <LinearGradient
+                  colors={['#8bcf68ff', '#beb348ff']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                >
+                  <Text className="text-sm font-bold tracking-wide opacity-0">
+                    💰 DAILY REVENUE
+                  </Text>
+                </LinearGradient>
+              </MaskedView>
+              <View
+                style={{
+                  backgroundColor: COLORS.green,
+                  paddingHorizontal: 12,
+                  paddingVertical: 5,
+                  borderRadius: 12,
+                }}
+              >
+                <Text className="text-xs font-bold" style={{ color: COLORS.text }}>
+                  TODAY
+                </Text>
+              </View>
+            </View>
+
+            {/* Revenue amount */}
+            <View className="min-h-[30px] justify-center mb-3">
+              {loading ? (
+                <ActivityIndicator color={COLORS.green} size="large" />
+              ) : (
+                <Text
+                  className="text-4xl font-bold"
+                  style={{ color: COLORS.text }}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                >
+                  {revenue !== null ? formatCurrency(revenue) : 'No data'}
+                </Text>
+              )}
+            </View>
+
+            {/* Change indicator */}
+            {change !== null ? (
+              <View className="flex-row items-center gap-2">
+                <View
+                  style={{
+                    backgroundColor: change > 0 ? 'rgba(74, 222, 128, 0.15)' : change < 0 ? 'rgba(248, 113, 113, 0.15)' : 'rgba(255,255,255,0.1)',
+                    paddingHorizontal: 12,
+                    paddingVertical: 6,
+                    borderRadius: 10,
+                    borderWidth: 1,
+                    borderColor: change > 0 ? 'rgba(74, 222, 128, 0.3)' : change < 0 ? 'rgba(248, 113, 113, 0.3)' : 'rgba(255,255,255,0.1)',
+                  }}
+                >
+                  <Text
+                    className="text-sm font-bold"
+                    style={{ color: change > 0 ? '#4ade80' : change < 0 ? '#f87171' : COLORS.textMuted }}
+                  >
+                    {change > 0 ? `↑ +${change}%` : change < 0 ? `↓ ${change}%` : `${change}%`}
+                  </Text>
+                </View>
+                <Text className="text-sm" style={{ color: COLORS.textMuted }}>
+                  vs. previous day
+                </Text>
+              </View>
+            ) : (
+              <Text className="text-sm" style={{ color: COLORS.textMuted }}>
+                No comparison data
+              </Text>
+            )}
+          </View>
+
+          {/* Bottom accent line */}
+          <LinearGradient
+            colors={['transparent', COLORS.greenGlow, 'transparent']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={{
+              height: 1,
+              marginHorizontal: 20,
+            }}
+          />
+        </View>
+      </LinearGradient>
     </View>
   );
 }

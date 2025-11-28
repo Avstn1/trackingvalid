@@ -1,7 +1,21 @@
 import { supabase } from '@/utils/supabaseClient';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Dimensions, ScrollView, Text, View } from 'react-native';
-import { LineChart } from 'react-native-chart-kit';
+import { ActivityIndicator, Dimensions, Text, View } from 'react-native';
+import { LineChart } from 'react-native-gifted-charts';
+
+// Color Palette - matching dashboard theme
+const COLORS_PALETTE = {
+  background: '#181818',
+  surface: 'rgba(37, 37, 37, 0.6)',
+  glassBorder: 'rgba(255, 255, 255, 0.1)',
+  glassHighlight: 'rgba(255, 255, 255, 0.05)',
+  text: '#F7F7F7',
+  textMuted: 'rgba(247, 247, 247, 0.5)',
+  orange: '#FF5722',
+  orangeGlow: 'rgba(255, 87, 34, 0.4)',
+  purple: '#9C27B0',
+  yellow: '#FFEB3B',
+};
 
 interface ProfitLossTrendChartProps {
   userId: string;
@@ -9,6 +23,11 @@ interface ProfitLossTrendChartProps {
   selectedYear: number;
   refreshKey?: number;
 }
+
+const MONTHS = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+];
 
 export default function ProfitLossTrendChart({
   userId,
@@ -48,26 +67,59 @@ export default function ProfitLossTrendChart({
           return;
         }
 
-        if (!daily || daily.length === 0) {
+        // Get today's date and the month index
+        const today = new Date();
+        const monthIndex = MONTHS.indexOf(selectedMonth);
+        
+        // Determine how many days to show
+        let daysToShow: number;
+        if (selectedYear === today.getFullYear() && monthIndex === today.getMonth()) {
+          // Current month - show up to today
+          daysToShow = today.getDate();
+        } else if (
+          selectedYear < today.getFullYear() ||
+          (selectedYear === today.getFullYear() && monthIndex < today.getMonth())
+        ) {
+          // Past month - show all days in that month
+          daysToShow = new Date(selectedYear, monthIndex + 1, 0).getDate();
+        } else {
+          // Future month - no data
           setData({ labels: [], revenue: [], expenses: [], profit: [] });
           return;
         }
 
-        const today = new Date();
+        // Create a map of existing data by day number
+        const dataByDay: { [key: number]: { revenue: number; expenses: number } } = {};
+        if (daily) {
+          daily.forEach((d) => {
+            const dateObj = new Date(d.date + 'T00:00:00Z');
+            const dayNum = dateObj.getUTCDate();
+            dataByDay[dayNum] = {
+              revenue: Number(d.final_revenue || 0),
+              expenses: Number(d.expenses || 0),
+            };
+          });
+        }
 
-        const filtered = daily.filter((d) => {
-          const dateObj = new Date(d.date + 'T00:00:00Z');
-          return dateObj <= today;
-        });
+        // Build arrays for all days, filling missing days with 0
+        const labels: string[] = [];
+        const revenue: number[] = [];
+        const expenses: number[] = [];
+        const profit: number[] = [];
 
-        const labels = filtered.map((d) => {
-          const dateObj = new Date(d.date + 'T00:00:00Z');
-          return dateObj.getUTCDate().toString();
-        });
-
-        const revenue = filtered.map((d) => Number(d.final_revenue || 0));
-        const expenses = filtered.map((d) => Number(d.expenses || 0));
-        const profit = filtered.map((d, i) => revenue[i] - expenses[i]);
+        for (let day = 1; day <= daysToShow; day++) {
+          labels.push(day.toString());
+          const dayData = dataByDay[day];
+          if (dayData) {
+            revenue.push(dayData.revenue);
+            expenses.push(dayData.expenses);
+            profit.push(dayData.revenue - dayData.expenses);
+          } else {
+            revenue.push(0);
+            expenses.push(0);
+            profit.push(0);
+          }
+        }
 
         setData({ labels, revenue, expenses, profit });
       } catch (err) {
@@ -83,79 +135,199 @@ export default function ProfitLossTrendChart({
 
   if (loading) {
     return (
-      <View className="rounded-xl bg-zinc-900 border border-zinc-800 p-4 min-h-[280px] items-center justify-center">
-        <ActivityIndicator size="small" color="#c4ff85" />
-        <Text className="text-lime-200 text-sm mt-2">Loading...</Text>
+      <View 
+        className="rounded-xl overflow-hidden items-center justify-center"
+        style={{
+          backgroundColor: COLORS_PALETTE.surface,
+          borderWidth: 1,
+          borderColor: COLORS_PALETTE.glassBorder,
+          padding: 16,
+          marginHorizontal: -14,
+          minHeight: 280,
+        }}
+      >
+        <ActivityIndicator size="small" color={COLORS_PALETTE.orange} />
+        <Text className="text-sm mt-2" style={{ color: COLORS_PALETTE.textMuted }}>
+          Loading...
+        </Text>
       </View>
     );
   }
 
   if (data.labels.length === 0) {
     return (
-      <View className="rounded-xl bg-zinc-900 border border-zinc-800 p-4 min-h-[280px] items-center justify-center">
-        <Text className="text-lime-300 opacity-70 text-sm">
+      <View 
+        className="rounded-xl overflow-hidden items-center justify-center"
+        style={{
+          backgroundColor: COLORS_PALETTE.surface,
+          borderWidth: 1,
+          borderColor: COLORS_PALETTE.glassBorder,
+          padding: 16,
+          marginHorizontal: -14,
+          minHeight: 280,
+        }}
+      >
+        <Text className="text-sm" style={{ color: COLORS_PALETTE.textMuted }}>
           No daily data yet for {selectedMonth}
         </Text>
       </View>
     );
   }
 
-  const chartData = {
-    labels: data.labels,
-    datasets: [
-      {
-        data: data.revenue,
-        color: (opacity = 1) => `rgba(196, 255, 133, ${opacity})`, // Lime green
-        strokeWidth: 2,
-      },
-      {
-        data: data.expenses,
-        color: (opacity = 1) => `rgba(255, 109, 0, ${opacity})`, // Orange
-        strokeWidth: 2,
-      },
-      {
-        data: data.profit,
-        color: (opacity = 1) => `rgba(0, 230, 118, ${opacity})`, // Green
-        strokeWidth: 2,
-      },
-    ],
-    legend: ['Revenue', 'Expenses', 'Profit'],
-  };
+  const numPoints = data.labels.length;
+  const lastIndex = numPoints - 1;
+
+  // Show label every 2 days AND always the last day
+  const lineData = data.labels.map((label, index) => {
+    const isEvenIndex = index % 2 === 0;
+    const isLastDay = index === lastIndex;
+    
+    return {
+      value: data.revenue[index],
+      label: (isEvenIndex || isLastDay) ? label : '',
+    };
+  });
+
+  const expensesData = data.labels.map((label, index) => ({
+    value: data.expenses[index],
+  }));
+
+  const profitData = data.labels.map((label, index) => ({
+    value: data.profit[index],
+  }));
+
+  const maxValue = Math.max(
+    ...data.revenue,
+    ...data.expenses,
+    ...data.profit.map(Math.abs),
+    100 // Minimum max value so chart doesn't look weird with all zeros
+  );
+
+  // Calculate spacing to fit all points with extra room at the end
+  const yAxisWidth = 38;
+  const initialSpacing = 8;
+  const endSpacing = 35;
+  const containerPadding = 32;
+  
+  const availableWidth = screenWidth - containerPadding - yAxisWidth - initialSpacing - endSpacing;
+  const spacing = numPoints > 1 ? availableWidth / (numPoints - 1) : availableWidth;
 
   return (
-    <View className="rounded-xl bg-zinc-900 border border-zinc-800 p-4">
-      <Text className="text-lime-300 text-base font-semibold mb-3">
+    <View 
+      className="rounded-xl overflow-hidden"
+      style={{
+        backgroundColor: COLORS_PALETTE.surface,
+        borderWidth: 1,
+        borderColor: COLORS_PALETTE.glassBorder,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 8,
+        elevation: 3,
+        padding: 16,
+        marginHorizontal: -14,
+        minHeight: 280,
+      }}
+    >
+      {/* Subtle highlight at top */}
+      <View 
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 1,
+          backgroundColor: COLORS_PALETTE.glassHighlight,
+        }}
+      />
+
+      <Text 
+        className="text-base font-semibold mb-3"
+        style={{ color: COLORS_PALETTE.orange }}
+      >
         📈 Profit/Loss Trend (Daily)
       </Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+
+      <View style={{ minHeight: 254, marginRight: 30 }}>
         <LineChart
-          data={chartData}
-          width={Math.max(screenWidth - 50, data.labels.length * 30)}
+          data={lineData}
+          data2={expensesData}
+          data3={profitData}
           height={220}
-          chartConfig={{
-            backgroundColor: '#18181b',
-            backgroundGradientFrom: '#18181b',
-            backgroundGradientTo: '#27272a',
-            decimalPlaces: 0,
-            color: (opacity = 1) => `rgba(196, 255, 133, ${opacity})`,
-            labelColor: (opacity = 1) => `rgba(209, 226, 197, ${opacity})`,
-            style: {
-              borderRadius: 16,
-            },
-            propsForLabels: {
-              fontSize: 10,
-            },
-          }}
-          bezier
-          style={{
-            borderRadius: 16,
-          }}
-          withInnerLines={true}
-          withOuterLines={true}
-          withVerticalLines={false}
-          withHorizontalLines={true}
+          width={screenWidth - containerPadding - 28}
+          spacing={spacing}
+          initialSpacing={initialSpacing}
+          endSpacing={endSpacing}
+          thickness={2}
+          thickness2={2}
+          thickness3={2}
+          color1={COLORS_PALETTE.orange}
+          color2={COLORS_PALETTE.purple}
+          color3={COLORS_PALETTE.yellow}
+          hideRules={false}
+          rulesType="solid"
+          rulesColor={COLORS_PALETTE.glassBorder}
+          yAxisColor={COLORS_PALETTE.glassBorder}
+          xAxisColor={COLORS_PALETTE.glassBorder}
+          yAxisTextStyle={{ color: COLORS_PALETTE.textMuted, fontSize: 9 }}
+          xAxisLabelTextStyle={{ color: COLORS_PALETTE.textMuted, fontSize: 8 }}
+          maxValue={maxValue * 1.15}
+          noOfSections={4}
+          yAxisLabelWidth={yAxisWidth}
+          areaChart
+          startFillColor1={COLORS_PALETTE.orange}
+          endFillColor1="transparent"
+          startOpacity={0.25}
+          endOpacity={0}
+          startFillColor2={COLORS_PALETTE.purple}
+          endFillColor2="transparent"
+          startOpacity2={0.25}
+          endOpacity2={0}
+          startFillColor3={COLORS_PALETTE.yellow}
+          endFillColor3="transparent"
+          startOpacity3={0.25}
+          endOpacity3={0}
+          curved
+          hideDataPoints={false}
+          dataPointsColor1={COLORS_PALETTE.orange}
+          dataPointsColor2={COLORS_PALETTE.purple}
+          dataPointsColor3={COLORS_PALETTE.yellow}
+          dataPointsRadius={3}
+          disableScroll={true}
+          scrollToEnd={false}
+          isAnimated={false}
         />
-      </ScrollView>
+      </View>
+
+      {/* Legend */}
+      <View className="flex-row gap-4 mt-3 justify-center">
+        <View className="flex-row items-center gap-1.5">
+          <View 
+            className="w-2.5 h-2.5 rounded-full" 
+            style={{ backgroundColor: COLORS_PALETTE.orange }} 
+          />
+          <Text className="text-[10px]" style={{ color: COLORS_PALETTE.text }}>
+            Revenue
+          </Text>
+        </View>
+        <View className="flex-row items-center gap-1.5">
+          <View 
+            className="w-2.5 h-2.5 rounded-full" 
+            style={{ backgroundColor: COLORS_PALETTE.purple }} 
+          />
+          <Text className="text-[10px]" style={{ color: COLORS_PALETTE.text }}>
+            Expenses
+          </Text>
+        </View>
+        <View className="flex-row items-center gap-1.5">
+          <View 
+            className="w-2.5 h-2.5 rounded-full" 
+            style={{ backgroundColor: COLORS_PALETTE.yellow }} 
+          />
+          <Text className="text-[10px]" style={{ color: COLORS_PALETTE.text }}>
+            Profit
+          </Text>
+        </View>
+      </View>
     </View>
   );
 }

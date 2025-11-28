@@ -4,6 +4,25 @@ import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
 import ReportViewerModal from './ReportViewerModal';
 
+// Color Palette
+const COLORS = {
+  background: '#181818',
+  cardBg: '#1a1a1a',
+  surface: 'rgba(37, 37, 37, 0.6)',
+  surfaceSolid: '#252525',
+  glassBorder: 'rgba(255, 255, 255, 0.1)',
+  glassHighlight: 'rgba(255, 255, 255, 0.05)',
+  text: '#F7F7F7',
+  textMuted: 'rgba(247, 247, 247, 0.5)',
+  orange: '#FF5722',
+  orangeGlow: 'rgba(255, 87, 34, 0.2)',
+  purple: '#673AB7',
+  yellow: '#FFEB3B',
+  green: '#8bcf68ff',
+  greenLight: '#beb348ff',
+  greenGlow: 'rgba(139, 207, 104, 0.2)',
+};
+
 type WeeklyReport = {
   id: string;
   month: string;
@@ -20,7 +39,6 @@ interface WeeklyReportsProps {
   filterYear?: number | null;
 }
 
-// Get all Mondays in a specific month/year
 function getMondaysInMonth(month: string, year: number): Date[] {
   const MONTHS = [
     "January", "February", "March", "April", "May", "June",
@@ -30,12 +48,10 @@ function getMondaysInMonth(month: string, year: number): Date[] {
   const mondays: Date[] = [];
   const date = new Date(year, monthIndex, 1);
 
-  // Move to first Monday
   while (date.getDay() !== 1) {
     date.setDate(date.getDate() + 1);
   }
 
-  // Collect all Mondays
   while (date.getMonth() === monthIndex) {
     mondays.push(new Date(date));
     date.setDate(date.getDate() + 7);
@@ -44,7 +60,6 @@ function getMondaysInMonth(month: string, year: number): Date[] {
   return mondays;
 }
 
-// Get current week number in the month
 function getCurrentWeekNumber(month: string, year: number): number {
   const today = new Date();
   const currentMonth = today.getMonth();
@@ -56,7 +71,6 @@ function getCurrentWeekNumber(month: string, year: number): number {
   ];
   const monthIndex = MONTHS.indexOf(month);
   
-  // If not current month/year, return -1 (not applicable)
   if (monthIndex !== currentMonth || year !== currentYear) {
     return -1;
   }
@@ -64,21 +78,18 @@ function getCurrentWeekNumber(month: string, year: number): number {
   const mondays = getMondaysInMonth(month, year);
   const todayTime = today.getTime();
   
-  // Find which week we're in
   for (let i = 0; i < mondays.length; i++) {
     const mondayTime = mondays[i].getTime();
     const nextMondayTime = mondays[i + 1] ? mondays[i + 1].getTime() : Infinity;
     
     if (todayTime >= mondayTime && todayTime < nextMondayTime) {
-      return i + 1; // Week numbers are 1-indexed
+      return i + 1;
     }
   }
   
-  // If we're past all Mondays, we're in the last week
   return mondays.length;
 }
 
-// Format date as "Mon DD, YYYY"
 function formatDate(date: Date): string {
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
@@ -159,13 +170,11 @@ export default function WeeklyReports({
     setSelectedReport(null);
   };
 
-  // Generate complete week list with ALL weeks shown
   const generateWeeksList = () => {
     if (!filterMonth || !filterYear) return filteredReports;
 
     const currentWeek = getCurrentWeekNumber(filterMonth, filterYear);
     
-    // If not current month/year, just show existing reports
     if (currentWeek === -1) return filteredReports;
 
     const mondays = getMondaysInMonth(filterMonth, filterYear);
@@ -176,19 +185,14 @@ export default function WeeklyReports({
       const existingReport = filteredReports.find(r => r.week_number === weekNum);
       
       if (existingReport) {
-        // Add existing report (always clickable, even if current/future week)
         allWeeks.push({ ...existingReport, isUpcoming: false });
       } else {
-        // Create placeholder for any week without a report
         const isUpcoming = weekNum >= currentWeek;
         
-        // Release date is the Monday AFTER the week ends
         let releaseDate;
         if (mondays[weekNum]) {
-          // If there's a next Monday in the array, use it
           releaseDate = mondays[weekNum];
         } else {
-          // If it's the last week, add 7 days to the last Monday
           releaseDate = new Date(mondays[weekNum - 1]);
           releaseDate.setDate(releaseDate.getDate() + 7);
         }
@@ -209,22 +213,18 @@ export default function WeeklyReports({
   };
 
   const weeksList = generateWeeksList();
-  
-  // Calculate card height based on number of weeks
-  const totalWeeks = weeksList.length;
-  const cardHeight = totalWeeks === 4 ? 73 : 57;
 
   if (loading) {
     return (
       <View className="items-center justify-center py-4">
-        <ActivityIndicator size="small" color="#c4ff85" />
+        <ActivityIndicator size="small" color={COLORS.green} />
       </View>
     );
   }
 
   return (
     <>
-      <View className="gap-1.5">
+      <View className="flex-1 gap-2">
         {weeksList.length > 0 ? (
           weeksList.map((r: any) => {
             const isUpcoming = r.isUpcoming;
@@ -234,48 +234,78 @@ export default function WeeklyReports({
                 key={r.id}
                 onPress={() => !isUpcoming && handleOpenReport(r)}
                 disabled={isUpcoming}
-                className={`rounded-xl p-3 ${
-                  isUpcoming 
-                    ? 'bg-zinc-800/40 opacity-60' 
-                    : 'bg-zinc-800 active:bg-lime-500/20'
-                }`}
+                className="rounded-2xl p-4 overflow-hidden flex-1"
                 style={[
-                  { height: cardHeight }, // Dynamic height based on week count
-                  !isUpcoming ? { elevation: 4 } : {}
+                  {
+                    backgroundColor: isUpcoming ? 'rgba(37, 37, 37, 0.3)' : COLORS.cardBg,
+                    borderWidth: 1,
+                    borderColor: isUpcoming ? 'rgba(255, 255, 255, 0.05)' : COLORS.glassBorder,
+                    opacity: isUpcoming ? 0.5 : 1,
+                  },
+                  !isUpcoming && {
+                    shadowColor: COLORS.green,
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.15,
+                    shadowRadius: 8,
+                    elevation: 4,
+                  }
                 ]}
               >
+                {/* Top highlight line */}
+                <View 
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: 1,
+                    backgroundColor: isUpcoming ? 'transparent' : COLORS.glassHighlight,
+                  }}
+                />
+
                 <View className="flex-row items-center gap-3 h-full">
-                  <View className={`p-1.5 rounded-lg ${
-                    isUpcoming ? 'bg-zinc-700/50' : 'bg-lime-500/20'
-                  }`}>
+                  <View 
+                    className="p-2 rounded-xl"
+                    style={{
+                      backgroundColor: isUpcoming ? 'rgba(255, 255, 255, 0.05)' : COLORS.greenGlow,
+                    }}
+                  >
                     <FileText 
-                      size={18} 
-                      color={isUpcoming ? "#71717a" : "#c4ff85"} 
+                      size={22} 
+                      color={isUpcoming ? COLORS.textMuted : COLORS.green} 
                       strokeWidth={2.5} 
                     />
                   </View>
                   <View className="flex-1">
-                    <Text className={`text-sm font-bold ${
-                      isUpcoming ? 'text-zinc-400' : 'text-white'
-                    }`}>
+                    <Text 
+                      className="text-base font-bold mb-1"
+                      style={{ color: isUpcoming ? COLORS.textMuted : COLORS.text }}
+                      numberOfLines={1}
+                      adjustsFontSizeToFit
+                      minimumFontScale={0.8}
+                    >
                       Week {r.week_number} - {r.month} {r.year}
                     </Text>
-                    <Text className={`text-xs mt-0.5 ${
-                      isUpcoming ? 'text-zinc-500' : 'text-lime-400/70'
-                    }`}>
+                    <Text 
+                      className="text-sm"
+                      style={{ color: isUpcoming ? 'rgba(247, 247, 247, 0.3)' : COLORS.green }}
+                      numberOfLines={1}
+                      adjustsFontSizeToFit
+                      minimumFontScale={0.8}
+                    >
                       {isUpcoming 
                         ? `Releasing on ${formatDate(r.releaseDate)}`
                         : 'Tap to view report'
                       }
                     </Text>
                   </View>
-                  {!isUpcoming && <ChevronRight size={16} color="#c4ff85" />}
+                  {!isUpcoming && <ChevronRight size={20} color={COLORS.green} />}
                 </View>
               </TouchableOpacity>
             );
           })
         ) : (
-          <Text className="text-gray-400 text-xs text-center py-2">
+          <Text className="text-xs text-center py-2" style={{ color: COLORS.textMuted }}>
             No weekly reports available for this month/year.
           </Text>
         )}

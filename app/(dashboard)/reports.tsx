@@ -1,23 +1,38 @@
 // app/(dashboard)/reports.tsx
-import { CustomHeader } from '@/components/CustomHeader';
-import MonthlyReports from '@/components/Dashboard/Reports/MonthlyReports';
-import WeeklyComparisonReports from '@/components/Dashboard/Reports/WeeklyComparisonReports';
-import WeeklyReports from '@/components/Dashboard/Reports/WeeklyReports';
+import AuthLoadingSplash from '@/components/AuthLoadingSpash';
+import { CustomHeader } from '@/components/Header/CustomHeader';
+import MonthlyReports from '@/components/Reports/MonthlyReports';
+import WeeklyComparisonReports from '@/components/Reports/WeeklyComparisonReports';
+import WeeklyReports from '@/components/Reports/WeeklyReports';
 import { supabase } from '@/utils/supabaseClient';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { CalendarRange } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
-  Modal,
-  Platform,
-  RefreshControl,
-  ScrollView,
+  Dimensions,
   Text,
-  TouchableOpacity,
-  View,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+
+// Color Palette
+const COLORS = {
+  background: '#181818',
+  cardBg: '#1a1a1a',
+  surface: 'rgba(37, 37, 37, 0.6)',
+  surfaceSolid: '#252525',
+  glassBorder: 'rgba(255, 255, 255, 0.1)',
+  glassHighlight: 'rgba(255, 255, 255, 0.05)',
+  text: '#F7F7F7',
+  textMuted: 'rgba(247, 247, 247, 0.5)',
+  orange: '#FF5722',
+  orangeLight: '#FF7849',
+  orangeGlow: 'rgba(255, 87, 34, 0.25)',
+  purple: '#673AB7',
+  yellow: '#FFEB3B',
+  green: '#8bcf68ff',
+  greenLight: '#beb348ff',
+};
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
@@ -29,20 +44,17 @@ export default function ReportsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  // Get current month and year as defaults
+  // Date selection - defaults to today
   const currentDate = new Date();
   const currentMonthIndex = currentDate.getMonth();
   const currentYear = currentDate.getFullYear();
   
   const [selectedMonth, setSelectedMonth] = useState(MONTHS[currentMonthIndex]);
   const [selectedYear, setSelectedYear] = useState(currentYear);
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(new Date(currentYear, currentMonthIndex, 1));
-  const [tempDate, setTempDate] = useState(new Date(currentYear, currentMonthIndex, 1));
   const [refreshKey, setRefreshKey] = useState(0);
-  const [refreshing, setRefreshing] = useState(false);
 
-  // Fetch user
+  const [componentsReady, setComponentsReady] = useState(false);
+
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -62,182 +74,148 @@ export default function ReportsPage() {
     fetchUser();
   }, []);
 
-  // Pull to refresh handler
-  const onRefresh = async () => {
-    setRefreshing(true);
+  useEffect(() => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setComponentsReady(true);
+      });
+    });
+  }, []);
+
+  // Handle date change from CustomHeader
+  const handleDateChange = (month: string, year: number) => {
+    setSelectedMonth(month);
+    setSelectedYear(year);
     setRefreshKey(prev => prev + 1);
-    // Wait a bit for the refresh to complete
-    setTimeout(() => {
-      setRefreshing(false);
-    }, 1000);
-  };
-
-  // Date picker handlers
-  const handleDateChange = (event: any, date?: Date) => {
-    if (date) {
-      // Always set to 1st of the month
-      const normalizedDate = new Date(date.getFullYear(), date.getMonth(), 1);
-      setTempDate(normalizedDate);
-    }
-  };
-
-  const handleDateConfirm = () => {
-    setSelectedDate(tempDate);
-    setSelectedMonth(MONTHS[tempDate.getMonth()]);
-    setSelectedYear(tempDate.getFullYear());
-    setShowDatePicker(false);
-    setRefreshKey(prev => prev + 1);
-  };
-
-  const handleDateCancel = () => {
-    setTempDate(selectedDate);
-    setShowDatePicker(false);
-  };
-
-  const handleOpenDatePicker = () => {
-    setTempDate(selectedDate);
-    setShowDatePicker(true);
-  };
-
-  // Format selected date for display (month and year only)
-  const getDateLabel = () => {
-    return `${selectedMonth} ${selectedYear}`;
   };
 
   if (loading) {
-    return (
-      <View className="flex-1 justify-center items-center bg-zinc-950">
-        <ActivityIndicator size="large" color="#c4ff85" />
-        <Text className="text-white mt-4">Loading reports...</Text>
-      </View>
-    );
+    return <AuthLoadingSplash message="Loading reports..." />;
   }
 
   if (error) {
     return (
-      <View className="flex-1 justify-center items-center bg-zinc-950">
-        <Text className="text-red-500 text-lg">{error}</Text>
+      <View className="flex-1 justify-center items-center" style={{ backgroundColor: COLORS.background }}>
+        <Text className="text-lg" style={{ color: '#ef4444' }}>{error}</Text>
       </View>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-zinc-950">
-      <CustomHeader pageName="Reports" />
+    <SafeAreaView className="flex-1" style={{ backgroundColor: COLORS.background }}>
+      <CustomHeader pageName="Reports" onDateChange={handleDateChange} />
 
-      <ScrollView 
-        className="flex-1 px-4" 
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor="#c4ff85"
-            colors={["#c4ff85"]}
-          />
-        }
-      >
-        {/* Header */}
-        <View className="my-4">
-          {/* Date Picker Button */}
-          <TouchableOpacity
-            onPress={handleOpenDatePicker}
-            className="flex-row items-center justify-center gap-2 bg-zinc-800 py-3 rounded-full"
+      {/* Main Content - No ScrollView */}
+      <View className="flex-1 px-4 pb-4">
+        {/* Reports Grid - Uses full remaining space */}
+        <View className="flex-1 gap-3">
+          
+          <View className="mb-3">
+          </View>
+
+          {/* Weekly Reports - 56% of remaining */}
+          <View 
+            className="rounded-2xl p-3 overflow-hidden"
+            style={{
+              flex: 0.56,
+              backgroundColor: COLORS.surface,
+              borderWidth: 1,
+              borderColor: COLORS.glassBorder,
+            }}
           >
-            <CalendarRange size={16} color="#c4ff85" />
-            <Text className="text-white font-semibold text-sm">
-              {getDateLabel()}
+            <View 
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: 1,
+                backgroundColor: COLORS.glassHighlight,
+              }}
+            />
+            <Text className="text-base font-semibold mb-2" style={{ color: COLORS.green }}>
+              📅 Weekly Reports
             </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Reports Content */}
-        <View className="gap-4 mb-6">
-          {/* Monthly Reports */}
-          <View className="bg-zinc-900 rounded-2xl p-4">
-            <Text className="text-lime-300 text-lg font-semibold mb-3">📄 Monthly Reports</Text>
-            <MonthlyReports
-              key={`mreports-${refreshKey}-${selectedMonth}`}
-              userId={user.id}
-              refresh={refreshKey}
-              filterMonth={selectedMonth}
-              filterYear={selectedYear}
-            />
-          </View>
-
-          {/* Weekly Reports */}
-          <View className="bg-zinc-900 rounded-2xl p-4">
-            <Text className="text-lime-300 text-lg font-semibold mb-3">📅 Weekly Reports</Text>
-            <WeeklyReports
-              key={`wreports-${refreshKey}-${selectedMonth}`}
-              userId={user.id}
-              refresh={refreshKey}
-              filterMonth={selectedMonth}
-              filterYear={selectedYear}
-            />
-          </View>
-
-          {/* Weekly Comparison Reports */}
-          <View className="bg-zinc-900 rounded-2xl p-4">
-            <Text className="text-lime-300 text-lg font-semibold mb-3">🔄 Weekly Comparison</Text>
-            <WeeklyComparisonReports
-              key={`wcompare-${refreshKey}-${selectedMonth}`}
-              userId={user.id}
-              refresh={refreshKey}
-              filterMonth={selectedMonth}
-              filterYear={selectedYear}
-            />
-          </View>
-        </View>
-      </ScrollView>
-
-      {/* Date Picker Modal */}
-      <Modal
-        visible={showDatePicker}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={handleDateCancel}
-      >
-        <View className="flex-1 justify-center items-center bg-black/70">
-          <View className="bg-zinc-900 rounded-2xl p-6 w-[90%] max-w-md">
-            <Text className="text-white text-lg font-semibold mb-4 text-center">
-              Choose Month & Year
-            </Text>
-
-            <View className="bg-zinc-800 rounded-xl overflow-hidden">
-              <DateTimePicker
-                value={tempDate}
-                mode="date"
-                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                onChange={handleDateChange}
-                minimumDate={new Date(2025, 0, 1)}
-                maximumDate={new Date()}
-                textColor="#ffffff"
-                themeVariant="dark"
+            <View className="flex-1">
+              <WeeklyReports
+                key={`wreports-${refreshKey}-${selectedMonth}`}
+                userId={user.id}
+                refresh={refreshKey}
+                filterMonth={selectedMonth}
+                filterYear={selectedYear}
               />
             </View>
+          </View>
 
-            <Text className="text-zinc-400 text-xs text-center mt-3">
-              Day will be set to 1st of selected month
+          {/* Weekly Comparison Reports - 19% of remaining */}
+          <View 
+            className="rounded-2xl p-3 overflow-hidden"
+            style={{
+              flex: 0.19,
+              backgroundColor: COLORS.surface,
+              borderWidth: 1,
+              borderColor: COLORS.glassBorder,
+            }}
+          >
+            <View 
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: 1,
+                backgroundColor: COLORS.glassHighlight,
+              }}
+            />
+            <Text className="text-base font-semibold mb-2" style={{ color: COLORS.green }}>
+              🔄 Weekly Comparison
             </Text>
+            <View className="flex-1">
+              <WeeklyComparisonReports
+                key={`wcompare-${refreshKey}-${selectedMonth}`}
+                userId={user.id}
+                refresh={refreshKey}
+                filterMonth={selectedMonth}
+                filterYear={selectedYear}
+              />
+            </View>
+          </View>
 
-            <View className="flex-row gap-3 mt-6">
-              <TouchableOpacity
-                onPress={handleDateCancel}
-                className="flex-1 bg-zinc-700 py-3 rounded-full"
-              >
-                <Text className="text-center text-white font-semibold">Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={handleDateConfirm}
-                className="flex-1 bg-lime-400 py-3 rounded-full"
-              >
-                <Text className="text-center text-black font-semibold">Done</Text>
-              </TouchableOpacity>
+          {/* Monthly Reports - 19% of remaining */}
+          <View 
+            className="rounded-2xl p-3 overflow-hidden"
+            style={{
+              flex: 0.19,
+              backgroundColor: COLORS.surface,
+              borderWidth: 1,
+              borderColor: COLORS.glassBorder,
+            }}
+          >
+            <View 
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: 1,
+                backgroundColor: COLORS.glassHighlight,
+              }}
+            />
+            <Text className="text-base font-semibold mb-2" style={{ color: COLORS.green }}>
+              📄 Monthly Reports
+            </Text>
+            <View className="flex-1">
+              <MonthlyReports
+                key={`mreports-${refreshKey}-${selectedMonth}`}
+                userId={user.id}
+                refresh={refreshKey}
+                filterMonth={selectedMonth}
+                filterYear={selectedYear}
+              />
             </View>
           </View>
         </View>
-      </Modal>
+      </View>
     </SafeAreaView>
   );
 }

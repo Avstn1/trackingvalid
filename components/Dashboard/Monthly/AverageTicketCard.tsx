@@ -1,6 +1,22 @@
 import { supabase } from '@/utils/supabaseClient';
+import MaskedView from '@react-native-masked-view/masked-view';
+import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
+
+// Color Palette
+const COLORS = {
+  background: '#181818',
+  surface: 'rgba(37, 37, 37, 0.6)',
+  glassBorder: 'rgba(255, 255, 255, 0.1)',
+  glassHighlight: 'rgba(255, 255, 255, 0.05)',
+  text: '#F7F7F7',
+  textMuted: 'rgba(247, 247, 247, 0.5)',
+  orange: '#55694b',
+  orangeGlow: '#2f3a2d',
+  purple: '#673AB7',
+  yellow: '#FFEB3B',
+};
 
 interface AverageTicketCardProps {
   userId: string;
@@ -82,27 +98,69 @@ export default function AverageTicketCard({ userId, selectedMonth, year }: Avera
   const change = calculateChange();
 
   return (
-    <View className="rounded-xl bg-zinc-900 border border-zinc-800 p-2.5">
-      <Text className="text-lime-300 text-xs font-semibold mb-1">💵 Avg Ticket</Text>
+    <View 
+      className="rounded-2xl p-3 overflow-hidden"
+      style={{ 
+        backgroundColor: COLORS.surface,
+        borderWidth: 1,
+        borderColor: COLORS.glassBorder,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 8,
+        elevation: 3,
+      }}
+    >
+      {/* Subtle highlight at top */}
+      <View 
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 1,
+          backgroundColor: COLORS.glassHighlight,
+        }}
+      />
+
+      <View className="flex-row items-center gap-2">
+        <Text className="text-xs">💵</Text>
+        <MaskedView
+          maskElement={
+            <Text className="text-sm font-bold tracking-wide">
+              Avg Ticket
+            </Text>
+          }
+        >
+          <LinearGradient
+            colors={['#8bcf68ff', '#beb348ff']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+          >
+            <Text className="text-sm font-bold tracking-wide opacity-0">
+              Avg Ticket
+            </Text>
+          </LinearGradient>
+        </MaskedView>
+      </View>
 
       <View className="min-h-[40px] justify-center">
         {loading ? (
-          <ActivityIndicator color="#c4ff85" size="small" />
+          <ActivityIndicator color={COLORS.orange} size="small" />
         ) : (
           <View className="flex-row items-baseline gap-2">
-            <Text className="text-xl font-bold text-lime-200" numberOfLines={1} adjustsFontSizeToFit>
+            <Text 
+              className="text-xl font-bold" 
+              style={{ color: COLORS.text }}
+              numberOfLines={1} 
+              adjustsFontSizeToFit
+            >
               {avgTicket !== null ? formatCurrency(avgTicket) : 'N/A'}
             </Text>
             
             {change !== null && (
               <Text
-                className={`text-xs font-semibold ${
-                  change > 0
-                    ? 'text-green-400'
-                    : change < 0
-                    ? 'text-red-400'
-                    : 'text-gray-400'
-                }`}
+                className="text-xs font-semibold"
+                style={{ color: change > 0 ? '#4ade80' : change < 0 ? '#f87171' : COLORS.textMuted }}
               >
                 ({change > 0 ? '+' : ''}{change.toFixed(1)}%)
               </Text>

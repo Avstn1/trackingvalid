@@ -3,6 +3,25 @@ import React from 'react';
 import { Modal, Pressable, Text, TouchableOpacity, View } from 'react-native';
 import WebView from 'react-native-webview';
 
+// Color Palette
+const COLORS = {
+  background: '#181818',
+  cardBg: '#1a1a1a',
+  surface: 'rgba(37, 37, 37, 0.6)',
+  surfaceSolid: '#252525',
+  glassBorder: 'rgba(255, 255, 255, 0.1)',
+  glassHighlight: 'rgba(255, 255, 255, 0.05)',
+  text: '#F7F7F7',
+  textMuted: 'rgba(247, 247, 247, 0.5)',
+  orange: '#FF5722',
+  orangeGlow: 'rgba(255, 87, 34, 0.2)',
+  purple: '#673AB7',
+  yellow: '#FFEB3B',
+  green: '#8bcf68ff',
+  greenLight: '#beb348ff',
+  greenGlow: 'rgba(139, 207, 104, 0.2)',
+};
+
 interface Report {
   id: string;
   content: string;
@@ -48,7 +67,7 @@ export default function ReportViewerModal({
     return `${report.month} ${report.year}`;
   };
 
-  // Dark mode styled HTML content
+  // Dark mode styled HTML content with green accent
   const styledHTML = `
     <!DOCTYPE html>
     <html>
@@ -66,7 +85,7 @@ export default function ReportViewerModal({
           font-size: 14px;
           line-height: 1.6;
           color: #e5e7eb;
-          background: #18181b;
+          background: #181818;
           padding: 16px;
         }
         
@@ -83,8 +102,8 @@ export default function ReportViewerModal({
           font-weight: 600;
           margin-top: 16px;
           margin-bottom: 10px;
-          color: #c4ff85;
-          border-bottom: 2px solid #3f3f46;
+          color: #8bcf68;
+          border-bottom: 2px solid #333;
           padding-bottom: 4px;
         }
         
@@ -129,20 +148,22 @@ export default function ReportViewerModal({
           border-collapse: collapse;
           margin: 12px 0;
           font-size: 11px;
-          background: #27272a;
+          background: #1a1a1a;
+          border-radius: 8px;
+          overflow: hidden;
           box-shadow: 0 1px 3px rgba(0,0,0,0.3);
         }
         
         thead {
-          background: #3f3f46;
+          background: #252525;
         }
         
         th {
           padding: 8px 4px;
           text-align: left;
           font-weight: 600;
-          color: #c4ff85;
-          border-bottom: 2px solid #52525b;
+          color: #8bcf68;
+          border-bottom: 2px solid #333;
           font-size: 10px;
           text-transform: uppercase;
           letter-spacing: 0.3px;
@@ -150,32 +171,30 @@ export default function ReportViewerModal({
         
         td {
           padding: 8px 4px;
-          border-bottom: 1px solid #3f3f46;
+          border-bottom: 1px solid #333;
           font-size: 11px;
           color: #d1d5db;
         }
         
         tbody tr:hover {
-          background: #3f3f46;
+          background: #252525;
         }
         
         tbody tr:last-child td {
-          border-bottom: 2px solid #52525b;
+          border-bottom: 2px solid #333;
           font-weight: 600;
           color: #f9fafb;
         }
         
         tbody tr:nth-child(even) {
-          background: #2d2d30;
+          background: #1f1f1f;
         }
         
-        /* Number columns right-aligned */
         td:nth-child(n+2),
         th:nth-child(n+2) {
           text-align: right;
         }
         
-        /* First column left aligned */
         td:first-child,
         th:first-child {
           text-align: left;
@@ -196,24 +215,39 @@ export default function ReportViewerModal({
       transparent={true}
       onRequestClose={onClose}
     >
-      {/* Backdrop and Modal Container */}
       <Pressable 
         onPress={onClose}
-        className="flex-1 bg-black/85 justify-center items-center p-4"
+        className="flex-1 justify-center items-center p-4"
+        style={{ backgroundColor: 'rgba(0, 0, 0, 0.85)' }}
       >
-        {/* Modal Content - Pressable prevents backdrop close when tapping inside */}
         <Pressable 
-          onPress={(e) => {
-            // Prevent backdrop from closing when clicking inside modal
+          onPress={(e) => {}}
+          className="w-full max-w-4xl h-[90%] rounded-3xl overflow-hidden"
+          style={{
+            backgroundColor: COLORS.cardBg,
+            borderWidth: 1,
+            borderColor: COLORS.glassBorder,
+            shadowColor: COLORS.green,
+            shadowOffset: { width: 0, height: 0 },
+            shadowOpacity: 0.2,
+            shadowRadius: 24,
+            elevation: 10,
           }}
-          className="w-full max-w-4xl h-[90%] bg-zinc-900 rounded-2xl shadow-2xl overflow-hidden border-2 border-lime-400/10"
         >
           {/* Header */}
-          <View className="border-b border-zinc-800 px-4 py-4">
+          <View 
+            className="px-4 py-4"
+            style={{ 
+              borderBottomWidth: 1, 
+              borderBottomColor: COLORS.glassBorder,
+              backgroundColor: 'rgba(37, 37, 37, 0.5)',
+            }}
+          >
             <View className="flex-row items-start justify-between mb-1">
               <View className="flex-1 pr-4">
                 <Text 
-                  className="text-white text-xl font-bold" 
+                  className="text-xl font-bold" 
+                  style={{ color: COLORS.text }}
                   numberOfLines={2}
                 >
                   {getHeaderTitle()}
@@ -221,13 +255,14 @@ export default function ReportViewerModal({
               </View>
               <TouchableOpacity 
                 onPress={onClose} 
-                className="p-2 -mr-2 -mt-1 rounded-full active:bg-zinc-800"
+                className="p-2 -mr-2 -mt-1 rounded-full"
+                style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
-                <X size={24} color="#ffffff" />
+                <X size={20} color={COLORS.text} />
               </TouchableOpacity>
             </View>
-            <Text className="text-sm text-gray-400" numberOfLines={1}>
+            <Text className="text-sm" style={{ color: COLORS.green }} numberOfLines={1}>
               {getSubtitle()}
             </Text>
           </View>
@@ -237,7 +272,7 @@ export default function ReportViewerModal({
             <WebView
               originWhitelist={['*']}
               source={{ html: styledHTML }}
-              style={{ flex: 1, backgroundColor: '#18181b' }}
+              style={{ flex: 1, backgroundColor: COLORS.background }}
               showsVerticalScrollIndicator={true}
               scrollEnabled={true}
               onError={(syntheticEvent) => {
@@ -248,12 +283,27 @@ export default function ReportViewerModal({
           </View>
 
           {/* Footer */}
-          <View className="border-t border-zinc-800 p-4">
+          <View 
+            className="p-4"
+            style={{ 
+              borderTopWidth: 1, 
+              borderTopColor: COLORS.glassBorder,
+              backgroundColor: 'rgba(37, 37, 37, 0.5)',
+            }}
+          >
             <TouchableOpacity
               onPress={onClose}
-              className="bg-lime-400 rounded-lg px-4 py-3 active:bg-lime-500"
+              className="rounded-full px-4 py-3"
+              style={{
+                backgroundColor: COLORS.green,
+                shadowColor: COLORS.green,
+                shadowOffset: { width: 0, height: 0 },
+                shadowOpacity: 0.4,
+                shadowRadius: 12,
+                elevation: 5,
+              }}
             >
-              <Text className="text-black text-center font-semibold">Close</Text>
+              <Text className="text-center font-semibold" style={{ color: COLORS.text }}>Close</Text>
             </TouchableOpacity>
           </View>
         </Pressable>

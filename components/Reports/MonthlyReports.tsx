@@ -4,6 +4,22 @@ import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
 import ReportViewerModal from './ReportViewerModal';
 
+// Color Palette
+const COLORS = {
+  background: '#181818',
+  cardBg: '#1a1a1a',
+  surface: 'rgba(37, 37, 37, 0.6)',
+  glassBorder: 'rgba(255, 255, 255, 0.1)',
+  glassHighlight: 'rgba(255, 255, 255, 0.05)',
+  text: '#F7F7F7',
+  textMuted: 'rgba(247, 247, 247, 0.5)',
+  orange: '#FF5722',
+  orangeGlow: 'rgba(255, 87, 34, 0.2)',
+  green: '#8bcf68ff',
+  greenLight: '#beb348ff',
+  greenGlow: 'rgba(139, 207, 104, 0.2)',
+};
+
 type MonthlyReport = {
   id: string;
   month: string;
@@ -27,27 +43,20 @@ const MONTHS = [
   "July", "August", "September", "October", "November", "December",
 ];
 
-// Format date as "Month DD, YYYY"
 function formatDate(date: Date): string {
   const months = ["January", "February", "March", "April", "May", "June", 
                   "July", "August", "September", "October", "November", "December"];
   return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
 }
 
-// Get release date for a monthly report (1st of next month)
 function getReleaseDate(month: string, year: number): Date {
   const monthIndex = MONTHS.indexOf(month);
-  
-  // If it's December, next month is January of next year
   if (monthIndex === 11) {
     return new Date(year + 1, 0, 1);
   }
-  
-  // Otherwise, 1st of next month
   return new Date(year, monthIndex + 1, 1);
 }
 
-// Check if report should be available (current date is past release date)
 function isReportAvailable(month: string, year: number): boolean {
   const releaseDate = getReleaseDate(month, year);
   const today = new Date();
@@ -123,13 +132,11 @@ export default function MonthlyReports({
     );
   });
 
-  // Generate report or placeholder
   const getReportDisplay = () => {
     if (!filterMonth || !filterYear) {
       return filteredReports;
     }
 
-    // Check if report exists for this month/year
     const existingReport = filteredReports.find(
       r => r.month === filterMonth && r.year === filterYear
     );
@@ -138,7 +145,6 @@ export default function MonthlyReports({
       return [existingReport];
     }
 
-    // Create placeholder if report doesn't exist yet
     const isUpcoming = !isReportAvailable(filterMonth, filterYear);
     const releaseDate = getReleaseDate(filterMonth, filterYear);
 
@@ -169,15 +175,15 @@ export default function MonthlyReports({
 
   if (loading) {
     return (
-      <View className="items-center justify-center py-4">
-        <ActivityIndicator size="small" color="#c4ff85" />
+      <View className="flex-1 items-center justify-center">
+        <ActivityIndicator size="small" color={COLORS.green} />
       </View>
     );
   }
 
   return (
     <>
-      <View className="gap-2">
+      <View className="flex-1 gap-2">
         {displayReports.length > 0 ? (
           displayReports.map((r) => {
             const isUpcoming = r.isUpcoming;
@@ -187,47 +193,86 @@ export default function MonthlyReports({
                 key={r.id}
                 onPress={() => !isUpcoming && handleOpenReport(r)}
                 disabled={isUpcoming}
-                className={`rounded-xl p-4 mb-2 ${
-                  isUpcoming 
-                    ? 'bg-zinc-800/40 opacity-60' 
-                    : 'bg-zinc-800 active:bg-lime-500/20'
-                }`}
-                style={!isUpcoming ? { elevation: 4 } : {}}
+                className="flex-1 rounded-2xl p-4 overflow-hidden"
+                style={[
+                  {
+                    backgroundColor: isUpcoming ? 'rgba(37, 37, 37, 0.3)' : COLORS.cardBg,
+                    borderWidth: 1,
+                    borderColor: isUpcoming ? 'rgba(255, 255, 255, 0.05)' : COLORS.glassBorder,
+                    opacity: isUpcoming ? 0.5 : 1,
+                  },
+                  !isUpcoming && {
+                    shadowColor: COLORS.green,
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.15,
+                    shadowRadius: 8,
+                    elevation: 4,
+                  }
+                ]}
               >
-                <View className="flex-row items-center gap-3 min-h-[40px]">
-                  <View className={`p-2 rounded-lg ${
-                    isUpcoming ? 'bg-zinc-700/50' : 'bg-lime-500/20'
-                  }`}>
+                {/* Top highlight line */}
+                <View 
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: 1,
+                    backgroundColor: isUpcoming ? 'transparent' : COLORS.glassHighlight,
+                  }}
+                />
+
+                <View className="flex-row items-center gap-3 h-full">
+                  <View 
+                    className="p-2 rounded-xl"
+                    style={{
+                      backgroundColor: isUpcoming ? 'rgba(255, 255, 255, 0.05)' : COLORS.greenGlow,
+                    }}
+                  >
                     <FileText 
-                      size={20} 
-                      color={isUpcoming ? "#71717a" : "#c4ff85"} 
+                      size={22} 
+                      color={isUpcoming ? COLORS.textMuted : COLORS.green} 
                       strokeWidth={2.5} 
                     />
                   </View>
                   <View className="flex-1">
-                    <Text className={`text-base font-bold ${
-                      isUpcoming ? 'text-zinc-400' : 'text-white'
-                    }`}>
-                      {r.month} {r.year}
+                    <Text 
+                      className="text-base font-bold mb-1"
+                      style={{ color: isUpcoming ? COLORS.textMuted : COLORS.text }}
+                      numberOfLines={1}
+                      adjustsFontSizeToFit
+                      minimumFontScale={0.8}
+                    >
+                      Monthly Report - {r.month} {r.year}
                     </Text>
-                    <Text className={`text-xs mt-0.5 ${
-                      isUpcoming ? 'text-zinc-500' : 'text-lime-400/70'
-                    }`}>
+                    <Text 
+                      className="text-sm"
+                      style={{ color: isUpcoming ? 'rgba(247, 247, 247, 0.3)' : COLORS.green }}
+                      numberOfLines={1}
+                    >
                       {isUpcoming 
-                        ? `Releasing on ${formatDate(r.releaseDate!)}`
+                        ? `Releasing ${formatDate(r.releaseDate!)}`
                         : 'Tap to view report'
                       }
                     </Text>
                   </View>
-                  {!isUpcoming && <ChevronRight size={18} color="#c4ff85" />}
+                  {!isUpcoming && <ChevronRight size={20} color={COLORS.green} />}
                 </View>
               </TouchableOpacity>
             );
           })
         ) : (
-          <Text className="text-gray-400 text-xs text-center py-2">
-            No monthly reports for this month/year.
-          </Text>
+          <View className="flex-1 justify-center items-center">
+            <View 
+              className="p-3 rounded-xl mb-3"
+              style={{ backgroundColor: 'rgba(255, 255, 255, 0.05)' }}
+            >
+              <FileText size={32} color={COLORS.textMuted} strokeWidth={1.5} />
+            </View>
+            <Text className="text-sm text-center" style={{ color: COLORS.textMuted }}>
+              No monthly reports available
+            </Text>
+          </View>
         )}
       </View>
 

@@ -1,10 +1,11 @@
 // app/(dashboard)/dashboard.tsx
+import AuthLoadingSplash from '@/components/AuthLoadingSpash';
+import Onboarding from '@/components/Onboarding/Onboarding';
 import { supabase } from "@/utils/supabaseClient";
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { Calendar, CalendarRange, Loader2 } from "lucide-react-native";
+import * as Device from 'expo-device';
 import React, { useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
   Modal,
   Platform,
@@ -12,16 +13,29 @@ import {
   ScrollView,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-
-import { CustomHeader } from '@/components/CustomHeader';
 import MonthlyDashboard from '@/components/Dashboard/Dashboards/MonthlyDashboard';
 import YearlyDashboard from '@/components/Dashboard/Dashboards/YearlyDashboard';
+import { CustomHeader } from '@/components/Header/CustomHeader';
 
-const ProfitLossDashboard = (props: any) => <View className="p-5"><Text className="text-white text-xl">Profit/Loss Dashboard</Text></View>;
+import { usePushNotifications } from '@/hooks/usePushNotifications';
+
+// Color Palette
+const COLORS = {
+  background: '#181818',
+  surface: 'rgba(37, 37, 37, 0.6)',
+  surfaceSolid: '#252525',
+  glassBorder: 'rgba(255, 255, 255, 0.1)',
+  glassHighlight: 'rgba(255, 255, 255, 0.05)',
+  text: '#F7F7F7',
+  textMuted: 'rgba(247, 247, 247, 0.5)',
+  orange: '#2f3a2d',
+  orangeGlow: '#55694b',
+  yellow: '#FFEB3B',
+};
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
@@ -59,45 +73,77 @@ export default function DashboardPage() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [tempDate, setTempDate] = useState(new Date());
   const [timeframe, setTimeframe] = useState<Timeframe>('year');
-  const [showTimeframePicker, setShowTimeframePicker] = useState(false);
+  const [tempDashboardView, setTempDashboardView] = useState<"monthly" | "yearly">("monthly");
+  const [tempTimeframe, setTempTimeframe] = useState<Timeframe>('year');
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   const hasSyncedInitially = useRef(false);
   const firstSyncAfterConnect = useRef(false);
 
-  // Fetch user and profile
+  const { expoPushToken } = usePushNotifications()
+
+  // Check onboarding status FIRST
   useEffect(() => {
-    const fetchUserAndProfile = async () => {
+    const checkOnboardingStatus = async () => {
       try {
-        setLoading(true);
         const { data: { user }, error: authError } = await supabase.auth.getUser();
         if (authError) throw authError;
         if (!user) throw new Error("No user session found.");
-        setUser(user);
 
-        const { data: profileData, error: profileError } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("user_id", user.id)
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('onboarded')
+          .eq('user_id', user.id)
           .maybeSingle();
 
-        if (profileError) throw profileError;
-        setProfile(profileData);
-
-        setIsAdmin(["admin", "owner"].includes(profileData?.role?.toLowerCase()));
-
-        if (profileData?.acuity_access_token && !profileData?.last_acuity_sync) {
-          firstSyncAfterConnect.current = true;
+        if (!profileError && profile?.onboarded === false) {
+          setShowOnboarding(true);
+          setLoading(false);
+          return; // Stop here, don't load anything else
         }
+
+        // If onboarded, continue with normal loading
+        fetchUserAndProfile();
       } catch (err: any) {
         console.error(err);
         setError(err.message);
-      } finally {
         setLoading(false);
       }
     };
 
-    fetchUserAndProfile();
+    checkOnboardingStatus();
   }, []);
+
+  // Fetch user and profile (only called after onboarding check passes)
+  const fetchUserAndProfile = async () => {
+    try {
+      setLoading(true);
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError) throw authError;
+      if (!user) throw new Error("No user session found.");
+      setUser(user);
+
+      const { data: profileData, error: profileError } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (profileError) throw profileError;
+      setProfile(profileData);
+
+      setIsAdmin(["admin", "owner"].includes(profileData?.role?.toLowerCase()));
+
+      if (profileData?.acuity_access_token && !profileData?.last_acuity_sync) {
+        firstSyncAfterConnect.current = true;
+      }
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Initial sync
   useEffect(() => {
@@ -119,14 +165,59 @@ export default function DashboardPage() {
     syncAcuityData();
   }, [selectedMonth, selectedYear]);
 
-  // Sync functions
+  useEffect(() => {
+    if (expoPushToken && user) {
+      console.log('Push Token:', expoPushToken);
+      saveTokenToDatabase(expoPushToken);
+    }
+  }, [expoPushToken, user]);
+
+  const saveTokenToDatabase = async (token: string) => {
+    if (!profile?.user_id) return;
+
+    try {
+      const deviceName = Device.deviceName || 'Unknown Device';
+      const deviceType = Platform.OS === 'ios' ? 'ios' : 'android';
+
+      const { error } = await supabase
+        .from('push_tokens')
+        .upsert({
+          user_id: profile.user_id,
+          token: token,
+          device_name: deviceName,
+          device_type: deviceType,
+          last_used_at: new Date().toISOString(),
+        }, {
+          onConflict: 'token',
+        });
+
+      if (error) {
+        console.error('Error saving push token:', error);
+      } else {
+        console.log('✅ Push token saved successfully');
+      }
+    } catch (err) {
+      console.error('Error saving push token:', err);
+    }
+  };
+
   const syncAcuityData = async () => {
     if (!user) return;
     setIsRefreshing(true);
+
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
+
       const res = await fetch(
-        `${process.env.EXPO_PUBLIC_API_URL}/api/acuity/pull?endpoint=appointments&month=${encodeURIComponent(selectedMonth)}&year=${selectedYear}`
+        `${process.env.EXPO_PUBLIC_API_URL}/api/acuity/pull?endpoint=appointments&month=${encodeURIComponent(selectedMonth)}&year=${selectedYear}`,
+        {
+          headers: {
+            'x-client-access-token': accessToken,
+          },
+        }
       );
+
       await res.json();
       setRefreshKey((prev) => prev + 1);
       Alert.alert("Success", `Data updated for ${selectedMonth} ${selectedYear}`);
@@ -140,10 +231,18 @@ export default function DashboardPage() {
 
   const handleFullAcuitySync = async () => {
     setIsRefreshing(true);
+
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
+
       const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/acuity/sync-full`, {
         method: "POST",
+        headers: {
+          'x-client-access-token': accessToken,
+        },
       });
+
       if (!res.ok) throw new Error("Full Acuity sync failed");
       await res.json();
       Alert.alert("Success", "Full Acuity sync complete!");
@@ -167,221 +266,228 @@ export default function DashboardPage() {
     setSelectedDay(tempDate.getDate());
     setSelectedMonth(MONTHS[tempDate.getMonth()]);
     setSelectedYear(tempDate.getFullYear());
+    setDashboardView(tempDashboardView);
+    setTimeframe(tempTimeframe);
     setShowDatePicker(false);
   };
 
-  const handleDateCancel = () => {
+  const handleOpenPicker = () => {
     setTempDate(selectedDate);
-    setShowDatePicker(false);
-  };
-
-  const handleOpenDatePicker = () => {
-    setTempDate(selectedDate);
+    setTempDashboardView(dashboardView);
+    setTempTimeframe(timeframe);
     setShowDatePicker(true);
   };
 
-  const formatSelectedDate = () => {
-    return `${MONTHS[selectedDate.getMonth()].slice(0, 3)} ${selectedDate.getDate()}, ${selectedDate.getFullYear()}`;
+  const handleCancelPicker = () => {
+    setTempDate(selectedDate);
+    setTempDashboardView(dashboardView);
+    setTempTimeframe(timeframe);
+    setShowDatePicker(false);
+  };
+
+  const handleOnboardingComplete = async () => {
+    setShowOnboarding(false);
+    // Reload the dashboard after onboarding
+    await fetchUserAndProfile();
   };
 
   if (loading) {
+    return <AuthLoadingSplash message="Loading dashboard..." />;
+  }
+
+  // Show onboarding modal if user hasn't completed onboarding
+  if (showOnboarding) {
     return (
-      <View className="flex-1 justify-center items-center bg-zinc-950">
-        <ActivityIndicator size="large" color="#c4ff85" />
-        <Text className="text-white mt-4">Loading dashboard...</Text>
-      </View>
+      <Modal
+        visible={true}
+        animationType="slide"
+        presentationStyle="fullScreen"
+      >
+        <Onboarding onComplete={handleOnboardingComplete} />
+      </Modal>
     );
   }
 
   if (error) {
     return (
-      <View className="flex-1 justify-center items-center bg-zinc-950">
-        <Text className="text-red-500 text-lg">{error}</Text>
+      <View className="flex-1 justify-center items-center" style={{ backgroundColor: COLORS.background }}>
+        <Text className="text-lg" style={{ color: '#ef4444' }}>{error}</Text>
       </View>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-zinc-950">
-      <CustomHeader pageName="Dashboard" />
+    <SafeAreaView className="flex-1" style={{ backgroundColor: COLORS.background }}>
+      <CustomHeader pageName="Dashboard" userId={profile.user_id}/>
 
       <ScrollView
         className="flex-1 px-4"
         refreshControl={
-          <RefreshControl refreshing={isRefreshing} onRefresh={syncAcuityData} tintColor="#c4ff85" />
+          <RefreshControl refreshing={isRefreshing} onRefresh={syncAcuityData} tintColor={COLORS.orange} />
         }
       >
         {/* HEADER */}
-        <View className="mb-6">
-          {/* Dashboard View Switcher */}
-          <View className="flex-row bg-zinc-900 rounded-full p-1 mt-4">
-            <TouchableOpacity
-              onPress={() => setDashboardView("monthly")}
-              className={`flex-1 py-3 rounded-full ${
-                dashboardView === "monthly" ? "bg-lime-400" : ""
-              }`}
-            >
-              <Text
-                className={`text-center font-semibold text-xs ${
-                  dashboardView === "monthly" ? "text-black" : "text-zinc-400"
-                }`}
-              >
-                Monthly
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => setDashboardView("yearly")}
-              className={`flex-1 py-3 rounded-full ${
-                dashboardView === "yearly" ? "bg-sky-300" : ""
-              }`}
-            >
-              <Text
-                className={`text-center font-semibold text-xs ${
-                  dashboardView === "yearly" ? "text-black" : "text-zinc-400"
-                }`}
-              >
-                Yearly
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Conditional Picker: Date Picker (Monthly/Profit) OR Timeline Picker (Yearly) */}
-          <View className="flex-row gap-2 mt-4">
-            {dashboardView === "yearly" ? (
-              <>
-                {/* Timeline Picker for Yearly */}
-                <TouchableOpacity
-                  onPress={() => setShowTimeframePicker(true)}
-                  className="flex-1 flex-row items-center justify-center gap-2 bg-zinc-800 py-3 rounded-full"
-                >
-                  <CalendarRange size={16} color="#c4ff85" />
-                  <Text className="text-white font-semibold text-sm">
-                    {timeframeOptions.find(opt => opt.value === timeframe)?.label}
-                  </Text>
-                </TouchableOpacity>
-
-                {/* Sync Button */}
-                <TouchableOpacity
-                  onPress={syncAcuityData}
-                  disabled={isRefreshing}
-                  className="flex-1 flex-row items-center justify-center gap-2 bg-zinc-800 py-3 rounded-full"
-                >
-                  <Loader2
-                    size={16}
-                    color="#c4ff85"
-                    className={isRefreshing ? "animate-spin" : ""}
-                  />
-                  <Text className="text-white font-semibold text-sm">
-                    {isRefreshing ? "Syncing..." : "Re-sync"}
-                  </Text>
-                </TouchableOpacity>
-              </>
-            ) : (
-              <>
-                {/* Date Picker for Monthly/Profit */}
-                <TouchableOpacity
-                  onPress={handleOpenDatePicker}
-                  className="flex-1 flex-row items-center justify-center gap-2 bg-zinc-800 py-3 rounded-full"
-                >
-                  <Calendar size={16} color="#c4ff85" />
-                  <Text className="text-white font-semibold text-sm">
-                    {formatSelectedDate()}
-                  </Text>
-                </TouchableOpacity>
-
-                {/* Sync Button */}
-                <TouchableOpacity
-                  onPress={syncAcuityData}
-                  disabled={isRefreshing}
-                  className="flex-1 flex-row items-center justify-center gap-2 bg-zinc-800 py-3 rounded-full"
-                >
-                  <Loader2
-                    size={16}
-                    color="#c4ff85"
-                    className={isRefreshing ? "animate-spin" : ""}
-                  />
-                  <Text className="text-white font-semibold text-sm">
-                    {isRefreshing ? "Syncing..." : "Re-sync"}
-                  </Text>
-                </TouchableOpacity>
-              </>
-            )}
-          </View>
+        <View className="mb-3">
         </View>
 
-        {/* Date Picker Modal */}
+        {/* Timeline Picker Modal with Tabs - Glassy */}
         <Modal
           visible={showDatePicker}
           transparent={true}
           animationType="fade"
-          onRequestClose={handleDateCancel}
+          onRequestClose={handleCancelPicker}
         >
           <View className="flex-1 justify-center items-center bg-black/70">
-            <View className="bg-zinc-900 rounded-2xl p-6 w-[90%] max-w-md">
-              <Text className="text-white text-lg font-semibold mb-4 text-center">
-                Choose Date
-              </Text>
+            <View 
+              className="rounded-3xl p-6 w-[90%] max-w-md overflow-hidden"
+              style={{ 
+                backgroundColor: 'rgba(37, 37, 37, 0.85)',
+                borderWidth: 1,
+                borderColor: COLORS.glassBorder,
+              }}
+            >
+              {/* Tab Switcher */}
+              <View 
+                className="flex-row rounded-full p-1 mb-6 overflow-hidden"
+                style={{ 
+                  backgroundColor: COLORS.surface,
+                  borderWidth: 1,
+                  borderColor: COLORS.glassBorder,
+                }}
+              >
+                <TouchableOpacity
+                  onPress={() => setTempDashboardView("monthly")}
+                  className="flex-1 py-3 rounded-full"
+                  style={tempDashboardView === "monthly" ? { 
+                    backgroundColor: COLORS.orange,
+                    shadowColor: COLORS.orange,
+                    shadowOffset: { width: 0, height: 0 },
+                    shadowOpacity: 0.5,
+                    shadowRadius: 10,
+                    elevation: 5,
+                  } : {}}
+                >
+                  <Text
+                    className="text-center font-semibold text-xs"
+                    style={{ color: tempDashboardView === "monthly" ? COLORS.text : COLORS.textMuted }}
+                  >
+                    Monthly
+                  </Text>
+                </TouchableOpacity>
 
-              <View className="bg-zinc-800 rounded-xl overflow-hidden">
-                <DateTimePicker
-                  value={tempDate}
-                  mode="date"
-                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                  onChange={handleDateChange}
-                  maximumDate={new Date()}
-                  textColor="#ffffff"
-                  themeVariant="dark"
-                />
+                <TouchableOpacity
+                  onPress={() => setTempDashboardView("yearly")}
+                  className="flex-1 py-3 rounded-full"
+                  style={tempDashboardView === "yearly" ? { 
+                    backgroundColor: COLORS.orange,
+                    shadowColor: COLORS.orange,
+                    shadowOffset: { width: 0, height: 0 },
+                    shadowOpacity: 0.5,
+                    shadowRadius: 10,
+                    elevation: 5,
+                  } : {}}
+                >
+                  <Text
+                    className="text-center font-semibold text-xs"
+                    style={{ color: tempDashboardView === "yearly" ? COLORS.text : COLORS.textMuted }}
+                  >
+                    Yearly
+                  </Text>
+                </TouchableOpacity>
               </View>
 
-              <View className="flex-row gap-3 mt-6">
+              {/* Content based on selected tab */}
+              {tempDashboardView === "monthly" ? (
+                <>
+                  <Text className="text-lg font-semibold mb-4 text-center" style={{ color: COLORS.text }}>
+                    Choose Date
+                  </Text>
+
+                  <View 
+                    className="rounded-2xl overflow-hidden mb-6"
+                    style={{ 
+                      backgroundColor: 'rgba(24, 24, 24, 0.8)',
+                      borderWidth: 1,
+                      borderColor: COLORS.glassBorder,
+                    }}
+                  >
+                    <DateTimePicker
+                      value={tempDate}
+                      mode="date"
+                      display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                      onChange={handleDateChange}
+                      maximumDate={new Date()}
+                      textColor={COLORS.text}
+                      themeVariant="dark"
+                    />
+                  </View>
+                </>
+              ) : (
+                <>
+                  <Text className="text-lg font-semibold mb-4 text-center" style={{ color: COLORS.text }}>
+                    Choose Timeframe
+                  </Text>
+
+                  <View className="mb-6">
+                    {timeframeOptions.map((option) => (
+                      <TouchableOpacity
+                        key={option.value}
+                        onPress={() => setTempTimeframe(option.value as Timeframe)}
+                        className="py-3 px-4 rounded-xl mb-2"
+                        style={tempTimeframe === option.value ? {
+                          backgroundColor: COLORS.orangeGlow,
+                          borderWidth: 1,
+                          borderColor: COLORS.orange,
+                        } : {
+                          backgroundColor: 'rgba(24, 24, 24, 0.5)',
+                          borderWidth: 1,
+                          borderColor: COLORS.glassBorder,
+                        }}
+                      >
+                        <Text 
+                          className="text-sm text-center"
+                          style={{ 
+                            color: tempTimeframe === option.value ? COLORS.orange : COLORS.text,
+                            fontWeight: tempTimeframe === option.value ? 'bold' : 'normal'
+                          }}
+                        >
+                          {option.label}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </>
+              )}
+
+              <View className="flex-row gap-3">
                 <TouchableOpacity
-                  onPress={handleDateCancel}
-                  className="flex-1 bg-zinc-700 py-3 rounded-full"
+                  onPress={handleCancelPicker}
+                  className="flex-1 py-3 rounded-full"
+                  style={{ 
+                    backgroundColor: 'rgba(24, 24, 24, 0.8)',
+                    borderWidth: 1,
+                    borderColor: COLORS.glassBorder,
+                  }}
                 >
-                  <Text className="text-center text-white font-semibold">Cancel</Text>
+                  <Text className="text-center font-semibold" style={{ color: COLORS.text }}>Cancel</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={handleDateConfirm}
-                  className="flex-1 bg-lime-400 py-3 rounded-full"
+                  className="flex-1 py-3 rounded-full"
+                  style={{ 
+                    backgroundColor: tempDashboardView === "monthly" ? COLORS.orange : COLORS.orange,
+                    shadowColor: tempDashboardView === "monthly" ? COLORS.orange : COLORS.orange,
+                    shadowOffset: { width: 0, height: 0 },
+                    shadowOpacity: 0.5,
+                    shadowRadius: 15,
+                    elevation: 5,
+                  }}
                 >
-                  <Text className="text-center text-black font-semibold">Done</Text>
+                  <Text className="text-center font-semibold" style={{ color: COLORS.text }}>Done</Text>
                 </TouchableOpacity>
               </View>
             </View>
           </View>
-        </Modal>
-
-        {/* Timeline Picker Modal */}
-        <Modal
-          visible={showTimeframePicker}
-          transparent={true}
-          animationType="fade"
-          onRequestClose={() => setShowTimeframePicker(false)}
-        >
-          <TouchableOpacity 
-            activeOpacity={1}
-            onPress={() => setShowTimeframePicker(false)}
-            className="flex-1 bg-black/50 justify-center items-center"
-          >
-            <View className="bg-zinc-900 border border-zinc-700 rounded-lg p-2 mx-4 w-64">
-              {timeframeOptions.map((option) => (
-                <TouchableOpacity
-                  key={option.value}
-                  onPress={() => {
-                    setTimeframe(option.value as Timeframe);
-                    setShowTimeframePicker(false);
-                  }}
-                  className="py-3 px-3 active:bg-zinc-800 rounded"
-                >
-                  <Text className={`text-sm ${timeframe === option.value ? 'text-lime-400 font-bold' : 'text-white'}`}>
-                    {option.label}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </TouchableOpacity>
         </Modal>
 
         {/* CONTENT */}
@@ -400,16 +506,6 @@ export default function DashboardPage() {
             userId={user.id}
             selectedYear={selectedYear}
             timeframe={timeframe}
-            globalRefreshKey={refreshKey}
-          />
-        )}
-
-        {dashboardView === "profit" && (
-          <ProfitLossDashboard
-            userId={user.id}
-            selectedMonth={selectedMonth}
-            selectedYear={selectedYear}
-            selectedDay={selectedDay}
             globalRefreshKey={refreshKey}
           />
         )}

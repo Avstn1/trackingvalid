@@ -17,6 +17,8 @@ import {
   View
 } from 'react-native';
 
+import Logout from '../Profile/Settings/Logout';
+
 // Color Palette matching the dashboard
 const COLORS = {
   background: '#181818',
@@ -250,7 +252,7 @@ export default function OnboardingPage({ onComplete }) {
               justifyContent: keyboardVisible ? 'flex-start' : 'center',
               alignItems: 'center',
               padding: 20,
-              paddingTop: keyboardVisible ? 40 : 20,
+              paddingTop: keyboardVisible ? 40 : 75,
             }}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
@@ -455,6 +457,11 @@ export default function OnboardingPage({ onComplete }) {
                 </Text>
               )}
             </TouchableOpacity>
+          </View>
+
+          
+          <View style={{ paddingTop: 20 }}>
+            <Logout />
           </View>
         </ScrollView>
       </View>

@@ -318,8 +318,21 @@ export default function DashboardPage() {
 
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: COLORS.background }}>
-      <CustomHeader pageName="Dashboard" userId={profile.user_id}/>
-
+      <CustomHeader 
+        pageName="Dashboard" 
+        userId={profile.user_id}
+        dashboardView={dashboardView}
+        onDashboardViewChange={setDashboardView}
+        timeframe={timeframe}
+        onTimeframeChange={setTimeframe}
+        selectedDate={selectedDate}
+        onDateSelect={(date) => {
+          setSelectedDate(date);
+          setSelectedDay(date.getDate());
+          setSelectedMonth(MONTHS[date.getMonth()]);
+          setSelectedYear(date.getFullYear());
+        }}
+      />
       <ScrollView
         className="flex-1 px-4"
         refreshControl={

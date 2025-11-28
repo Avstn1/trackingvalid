@@ -1,7 +1,7 @@
 import { supabase } from '@/utils/supabaseClient';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Dimensions, Text, View } from 'react-native';
-import { BarChart } from 'react-native-chart-kit';
+import { ActivityIndicator, Text, View } from 'react-native';
+import { BarChart } from 'react-native-gifted-charts';
 
 type Timeframe = 'year' | 'Q1' | 'Q2' | 'Q3' | 'Q4';
 
@@ -9,13 +9,21 @@ interface Props {
   userId: string;
   year: number;
   timeframe: Timeframe;
-  refreshKey: number;
+  refreshKey?: number;
 }
 
 interface MonthData {
   month: string;
   total_revenue: number;
 }
+
+// Color Palette
+const COLORS = {
+  green: '#8bcf68ff',
+  greenLight: '#beb348ff',
+  text: '#FFFFFF',
+  textMuted: 'rgba(255, 255, 255, 0.6)',
+};
 
 const MONTHS = [
   'January',
@@ -51,7 +59,6 @@ function getMonthsForTimeframe(timeframe: Timeframe): string[] {
 export default function QuarterlyRevenueChart({ userId, year, timeframe, refreshKey }: Props) {
   const [data, setData] = useState<MonthData[]>([]);
   const [loading, setLoading] = useState(true);
-  const screenWidth = Dimensions.get('window').width;
 
   useEffect(() => {
     if (!userId) {
@@ -105,8 +112,10 @@ export default function QuarterlyRevenueChart({ userId, year, timeframe, refresh
   if (loading) {
     return (
       <View className="h-[280px] items-center justify-center">
-        <ActivityIndicator size="small" color="#c4ff85" />
-        <Text className="text-lime-200 text-sm mt-2">Loading...</Text>
+        <ActivityIndicator size="small" color={COLORS.green} />
+        <Text className="text-sm mt-2" style={{ color: COLORS.textMuted }}>
+          Loading...
+        </Text>
       </View>
     );
   }
@@ -114,7 +123,9 @@ export default function QuarterlyRevenueChart({ userId, year, timeframe, refresh
   if (!data.length) {
     return (
       <View className="h-[280px] items-center justify-center">
-        <Text className="text-lime-300 opacity-70 text-sm">No data available</Text>
+        <Text className="text-sm" style={{ color: COLORS.textMuted }}>
+          No data available
+        </Text>
       </View>
     );
   }
@@ -123,62 +134,75 @@ export default function QuarterlyRevenueChart({ userId, year, timeframe, refresh
   const maxValue = Math.max(...data.map((d) => d.total_revenue), 1);
   const roundedMax = Math.ceil(maxValue / 5000) * 5000;
 
-  const chartData = {
-    labels: data.map((d) => d.month.slice(0, 3)), // Jan, Feb, etc.
-    datasets: [
-      {
-        data: data.map((d) => d.total_revenue),
-      },
-    ],
+  const formatYLabel = (value: string) => {
+    const num = parseFloat(value);
+    if (num >= 1000) {
+      return `$${(num / 1000).toFixed(0)}k`;
+    }
+    return `$${num}`;
   };
+
+  const formatTopLabel = (value: number) => {
+    if (value >= 1000) {
+      return `$${(value / 1000).toFixed(1)}k`;
+    }
+    return `$${value}`;
+  };
+
+  // Prepare data for gifted-charts with top labels
+  const barDataWithLabels = data.map((d) => ({
+    value: d.total_revenue,
+    label: d.month.slice(0, 3),
+    frontColor: COLORS.green,
+    gradientColor: COLORS.greenLight,
+    spacing: 2,
+    labelTextStyle: {
+      color: COLORS.textMuted,
+      fontSize: 10,
+    },
+    topLabelComponent: () => (
+      <Text style={{ color: COLORS.text, fontSize: 9, marginBottom: 2 }}>
+        {formatTopLabel(d.total_revenue)}
+      </Text>
+    ),
+  }));
+
+  // Adjust bar width and spacing based on number of months
+  const barWidth = timeframe === 'year' ? 18 : 32;
+  const spacing = timeframe === 'year' ? 12 : 20;
 
   return (
     <View className="flex-1">
-      <Text className="text-lime-300 text-sm font-semibold mb-2">{title}</Text>
-      <BarChart
-        data={chartData}
-        width={screenWidth - 50}
-        height={220}
-        yAxisLabel="$"
-        yAxisSuffix=""
-        chartConfig={{
-          backgroundColor: '#18181b',
-          backgroundGradientFrom: '#18181b',
-          backgroundGradientTo: '#27272a',
-          decimalPlaces: 0,
-          color: (opacity = 1) => `rgba(196, 255, 133, ${opacity})`,
-          labelColor: (opacity = 1) => `rgba(209, 226, 197, ${opacity})`,
-          style: {
-            borderRadius: 16,
-          },
-          propsForLabels: {
-            fontSize: 10,
-          },
-          barPercentage: 0.7,
-          fillShadowGradientOpacity: 1,
-          propsForVerticalLabels: {
-            fontSize: 5, 
-          },
-          formatYLabel: (value) => {
-            const num = parseFloat(value);
-            // Force labels to be multiples of 5000
-            const rounded = Math.round(num / 5000) * 5000;
-            if (rounded >= 1000) {
-              return `${(rounded / 1000).toFixed(0)}k`;
-            }
-            return rounded.toString();
-          },
-        }}
-        style={{
-          borderRadius: 16,
-          marginTop: 12,
-        }}
-        showValuesOnTopOfBars
-        fromZero
-        segments={Math.min(Math.ceil(roundedMax / 5000), 5)}
-        yAxisInterval={5000}
-        withInnerLines={true}
-      />
+      <Text 
+        className="text-sm font-semibold mb-3" 
+        style={{ color: COLORS.text }}
+      >
+        {title}
+      </Text>
+      <View style={{ flex: 1, paddingRight: 0 }}>
+        <BarChart
+          data={barDataWithLabels}
+          barWidth={barWidth}
+          noOfSections={4}
+          barBorderRadius={6}
+          frontColor={COLORS.green}
+          gradientColor={COLORS.greenLight}
+          showGradient
+          yAxisThickness={0}
+          xAxisThickness={0}
+          yAxisTextStyle={{ color: COLORS.textMuted, fontSize: 10 }}
+          xAxisLabelTextStyle={{ color: COLORS.textMuted, fontSize: timeframe === 'year' ? 8 : 10 }}
+          maxValue={roundedMax}
+          spacing={spacing}
+          hideRules={false}
+          rulesColor="rgba(255, 255, 255, 0.1)"
+          rulesType="solid"
+          yAxisLabelPrefix="$"
+          formatYLabel={formatYLabel}
+          isAnimated
+          animationDuration={800}
+        />
+      </View>
     </View>
   );
 }

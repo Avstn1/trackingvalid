@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Dimensions, Text, TouchableOpacity, View } from 'react-native';
 import { PieChart } from 'react-native-gifted-charts';
 
-// Color Palette - matching dashboard theme
+// Color Palette - matching yearly green theme
 const COLORS_PALETTE = {
   background: '#181818',
   surface: 'rgba(37, 37, 37, 0.6)',
@@ -11,24 +11,13 @@ const COLORS_PALETTE = {
   glassHighlight: 'rgba(255, 255, 255, 0.05)',
   text: '#F7F7F7',
   textMuted: 'rgba(247, 247, 247, 0.5)',
-  orange: '#FF5722',
-  orangeGlow: 'rgba(255, 87, 34, 0.4)',
-  purple: '#673AB7',
-  yellow: '#FFEB3B',
+  green: '#8bcf68ff',
+  greenLight: '#beb348ff',
 };
 
-// Chart colors using theme colors with variations
 const CHART_COLORS = [
-  COLORS_PALETTE.orange,
-  COLORS_PALETTE.purple,
-  COLORS_PALETTE.yellow,
-  '#FF8A65', // Lighter orange
-  '#9575CD', // Lighter purple
-  '#FFF176', // Lighter yellow
-  '#FF7043', // Orange variant
-  '#7E57C2', // Purple variant
-  '#FDD835', // Yellow variant
-  '#BCAAA4', // Neutral gray
+  '#F6E27F', '#E7B7A3', '#A7C7E7', '#C6D8A8', '#9AD1C9',
+  '#B7A0E3', '#F5D6C6', '#F7C9D2', '#C9E5D3', '#D6D6D6',
 ];
 
 export interface ServiceBooking {
@@ -43,19 +32,12 @@ interface ServiceBreakdownChartProps {
   readonly year: number;
 }
 
-// Center label component for the pie chart
 const CenterLabel = ({ totalBookings }: { totalBookings: number }) => (
   <View className="items-center justify-center">
-    <Text 
-      className="text-lg font-bold"
-      style={{ color: COLORS_PALETTE.text }}
-    >
+    <Text className="text-lg font-bold" style={{ color: COLORS_PALETTE.text }}>
       {totalBookings}
     </Text>
-    <Text 
-      className="text-xs"
-      style={{ color: COLORS_PALETTE.textMuted }}
-    >
+    <Text className="text-xs" style={{ color: COLORS_PALETTE.textMuted }}>
       Total
     </Text>
   </View>
@@ -113,7 +95,7 @@ export default function ServiceBreakdownChart({
           borderColor: COLORS_PALETTE.glassBorder,
         }}
       >
-        <ActivityIndicator color={COLORS_PALETTE.orange} size="large" />
+        <ActivityIndicator color={COLORS_PALETTE.green} size="large" />
         <Text className="mt-2 text-xs" style={{ color: COLORS_PALETTE.textMuted }}>
           Loading services...
         </Text>
@@ -138,14 +120,12 @@ export default function ServiceBreakdownChart({
     );
   }
 
-  // Filter out any service named "Other" or "Others" to avoid duplicates
   const filteredData = data.filter(
     (item) => 
       item.service_name.toLowerCase() !== 'other' && 
       item.service_name.toLowerCase() !== 'others'
   );
 
-  // Prepare data: Top 5 + Others
   const topServices = filteredData.slice(0, 5);
   const otherServices = filteredData.slice(5);
   
@@ -156,7 +136,6 @@ export default function ServiceBreakdownChart({
     focused: selectedIndex === index,
   }));
 
-  // Add "Others" if there are more than 5 services
   if (otherServices.length > 0) {
     const othersTotal = otherServices.reduce((sum, item) => sum + item.bookings, 0);
     const othersIndex = 5;
@@ -172,7 +151,6 @@ export default function ServiceBreakdownChart({
   const chartSize = Math.min(screenWidth * 0.45, 220);
   const totalBookings = chartData.reduce((sum, item) => sum + item.value, 0);
   
-  // Prepare legend data with percentages
   const legendData = chartData.map((item, index) => ({
     ...item,
     percentage: ((item.value / totalBookings) * 100).toFixed(1),
@@ -194,7 +172,6 @@ export default function ServiceBreakdownChart({
         marginHorizontal: -14,
       }}
     >
-      {/* Subtle highlight at top */}
       <View 
         style={{
           position: 'absolute',
@@ -206,15 +183,11 @@ export default function ServiceBreakdownChart({
         }}
       />
 
-      <Text 
-        className="text-base font-semibold mb-3"
-        style={{ color: COLORS_PALETTE.orange }}
-      >
+      <Text className="text-base font-semibold mb-3" style={{ color: COLORS_PALETTE.green }}>
         💈 Service Breakdown
       </Text>
 
       <View className="flex-row" style={{ minHeight: 280 }}>
-        {/* Pie Chart */}
         <View className="flex-1 items-center justify-center" style={{ paddingVertical: 10 }}>
           <PieChart
             data={chartData}
@@ -237,7 +210,6 @@ export default function ServiceBreakdownChart({
           />
         </View>
 
-        {/* Custom Legend - Interactive */}
         <View className="flex-1 pl-4 justify-center">
           {legendData.map((item, index) => {
             const isSelected = selectedIndex === index;
@@ -252,7 +224,6 @@ export default function ServiceBreakdownChart({
                   transform: [{ scale: isSelected ? 1.05 : 1 }],
                 }}
               >
-                {/* Color indicator with glow effect when selected */}
                 <View 
                   className="rounded-full mr-2.5"
                   style={{
@@ -267,22 +238,18 @@ export default function ServiceBreakdownChart({
                   }}
                 />
                 
-                {/* Service info */}
                 <View className="flex-1">
                   <Text 
                     className="text-xs font-medium" 
                     numberOfLines={1}
                     style={{ 
-                      color: isSelected ? COLORS_PALETTE.orange : COLORS_PALETTE.text,
+                      color: isSelected ? COLORS_PALETTE.green : COLORS_PALETTE.text,
                       fontWeight: isSelected ? '700' : '500',
                     }}
                   >
                     {item.label}
                   </Text>
-                  <Text 
-                    className="text-[10px] mt-0.5"
-                    style={{ color: COLORS_PALETTE.textMuted }}
-                  >
+                  <Text className="text-[10px] mt-0.5" style={{ color: COLORS_PALETTE.textMuted }}>
                     {item.value} bookings ({item.percentage}%)
                   </Text>
                 </View>

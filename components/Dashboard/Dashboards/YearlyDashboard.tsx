@@ -148,17 +148,19 @@ export default function YearlyDashboard({
     if (!hasAnimated.current && flatListRef.current && charts.length > 0) {
       hasAnimated.current = true;
       
+      const cardWidth = SCREEN_WIDTH - 32;
+      
       // Start at the last chart
       setTimeout(() => {
-        flatListRef.current?.scrollToIndex({
-          index: charts.length - 1,
+        flatListRef.current?.scrollToOffset({
+          offset: cardWidth * (charts.length - 1),
           animated: false,
         });
         
         // Then scroll back to the first chart
         setTimeout(() => {
-          flatListRef.current?.scrollToIndex({
-            index: 0,
+          flatListRef.current?.scrollToOffset({
+            offset: 0,
             animated: true,
           });
         }, 500);

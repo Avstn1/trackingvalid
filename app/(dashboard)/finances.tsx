@@ -524,9 +524,9 @@ export default function FinancesPage() {
                       {item.title}
                     </Text>
                     <TouchableOpacity
-                      onPress={() => {
-                        flatListRef.current?.scrollToIndex({
-                          index: 1,
+                        onPress={() => {
+                        flatListRef.current?.scrollToOffset({
+                          offset: SCREEN_WIDTH - 32,
                           animated: true,
                         });
                       }}

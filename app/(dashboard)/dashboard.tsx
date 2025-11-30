@@ -320,6 +320,7 @@ export default function DashboardPage() {
     <SafeAreaView className="flex-1" style={{ backgroundColor: COLORS.background }}>
       <CustomHeader 
         pageName="Dashboard" 
+        onRefresh={syncAcuityData}
         userId={profile.user_id}
         dashboardView={dashboardView}
         onDashboardViewChange={setDashboardView}

@@ -4,16 +4,18 @@ import { Eye, EyeOff } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Animated, Image, Keyboard, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 
-// Color Palette matching the dashboard
+// Color Palette matching DailyRevenueCard
 const COLORS = {
   background: '#181818',
+  cardBg: '#1a1a1a',
   surface: 'rgba(37, 37, 37, 0.6)',
   surfaceSolid: '#252525',
   glassBorder: 'rgba(255, 255, 255, 0.1)',
-  text: '#F7F7F7',
-  textMuted: 'rgba(247, 247, 247, 0.5)',
-  orange: '#FF5722',
-  orangeGlow: 'rgba(255, 87, 34, 0.4)',
+  text: '#FFFFFF',
+  textMuted: 'rgba(255, 255, 255, 0.6)',
+  green: '#73aa57ff',
+  greenLight: '#5b8f52ff',
+  greenGlow: 'rgba(139, 207, 104, 0.4)',
 };
 
 // Loading splash component
@@ -73,7 +75,7 @@ function AuthLoadingSplash() {
         >
           ShearWork
         </Text>
-        <ActivityIndicator size="large" color={COLORS.orange} />
+        <ActivityIndicator size="large" color={COLORS.green} />
       </Animated.View>
     </View>
   );
@@ -187,7 +189,7 @@ export default function LoginPage() {
         <View 
           className="w-full max-w-md rounded-3xl p-8 shadow-lg"
           style={{ 
-            backgroundColor: COLORS.surface,
+            backgroundColor: COLORS.cardBg,
             borderWidth: 1,
             borderColor: COLORS.glassBorder,
           }}
@@ -200,10 +202,6 @@ export default function LoginPage() {
                 width: 64, 
                 height: 64,
                 marginBottom: 16,
-                shadowColor: COLORS.orange,
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.3,
-                shadowRadius: 12,
               }}
               resizeMode="contain"
             />
@@ -216,8 +214,8 @@ export default function LoginPage() {
             <View 
               className="h-1 w-16 rounded-full mt-2"
               style={{ 
-                backgroundColor: COLORS.orange,
-                shadowColor: COLORS.orange,
+                backgroundColor: COLORS.green,
+                shadowColor: COLORS.green,
                 shadowOffset: { width: 0, height: 0 },
                 shadowOpacity: 0.8,
                 shadowRadius: 8,
@@ -285,12 +283,8 @@ export default function LoginPage() {
             <TouchableOpacity
               className="w-full py-4 rounded-xl mt-2"
               style={{
-                backgroundColor: loading ? COLORS.surfaceSolid : COLORS.orange,
+                backgroundColor: loading ? COLORS.surfaceSolid : COLORS.green,
                 opacity: loading ? 0.5 : 1,
-                shadowColor: COLORS.orange,
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: loading ? 0 : 0.4,
-                shadowRadius: 12,
                 elevation: loading ? 0 : 8,
               }}
               onPress={handleLogin}
@@ -313,7 +307,7 @@ export default function LoginPage() {
             <Text style={{ color: COLORS.textMuted, fontSize: 14 }}>
               Need an account?{' '}
               <Text
-                style={{ color: COLORS.orange, fontWeight: '600' }}
+                style={{ color: COLORS.green, fontWeight: '600' }}
                 onPress={() => !loading && router.push('/(auth)/signup')}
               >
                 Sign up

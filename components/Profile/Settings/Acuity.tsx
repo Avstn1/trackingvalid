@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import ConnectAcuityButton from './ConnectAcuityButton';
 
 // Color Palette
 const COLORS = {
@@ -44,6 +45,7 @@ export default function AcuityTab() {
   // Modal states
   const [showCalendarModal, setShowCalendarModal] = useState(false);
   const [showYearModal, setShowYearModal] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
 
   const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -72,10 +74,21 @@ export default function AcuityTab() {
       if (!accessToken) {
         console.warn('No access token found in Supabase session');
         setCalendarError(true);
+        setIsConnected(false);
         return;
       }
 
       try {
+        // Check connection status
+        const statusRes = await fetch(`${API_BASE_URL}/api/acuity/status`, {
+          headers: {
+            'x-client-access-token': accessToken,
+          },
+        });
+        const statusData = await statusRes.json();
+        setIsConnected(statusData.connected || false);
+
+        // Fetch calendars if connected
         const res = await fetch(`${API_BASE_URL}/api/acuity/calendar`, {
           headers: {
             'x-client-access-token': accessToken,
@@ -93,6 +106,7 @@ export default function AcuityTab() {
       } catch (apiError) {
         console.warn('Calendar API not available:', apiError);
         setCalendarError(true);
+        setIsConnected(false);
       }
     } catch (err: any) {
       console.error(err);
@@ -207,6 +221,17 @@ export default function AcuityTab() {
     return Array.from({ length: 4 }, (_, i) => (currentYear - i).toString());
   };
 
+  const handleConnectSuccess = () => {
+    setIsConnected(true);
+    loadData();
+  };
+
+  const handleDisconnect = () => {
+    setIsConnected(false);
+    setCalendars([]);
+    setSelectedCalendar('');
+  };
+
   if (loading) {
     return (
       <View className="flex-1 justify-center items-center py-20">
@@ -222,13 +247,22 @@ export default function AcuityTab() {
           Acuity Integration
         </Text>
 
+        {/* Connect/Disconnect Button */}
+        <View className="mb-6">
+          <ConnectAcuityButton 
+            apiBaseUrl={API_BASE_URL!} 
+            onConnectSuccess={handleConnectSuccess}
+            onDisconnect={handleDisconnect}
+          />
+        </View>
+
         {/* Calendar Selection Row */}
         <View className="mb-4">
           <Text className="text-sm font-semibold mb-2" style={{ color: COLORS.textMuted }}>
             Calendar
           </Text>
           
-          {calendarError ? (
+          {calendarError || !isConnected ? (
             <View 
               className="rounded-xl p-4"
               style={{
@@ -238,7 +272,7 @@ export default function AcuityTab() {
               }}
             >
               <Text className="text-sm" style={{ color: COLORS.textMuted }}>
-                Calendar API not available. Make sure your backend is running.
+                Acuity calendar not available. Make sure that your acuity account is connected.
               </Text>
             </View>
           ) : (
@@ -259,7 +293,7 @@ export default function AcuityTab() {
                 style={{ color: selectedCalendar ? COLORS.text : COLORS.textMuted }}
                 numberOfLines={1}
               >
-                {selectedCalendar || 'No calendar selected'}
+                {selectedCalendar || 'Select a calendar to enable syncing'}
               </Text>
               <Text style={{ color: COLORS.green, fontSize: 18 }}>▼</Text>
             </TouchableOpacity>
@@ -274,11 +308,13 @@ export default function AcuityTab() {
           
           <TouchableOpacity
             onPress={() => setShowYearModal(true)}
+            disabled={!isConnected}
             className="flex-row items-center justify-between rounded-xl px-4 py-3"
             style={{
               backgroundColor: COLORS.surfaceSolid,
               borderWidth: 1,
               borderColor: COLORS.glassBorder,
+              opacity: isConnected ? 1 : 0.5,
             }}
           >
             <Text className="text-base" style={{ color: COLORS.text }}>
@@ -292,11 +328,11 @@ export default function AcuityTab() {
         <View className="gap-3">
           <TouchableOpacity
             onPress={syncYear}
-            disabled={syncingClients || calendarError}
+            disabled={syncingClients || !isConnected || !selectedCalendar}
             className="py-3 rounded-xl"
             style={{
-              backgroundColor: syncingClients || calendarError ? COLORS.surfaceSolid : COLORS.green,
-              opacity: syncingClients || calendarError ? 0.5 : 1,
+              backgroundColor: syncingClients || !isConnected || !selectedCalendar ? COLORS.surfaceSolid : COLORS.green,
+              opacity: syncingClients || !isConnected || !selectedCalendar ? 0.5 : 1,
             }}
           >
             {syncingClients ? (
@@ -313,13 +349,13 @@ export default function AcuityTab() {
 
           <TouchableOpacity
             onPress={syncFullYear}
-            disabled={syncingAppointments || calendarError}
+            disabled={syncingAppointments || !isConnected || !selectedCalendar}
             className="py-3 rounded-xl"
             style={{
               backgroundColor: COLORS.surfaceSolid,
               borderWidth: 1,
-              borderColor: syncingAppointments || calendarError ? COLORS.glassBorder : COLORS.green,
-              opacity: syncingAppointments || calendarError ? 0.5 : 1,
+              borderColor: syncingAppointments || !isConnected || !selectedCalendar ? COLORS.glassBorder : COLORS.green,
+              opacity: syncingAppointments || !isConnected || !selectedCalendar ? 0.5 : 1,
             }}
           >
             {syncingAppointments ? (

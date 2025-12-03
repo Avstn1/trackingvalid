@@ -10,8 +10,11 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Acuity from './Acuity';
+import Billing from './Billing';
 import Logout from './Logout';
 import Security from './Security';
+
+
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -183,13 +186,20 @@ export default function Settings({ onClose }: SettingsProps) {
           <View className="mb-4">
             <Acuity />
           </View>
+
+          <View className="mb-4">
+            <Billing />
+          </View>
+
           <View className="mb-4">
             <Security />
           </View>
+
           <View className="mb-4">
             <Logout />
           </View>
         </ScrollView>
+
       </Animated.View>
     </View>
   );

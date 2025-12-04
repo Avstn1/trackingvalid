@@ -395,7 +395,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
                         <ScrollView 
                           className="px-4"
                           showsVerticalScrollIndicator={false}
-                          contentContainerStyle={{ paddingBottom: 32, paddingTop: 8 }}
+                          contentContainerStyle={{ paddingBottom: 100, paddingTop: 8 }}
                         >
                           {notifications.map((n) => (
                             <TouchableOpacity

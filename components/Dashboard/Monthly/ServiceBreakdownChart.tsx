@@ -88,11 +88,19 @@ export default function ServiceBreakdownChart({
   if (loading) {
     return (
       <View 
-        className="p-4 rounded-xl h-[200px] justify-center items-center"
+        className="rounded-xl overflow-hidden justify-center items-center"
         style={{
           backgroundColor: COLORS_PALETTE.surface,
           borderWidth: 1,
           borderColor: COLORS_PALETTE.glassBorder,
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.15,
+          shadowRadius: 8,
+          elevation: 3,
+          padding: 16,
+          marginHorizontal: -14,
+          minHeight: 345,
+          maxHeight: 345,
         }}
       >
         <ActivityIndicator color={COLORS_PALETTE.green} size="large" />
@@ -106,11 +114,19 @@ export default function ServiceBreakdownChart({
   if (!data.length) {
     return (
       <View 
-        className="p-4 rounded-xl h-[200px] justify-center items-center"
+        className="rounded-xl overflow-hidden justify-center items-center"
         style={{
           backgroundColor: COLORS_PALETTE.surface,
           borderWidth: 1,
           borderColor: COLORS_PALETTE.glassBorder,
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.15,
+          shadowRadius: 8,
+          elevation: 3,
+          padding: 16,
+          marginHorizontal: -14,
+          minHeight: 345,
+          maxHeight: 345,
         }}
       >
         <Text className="text-sm" style={{ color: COLORS_PALETTE.textMuted }}>
@@ -170,6 +186,8 @@ export default function ServiceBreakdownChart({
         elevation: 3,
         padding: 16,
         marginHorizontal: -14,
+        minHeight: 345,
+        maxHeight: 345,
       }}
     >
       <View 

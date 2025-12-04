@@ -123,9 +123,14 @@ export default function MarketingFunnelsChart({
           backgroundColor: COLORS_PALETTE.surface,
           borderWidth: 1,
           borderColor: COLORS_PALETTE.glassBorder,
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.15,
+          shadowRadius: 8,
+          elevation: 3,
           padding: 16,
           marginHorizontal: -14,
-          minHeight: 280,
+          minHeight: 345,
+          maxHeight: 345,
         }}
       >
         <ActivityIndicator size="small" color={COLORS_PALETTE.green} />
@@ -144,9 +149,14 @@ export default function MarketingFunnelsChart({
           backgroundColor: COLORS_PALETTE.surface,
           borderWidth: 1,
           borderColor: COLORS_PALETTE.glassBorder,
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.15,
+          shadowRadius: 8,
+          elevation: 3,
           padding: 16,
           marginHorizontal: -14,
-          minHeight: 280,
+          minHeight: 345,
+          maxHeight: 345,
         }}
       >
         <Text style={{ color: COLORS_PALETTE.textMuted }}>

@@ -168,7 +168,7 @@ export default function QuarterlyRevenueChart({ userId, year, timeframe, refresh
   }));
 
   // Adjust bar width and spacing based on number of months
-  const barWidth = timeframe === 'year' ? 25 : 100;
+  const barWidth = timeframe === 'year' ? 24.5 : 100;
   const spacing = timeframe === 'year' ? 12 : 20;
 
   return (
@@ -191,16 +191,16 @@ export default function QuarterlyRevenueChart({ userId, year, timeframe, refresh
           yAxisThickness={0}
           xAxisThickness={0}
           yAxisTextStyle={{ color: COLORS.textMuted, fontSize: 10 }}
-          xAxisLabelTextStyle={{ color: COLORS.textMuted, fontSize: timeframe === 'year' ? 8 : 10 }}
+          xAxisLabelTextStyle={{ color: COLORS.textMuted, fontSize: timeframe === 'year' ? 7 : 10 }}
           maxValue={roundedMax}
           spacing={spacing}
           hideRules={false}
           rulesColor="rgba(255, 255, 255, 0.1)"
           rulesType="solid"
-          yAxisLabelPrefix="$"
+          yAxisLabelPrefix=""
           formatYLabel={formatYLabel}
           isAnimated
-          animationDuration={800}
+          animationDuration={500}
           disableScroll
         />
       </View>

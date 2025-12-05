@@ -1,4 +1,5 @@
 import { supabase } from '@/utils/supabaseClient';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { Eye, EyeOff } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
@@ -96,6 +97,13 @@ export default function LoginPage() {
 
   const checkAuthStatus = async () => {
     try {
+      const justLoggedOut = await AsyncStorage.getItem('just-logged-out')
+      if (justLoggedOut) {
+        await AsyncStorage.removeItem('just-logged-out')
+        setCheckingAuth(false)
+        return
+      }
+
       const { data: { session } } = await supabase.auth.getSession();
 
       if (session) {

@@ -1,4 +1,5 @@
 import { supabase } from '@/utils/supabaseClient'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
 import {
@@ -13,11 +14,13 @@ import {
   Animated,
   Dimensions,
   Image,
+  Linking,
   ScrollView,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native'
+
 
 const { width, height } = Dimensions.get('window')
 
@@ -60,6 +63,7 @@ export default function OnboardingScreen() {
   const router = useRouter()
   const scrollViewRef = useRef<ScrollView>(null)
   const [currentPage, setCurrentPage] = useState(0)
+  const [isRedirecting, setIsRedirecting] = useState(false)
   const scrollX = useRef(new Animated.Value(0)).current
 
   const handleScroll = Animated.event(
@@ -83,8 +87,76 @@ export default function OnboardingScreen() {
     }
   }
 
-  const goToPricing = () => {
-    router.push('/(paywall)/pricing')
+  const goToPricing = async () => {
+    Alert.alert(
+      'Redirect to Web',
+      'You will be redirected to ShearWork Web to complete your subscription.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Continue',
+          onPress: async () => {
+            try {
+              setIsRedirecting(true)
+              
+              // Get current user session
+              const { data: { session } } = await supabase.auth.getSession()
+              
+              if (!session?.user?.id || !session.access_token) {
+                Alert.alert('Error', 'Please login first')
+                router.replace('/login')
+                setIsRedirecting(false)
+                return
+              }
+
+              console.log('Generating one-time code for pricing...')
+
+              // Call your API to generate a one-time code
+              const response = await fetch(
+                `${process.env.EXPO_PUBLIC_API_URL}/api/generate-web-token`,
+                {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'x-client-access-token': session?.access_token,
+                  }
+                }
+              )
+
+              const data = await response.json()
+              
+              if (!response.ok || !data.code) {
+                throw new Error(data.error || 'Failed to generate access code')
+              }
+
+              console.log('Code generated, opening browser...')
+
+              // Open browser with the one-time code
+              const pricingUrl = `${process.env.EXPO_PUBLIC_API_URL}/pricing?code=${data.code}`
+              
+              const supported = await Linking.canOpenURL(pricingUrl)
+              
+              if (!supported) {
+                Alert.alert('Error', 'Cannot open pricing page')
+                setIsRedirecting(false)
+                return
+              }
+
+              await Linking.openURL(pricingUrl)
+              
+              setTimeout(() => {
+                setIsRedirecting(false)
+              }, 3000)
+              
+            } catch (err: any) {
+              console.error('Pricing redirect error:', err)
+              Alert.alert('Error', err.message || 'Could not open pricing page')
+              setIsRedirecting(false)
+            }
+          }
+        }
+      ]
+    )
   }
 
   const handleLogout = async () => {
@@ -94,14 +166,14 @@ export default function OnboardingScreen() {
         text: 'Logout',
         style: 'destructive',
         onPress: async () => {
-          await supabase.auth.signOut()
+          await supabase.auth.signOut({ scope: 'global' })
+          await AsyncStorage.setItem('just-logged-out', 'true')
           router.replace('/login')
         },
       },
     ])
-  }
-
-  const totalPages = pages.length + 1 // intro pages + teaser
+}
+  const totalPages = pages.length + 1 
 
   return (
     <View style={{ flex: 1, backgroundColor: '#101312' }}>
@@ -228,6 +300,7 @@ export default function OnboardingScreen() {
             <TouchableOpacity
               onPress={goToPricing}
               activeOpacity={0.8}
+              disabled={isRedirecting}
               style={{
                 borderRadius: 12,
                 overflow: 'hidden',
@@ -235,7 +308,7 @@ export default function OnboardingScreen() {
               }}
             >
               <LinearGradient
-                colors={['#7affc9', '#3af1f7']}
+                colors={isRedirecting ? ['#666', '#444'] : ['#7affc9', '#3af1f7']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={{
@@ -246,11 +319,19 @@ export default function OnboardingScreen() {
                   borderRadius: 12,
                 }}
               >
-                <Text style={{ color: '#000', fontWeight: '600', fontSize: 16 }}>
-                  View Plans
+                <Text style={{ 
+                  color: isRedirecting ? '#ccc' : '#000', 
+                  fontWeight: '600', 
+                  fontSize: 16 
+                }}>
+                  {isRedirecting ? 'Redirecting...' : 'View Plans'}
                 </Text>
               </LinearGradient>
             </TouchableOpacity>
+
+            <Text className="text-xs text-gray-400 text-center mt-4">
+              This will redirect you to ShearWork Web&apos;s pricing page
+            </Text>
           </Animated.View>
         </LinearGradient>
       </ScrollView>
@@ -332,7 +413,12 @@ export default function OnboardingScreen() {
           // Other pages - show Skip and Next
           <>
             <TouchableOpacity
-              onPress={goToPricing}
+              onPress={() => {
+                scrollViewRef.current?.scrollTo({
+                  x: width * pages.length, 
+                  animated: true,
+                })
+              }}
               style={{
                 paddingVertical: 12,
                 paddingHorizontal: 20,
@@ -340,7 +426,6 @@ export default function OnboardingScreen() {
             >
               <Text className="text-gray-400 font-semibold">Skip</Text>
             </TouchableOpacity>
-
             <TouchableOpacity
               onPress={goToNext}
               style={{

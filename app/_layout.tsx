@@ -1,8 +1,9 @@
+// app/_layout.tsx
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import "../global.css";
+import '../global.css';
 
 import CustomSplash from '@/components/CustomSplash';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -19,14 +20,8 @@ export default function RootLayout() {
   useEffect(() => {
     async function prepare() {
       try {
-        // Hide the native splash screen
         await SplashScreen.hideAsync();
-        
-        // Load your resources here (fonts, data, etc.)
-        // Example: await Font.loadAsync({ ... });
-        // You can add a small delay if needed
         await new Promise(resolve => setTimeout(resolve, 100));
-        
       } catch (e) {
         console.warn(e);
       } finally {

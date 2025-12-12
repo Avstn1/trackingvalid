@@ -132,14 +132,14 @@ export default function DashboardLayout() {
         />
 
         <Tabs.Screen
-          name="profile"
+          name="settings"
           options={{
-            title: '',
+            title: 'Settings',
             headerShown: false,
             tabBarIcon: ({ color, focused }) => (
               <View style={focused && TAB_BAR_STYLES.activeTabGlow}>
                 <Ionicons 
-                  name={focused ? "person-circle" : "person-circle-outline"} 
+                  name={focused ? "settings" : "settings-outline"} 
                   size={24} 
                   color={color} 
                 />

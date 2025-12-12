@@ -1,19 +1,19 @@
+// app/components/Header/CustomHeader.tsx
+
 import AuthLoadingSplash from '@/components/AuthLoadingSpash';
 import DailyTipsDropdown from '@/components/Header/DailyTipsDropdown';
 import NotificationsDropdown from '@/components/Header/NotificationsDropdown';
-import SettingsPage from '@/components/Profile/Settings/Settings';
-import { supabase } from "@/utils/supabaseClient";
+import { supabase } from '@/utils/supabaseClient';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { LinearGradient } from 'expo-linear-gradient';
-import { CalendarRange, Settings } from 'lucide-react-native';
-import React, { useEffect, useState } from "react";
+import { CalendarRange } from 'lucide-react-native';
+import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Dimensions,
-  Modal,
   Text,
   TouchableOpacity,
-  View
+  View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DayPicker from './DayPicker';
@@ -35,19 +35,21 @@ const COLORS = {
 };
 
 const MONTHS = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
 ];
 
 type Timeframe = 'year' | 'Q1' | 'Q2' | 'Q3' | 'Q4';
-
-const timeframeOptions = [
-  { label: 'Year', value: 'year' },
-  { label: 'Q1 (Jan-Mar)', value: 'Q1' },
-  { label: 'Q2 (Apr-Jun)', value: 'Q2' },
-  { label: 'Q3 (Jul-Sep)', value: 'Q3' },
-  { label: 'Q4 (Oct-Dec)', value: 'Q4' },
-];
 
 interface CustomHeaderProps {
   pageName: string;
@@ -55,20 +57,20 @@ interface CustomHeaderProps {
   onRefresh?: () => void;
   onDateChange?: (month: string, year: number) => void;
   // Dashboard-specific props
-  dashboardView?: "monthly" | "yearly";
-  onDashboardViewChange?: (view: "monthly" | "yearly") => void;
+  dashboardView?: 'monthly' | 'yearly';
+  onDashboardViewChange?: (view: 'monthly' | 'yearly') => void;
   timeframe?: Timeframe;
   onTimeframeChange?: (timeframe: Timeframe) => void;
   selectedDate?: Date;
   onDateSelect?: (date: Date) => void;
 }
 
-export function CustomHeader({ 
-  pageName, 
-  userId, 
-  onRefresh, 
+export function CustomHeader({
+  pageName,
+  userId,
+  onRefresh,
   onDateChange,
-  dashboardView = "monthly",
+  dashboardView = 'monthly',
   onDashboardViewChange,
   timeframe = 'year',
   onTimeframeChange,
@@ -77,38 +79,47 @@ export function CustomHeader({
 }: CustomHeaderProps) {
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [showSettings, setShowSettings] = useState(false);
   const insets = useSafeAreaInsets();
 
   // Date picker state
   const currentDate = new Date();
   const currentMonthIndex = currentDate.getMonth();
   const currentYear = currentDate.getFullYear();
-  
+
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [localSelectedDate, setLocalSelectedDate] = useState(selectedDate || new Date(currentYear, currentMonthIndex, 1));
-  const [tempDate, setTempDate] = useState(selectedDate || new Date(currentYear, currentMonthIndex, 1));
-  const [tempDashboardView, setTempDashboardView] = useState(dashboardView);
+  const [localSelectedDate, setLocalSelectedDate] = useState(
+    selectedDate || new Date(currentYear, currentMonthIndex, 1),
+  );
+  const [tempDate, setTempDate] = useState(
+    selectedDate || new Date(currentYear, currentMonthIndex, 1),
+  );
+  const [tempDashboardView, setTempDashboardView] =
+    useState(dashboardView);
   const [tempTimeframe, setTempTimeframe] = useState(timeframe);
 
   const [componentsReady, setComponentsReady] = useState(false);
 
   // Check if this page should show the date picker
-  const showsDatePicker = ['Dashboard', 'Finances', 'Reports'].includes(pageName);
+  const showsDatePicker = ['Dashboard', 'Finances', 'Reports'].includes(
+    pageName,
+  );
   const isDashboard = pageName === 'Dashboard';
 
   useEffect(() => {
     const fetchUserAndProfile = async () => {
       try {
         setLoading(true);
-        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        const {
+          data: { user },
+          error: authError,
+        } = await supabase.auth.getUser();
         if (authError) throw authError;
-        if (!user) throw new Error("No user session found.");
+        if (!user) throw new Error('No user session found.');
 
         const { data: profileData, error: profileError } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("user_id", user.id)
+          .from('profiles')
+          .select('*')
+          .eq('user_id', user.id)
           .maybeSingle();
 
         if (profileError) throw profileError;
@@ -147,14 +158,14 @@ export function CustomHeader({
     setTempTimeframe(timeframe);
   }, [timeframe]);
 
-  const handleCloseSettings = () => {
-    setShowSettings(false);
-  };
-
   // Date picker handlers
-  const handleDateChange = (event: any, date?: Date) => {
+  const handleDateChange = (_event: any, date?: Date) => {
     if (date) {
-      const normalizedDate = new Date(date.getFullYear(), date.getMonth(), 1);
+      const normalizedDate = new Date(
+        date.getFullYear(),
+        date.getMonth(),
+        1,
+      );
       setTempDate(normalizedDate);
     }
   };
@@ -179,7 +190,7 @@ export function CustomHeader({
       const month = MONTHS[tempDate.getMonth()];
       const year = tempDate.getFullYear();
       setShowDatePicker(false);
-      
+
       if (onDateChange) {
         onDateChange(month, year);
       }
@@ -206,9 +217,14 @@ export function CustomHeader({
 
   if (loading) {
     return (
-      <View className="flex-1 justify-center items-center" style={{ backgroundColor: COLORS.background }}>
+      <View
+        className="flex-1 justify-center items-center"
+        style={{ backgroundColor: COLORS.background }}
+      >
         <ActivityIndicator size="large" color={COLORS.green} />
-        <Text className="mt-4" style={{ color: COLORS.text }}>Loading header...</Text>
+        <Text className="mt-4" style={{ color: COLORS.text }}>
+          Loading header...
+        </Text>
       </View>
     );
   }
@@ -218,8 +234,8 @@ export function CustomHeader({
   }
 
   return (
-    <View 
-      style={{ 
+    <View
+      style={{
         paddingTop: insets.top - 45,
         paddingBottom: 16,
         backgroundColor: COLORS.surface,
@@ -233,7 +249,7 @@ export function CustomHeader({
       }}
     >
       {/* Top highlight line for glass effect */}
-      <View 
+      <View
         style={{
           position: 'absolute',
           top: 0,
@@ -248,9 +264,7 @@ export function CustomHeader({
         <MaskedView
           className="flex-1"
           maskElement={
-            <Text className="text-3xl font-bold">
-              {pageName}
-            </Text>
+            <Text className="text-3xl font-bold">{pageName}</Text>
           }
         >
           <LinearGradient
@@ -263,13 +277,9 @@ export function CustomHeader({
             </Text>
           </LinearGradient>
         </MaskedView>
-        
+
         <View className="flex-row items-center gap-3">
-          {pageName === "Profile" ? (
-            <TouchableOpacity onPress={() => setShowSettings(true)}>
-              <Settings size={24} color={COLORS.green} />
-            </TouchableOpacity>
-          ) : showsDatePicker ? (
+          {showsDatePicker ? (
             <>
               <TouchableOpacity
                 onPress={handleOpenDatePicker}
@@ -281,31 +291,30 @@ export function CustomHeader({
                 }}
               >
                 <CalendarRange size={16} color={COLORS.green} />
-                <Text className="font-semibold text-xs" style={{ color: COLORS.text }}>
+                <Text
+                  className="font-semibold text-xs"
+                  style={{ color: COLORS.text }}
+                >
                   {getDateLabel()}
                 </Text>
               </TouchableOpacity>
-              <DailyTipsDropdown barberId={profile.user_id} onRefresh={onRefresh} />
+              <DailyTipsDropdown
+                barberId={profile.user_id}
+                onRefresh={onRefresh}
+              />
               <NotificationsDropdown userId={profile.user_id} />
             </>
           ) : (
             <>
-              <DailyTipsDropdown barberId={profile.user_id} onRefresh={onRefresh} />
+              <DailyTipsDropdown
+                barberId={profile.user_id}
+                onRefresh={onRefresh}
+              />
               <NotificationsDropdown userId={profile.user_id} />
             </>
           )}
         </View>
       </View>
-
-      {/* Settings Modal */}
-      <Modal
-        visible={showSettings}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={handleCloseSettings}
-      >
-        <SettingsPage onClose={handleCloseSettings} />
-      </Modal>
 
       {showsDatePicker && (
         <DayPicker

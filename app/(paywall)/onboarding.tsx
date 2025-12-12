@@ -113,7 +113,7 @@ export default function OnboardingScreen() {
 
               // Call your API to generate a one-time code
               const response = await fetch(
-                `${process.env.EXPO_PUBLIC_API_URL}/api/generate-web-token`,
+                `${process.env.EXPO_PUBLIC_API_URL}/api/mobile-web-redirect/generate-web-token`,
                 {
                   method: 'POST',
                   headers: {

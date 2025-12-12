@@ -42,7 +42,7 @@ export function MessageContent({
       }
 
       const response = await fetch(
-        `${process.env.EXPO_PUBLIC_API_URL}/api/client-messaging/qstash-sms-send?user_id=test`,
+        `${process.env.EXPO_PUBLIC_API_URL}api/client-messaging/qstash-sms-send?user_id=test`,
         {
           method: 'POST',
           headers: {

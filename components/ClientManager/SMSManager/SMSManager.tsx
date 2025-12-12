@@ -60,7 +60,7 @@ export default function SMSManager() {
       }
 
       const response = await fetch(
-        `${process.env.EXPO_PUBLIC_API_URL}/api/client-messaging/save-sms-schedule`,
+        `${process.env.EXPO_PUBLIC_API_URL}api/client-messaging/save-sms-schedule`,
         {
           method: 'GET',
           headers: {
@@ -243,7 +243,7 @@ export default function SMSManager() {
         const accessToken = session?.access_token;
 
         const response = await fetch(
-          `${process.env.EXPO_PUBLIC_API_URL}/api/client-messaging/save-sms-schedule`,
+          `${process.env.EXPO_PUBLIC_API_URL}api/client-messaging/save-sms-schedule`,
           {
             method: 'DELETE',
             headers: {
@@ -374,7 +374,7 @@ export default function SMSManager() {
       console.log('Saving message:', JSON.stringify(messageToSave, null, 2));
 
       const response = await fetch(
-        `${process.env.EXPO_PUBLIC_API_URL}/api/client-messaging/save-sms-schedule`,
+        `${process.env.EXPO_PUBLIC_API_URL}api/client-messaging/save-sms-schedule`,
         {
           method: 'POST',
           headers: {
@@ -460,7 +460,7 @@ export default function SMSManager() {
       }
 
       const response = await fetch(
-        `${process.env.EXPO_PUBLIC_API_URL}/api/client-messaging/verify-message`,
+        `${process.env.EXPO_PUBLIC_API_URL}api/client-messaging/verify-message`,
         {
           method: 'POST',
           headers: {

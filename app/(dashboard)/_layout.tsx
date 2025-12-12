@@ -115,7 +115,7 @@ export default function DashboardLayout() {
         />
 
         <Tabs.Screen
-          name="userEditor"
+          name="clientManager"
           options={{
             title: '',
             headerShown: false,

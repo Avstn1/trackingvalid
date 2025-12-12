@@ -9,7 +9,11 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.shearwork.shearwork",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -28,6 +32,13 @@
     },
     "plugins": [
       "expo-router",
+      [
+        "@stripe/stripe-react-native",
+        {
+          "merchantIdentifier": "merchant.com.trackingvalid",
+          "publishableKey": "pk_test_51SYaVGCbzZ8MFXZEduFKB61RsnR4uSWMOjcNH6AoDVPrXjv9aBJbAoKYke7FP6NzeuOt4aBJyDzriMK3xpFWCiZM00c8xL5ne6"
+        }
+      ],
       [
         "expo-splash-screen",
         {

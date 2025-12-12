@@ -30,7 +30,7 @@ const COLORS = {
   textMuted: 'rgba(247, 247, 247, 0.5)',
   green: '#8bcf68ff',
   greenGlow: '#beb348ff',
-  greenLight: 'rgba(72, 173, 77, 0.1)',
+  greenLight: '#48ad4d1a',
 }
 
 // Helper function to format relative time
@@ -395,7 +395,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
                         <ScrollView 
                           className="px-4"
                           showsVerticalScrollIndicator={false}
-                          contentContainerStyle={{ paddingBottom: 32, paddingTop: 8 }}
+                          contentContainerStyle={{ paddingBottom: 100, paddingTop: 8 }}
                         >
                           {notifications.map((n) => (
                             <TouchableOpacity

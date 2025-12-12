@@ -27,6 +27,8 @@ type WeeklyComparisonReport = {
   year: number;
   content: string;
   type?: 'weekly_comparison';
+  isUpcoming?: boolean;
+  releaseDate?: Date;
 };
 
 interface WeeklyComparisonReportsProps {
@@ -34,6 +36,37 @@ interface WeeklyComparisonReportsProps {
   refresh?: number;
   filterMonth?: string;
   filterYear?: number | null;
+}
+
+const MONTHS = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
+function formatDate(date: Date): string {
+  const months = ["January", "February", "March", "April", "May", "June", 
+                  "July", "August", "September", "October", "November", "December"];
+  return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+}
+
+function getSecondMonday(month: string, year: number): Date {
+  const monthIndex = MONTHS.indexOf(month);
+  const firstDay = new Date(year, monthIndex, 1);
+  const firstDayOfWeek = firstDay.getDay();
+  
+  // Calculate days until first Monday
+  const daysUntilMonday = firstDayOfWeek === 0 ? 1 : (8 - firstDayOfWeek);
+  
+  // First Monday + 7 days = Second Monday
+  const secondMondayDate = daysUntilMonday + 8;
+  
+  return new Date(year, monthIndex, secondMondayDate);
+}
+
+function isReportAvailable(month: string, year: number): boolean {
+  const releaseDate = getSecondMonday(month, year);
+  const today = new Date();
+  return today >= releaseDate;
 }
 
 async function logWeeklyComparisonReportOpen(user_id: string, r: any) {
@@ -112,6 +145,35 @@ export default function WeeklyComparisonReports({
     );
   });
 
+  const getReportDisplay = () => {
+    if (!filterMonth || !filterYear) {
+      return filteredReports;
+    }
+
+    const existingReport = filteredReports.find(
+      r => r.month === filterMonth && r.year === filterYear
+    );
+
+    if (existingReport) {
+      return [existingReport];
+    }
+
+    const isUpcoming = !isReportAvailable(filterMonth, filterYear);
+    const releaseDate = getSecondMonday(filterMonth, filterYear);
+
+    return [{
+      id: `placeholder-${filterMonth}-${filterYear}`,
+      month: filterMonth,
+      content: '',
+      year: filterYear,
+      type: 'weekly_comparison' as const,
+      isUpcoming,
+      releaseDate,
+    }];
+  };
+
+  const displayReports = getReportDisplay();
+
   const handleOpenReport = (report: WeeklyComparisonReport) => {
     setSelectedReport(report);
     setModalVisible(true);
@@ -136,64 +198,83 @@ export default function WeeklyComparisonReports({
   return (
     <>
       <View className="flex-1 gap-2">
-        {filteredReports.length > 0 ? (
-          filteredReports.map((r) => (
-            <TouchableOpacity
-              key={r.id}
-              onPress={() => handleOpenReport(r)}
-              className="flex-1 rounded-2xl p-4 overflow-hidden"
-              style={{
-                backgroundColor: COLORS.cardBg,
-                borderWidth: 1,
-                borderColor: COLORS.glassBorder,
-                shadowColor: COLORS.green,
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.15,
-                shadowRadius: 8,
-                elevation: 4,
-              }}
-            >
-              {/* Top highlight line */}
-              <View 
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  height: 1,
-                  backgroundColor: COLORS.glassHighlight,
-                }}
-              />
-
-              <View className="flex-row items-center gap-3 h-full">
+        {displayReports.length > 0 ? (
+          displayReports.map((r) => {
+            const isUpcoming = r.isUpcoming;
+            
+            return (
+              <TouchableOpacity
+                key={r.id}
+                onPress={() => !isUpcoming && handleOpenReport(r)}
+                disabled={isUpcoming}
+                className="flex-1 rounded-2xl p-4 overflow-hidden"
+                style={[
+                  {
+                    backgroundColor: isUpcoming ? 'rgba(37, 37, 37, 0.3)' : COLORS.cardBg,
+                    borderWidth: 1,
+                    borderColor: isUpcoming ? 'rgba(255, 255, 255, 0.05)' : COLORS.glassBorder,
+                    opacity: isUpcoming ? 0.5 : 1,
+                  },
+                  !isUpcoming && {
+                    shadowColor: COLORS.green,
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.15,
+                    shadowRadius: 8,
+                    elevation: 4,
+                  }
+                ]}
+              >
+                {/* Top highlight line */}
                 <View 
-                  className="p-2 rounded-xl"
-                  style={{ backgroundColor: COLORS.greenGlow }}
-                >
-                  <FileText size={22} color={COLORS.green} strokeWidth={2.5} />
-                </View>
-                <View className="flex-1">
-                  <Text 
-                    className="text-base font-bold mb-1" 
-                    style={{ color: COLORS.text }}
-                    numberOfLines={1}
-                    adjustsFontSizeToFit
-                    minimumFontScale={0.8}
-                  > 
-                    Weekly Comparison - {r.month} {r.year}
-                  </Text>
-                  <Text 
-                    className="text-sm" 
-                    style={{ color: COLORS.green }}
-                    numberOfLines={1}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: 1,
+                    backgroundColor: isUpcoming ? 'transparent' : COLORS.glassHighlight,
+                  }}
+                />
+
+                <View className="flex-row items-center gap-3 h-full">
+                  <View 
+                    className="p-2 rounded-xl"
+                    style={{
+                      backgroundColor: isUpcoming ? 'rgba(255, 255, 255, 0.05)' : COLORS.greenGlow,
+                    }}
                   >
-                    Tap to view report
-                  </Text>
+                    <FileText 
+                      size={22} 
+                      color={isUpcoming ? COLORS.textMuted : COLORS.green} 
+                      strokeWidth={2.5} 
+                    />
+                  </View>
+                  <View className="flex-1">
+                    <Text 
+                      className="text-base font-bold mb-1"
+                      style={{ color: isUpcoming ? COLORS.textMuted : COLORS.text }}
+                      numberOfLines={1}
+                      adjustsFontSizeToFit
+                      minimumFontScale={0.8}
+                    > 
+                      Weekly Comparison - {r.month} {r.year}
+                    </Text>
+                    <Text 
+                      className="text-sm"
+                      style={{ color: isUpcoming ? 'rgba(247, 247, 247, 0.3)' : COLORS.green }}
+                      numberOfLines={1}
+                    >
+                      {isUpcoming 
+                        ? `Releasing ${formatDate(r.releaseDate!)}`
+                        : 'Tap to view report'
+                      }
+                    </Text>
+                  </View>
+                  {!isUpcoming && <ChevronRight size={20} color={COLORS.green} />}
                 </View>
-                <ChevronRight size={20} color={COLORS.green} />
-              </View>
-            </TouchableOpacity>
-          ))
+              </TouchableOpacity>
+            );
+          })
         ) : (
           <View className="flex-1 justify-center items-center">
             <View 

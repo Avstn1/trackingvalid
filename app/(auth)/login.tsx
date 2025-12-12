@@ -1,4 +1,5 @@
 import { supabase } from '@/utils/supabaseClient';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { Eye, EyeOff } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
@@ -96,11 +97,37 @@ export default function LoginPage() {
 
   const checkAuthStatus = async () => {
     try {
+      const justLoggedOut = await AsyncStorage.getItem('just-logged-out')
+      if (justLoggedOut) {
+        await AsyncStorage.removeItem('just-logged-out')
+        setCheckingAuth(false)
+        return
+      }
+
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       if (session) {
-        // User is already logged in, redirect to dashboard
-        router.replace('/(dashboard)/dashboard');
+        const userId = session?.user?.id;
+
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', userId)
+          .single()
+
+        if (error) {
+          console.log(error)
+        }
+
+        const subStatus: string = profile.stripe_subscription_status
+        console.log(subStatus)
+
+        if (subStatus === "" || !subStatus) {
+          router.replace('/(paywall)/onboarding');
+          return
+        } else {
+          router.replace('/(dashboard)/dashboard');
+        }
       } else {
         // No active session, show login form
         setCheckingAuth(false);
@@ -148,7 +175,7 @@ export default function LoginPage() {
       // Get user profile data
       const { data: userData } = await supabase
         .from('profiles')
-        .select('role, full_name')
+        .select('role, full_name, stripe_subscription_status')
         .eq('user_id', data.user?.id)
         .single();
 
@@ -165,8 +192,14 @@ export default function LoginPage() {
       // Small delay to ensure session is persisted
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      // Navigate to dashboard
-      router.replace('/(dashboard)/dashboard');
+      // Navigate to dashboard/paywall
+      const subStatus: string = userData?.stripe_subscription_status
+
+      if (subStatus === "active") {
+        router.replace('/(dashboard)/dashboard');
+      } else {
+        router.replace('/(paywall)/onboarding');
+      }
       
     } catch (err) {
       console.error('Login error:', err);

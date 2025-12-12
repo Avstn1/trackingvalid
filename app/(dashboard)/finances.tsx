@@ -16,7 +16,6 @@ import {
   Modal,
   NativeScrollEvent,
   NativeSyntheticEvent,
-  RefreshControl,
   ScrollView,
   Text,
   TextInput,
@@ -59,7 +58,6 @@ export default function FinancesPage() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [refreshing, setRefreshing] = useState(false);
 
   // Date selection - defaults to today
   const currentDate = new Date();
@@ -82,10 +80,12 @@ export default function FinancesPage() {
   const [uploadingImage, setUploadingImage] = useState<string | null>(null);
   const [receiptLabel, setReceiptLabel] = useState('');
   const [viewerOpenedFromGallery, setViewerOpenedFromGallery] = useState(false);
+  const [loadingImagePicker, setLoadingImagePicker] = useState(false);
 
   // Swipeable view state
   const [currentIndex, setCurrentIndex] = useState(0);
   const flatListRef = useRef<FlatList>(null);
+  const pickerTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const [componentsReady, setComponentsReady] = useState(false);
 
@@ -227,32 +227,52 @@ export default function FinancesPage() {
     });
   }, []);
 
-  // Pull to refresh
-  const onRefresh = async () => {
-    setRefreshing(true);
-    await fetchData();
-    setRefreshing(false);
-  };
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (pickerTimeoutRef.current) {
+        clearTimeout(pickerTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Receipt handlers
   const handlePickImage = async () => {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    console.log('handlePickImage called');
+    
+    try {
+      // Request full media library permissions
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      console.log('Permission result:', permissionResult);
 
-    if (permissionResult.granted === false) {
-      Alert.alert('Permission Required', 'Permission to access camera roll is required!');
-      return;
-    }
+      if (!permissionResult.granted) {
+        setLoadingImagePicker(false); // Clear loading if permission denied
+        Alert.alert('Permission Required', 'Permission to access camera roll is required!');
+        return;
+      }
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsEditing: true,
-      quality: 0.8,
-    });
+      console.log('Launching image picker...');
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: 'images',
+        allowsEditing: true,
+        quality: 0.8,
+      });
 
-    if (!result.canceled && result.assets[0]) {
-      setUploadingImage(result.assets[0].uri);
-      setReceiptLabel('');
-      setShowReceiptModal(true);
+      console.log('Image picker result:', result);
+      setLoadingImagePicker(false); // Clear loading after picker returns
+
+      if (!result.canceled && result.assets && result.assets[0]) {
+        console.log('Image selected:', result.assets[0].uri);
+        setUploadingImage(result.assets[0].uri);
+        setReceiptLabel('');
+        setShowReceiptModal(true);
+      } else {
+        console.log('Image picker was canceled or no assets');
+      }
+    } catch (error) {
+      console.error('Error in handlePickImage:', error);
+      setLoadingImagePicker(false); // Clear loading on error
+      Alert.alert('Error', 'Failed to open image picker: ' + error);
     }
   };
 
@@ -343,6 +363,21 @@ export default function FinancesPage() {
     );
   };
 
+  const handleUploadFromGallery = () => {
+    console.log('handleUploadFromGallery called - starting upload flow');
+    setLoadingImagePicker(true);
+    
+    // Close gallery immediately
+    setShowReceiptGallery(false);
+    
+    // Use ref-based timeout that won't get cleaned up
+    pickerTimeoutRef.current = setTimeout(() => {
+      console.log('Timeout complete, opening picker');
+      // Don't clear loading here - let handlePickImage clear it after picker responds
+      handlePickImage();
+    }, 300);
+  };
+
   // Swipeable scroll handler
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const scrollPosition = event.nativeEvent.contentOffset.x;
@@ -396,17 +431,8 @@ export default function FinancesPage() {
     <SafeAreaView className="flex-1" style={{ backgroundColor: COLORS.background }}>
       <CustomHeader pageName="Finances" onDateChange={handleDateChange} />
 
-      <ScrollView
+      <View
         className="flex-1 px-4"
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={COLORS.green}
-            colors={[COLORS.green]}
-          />
-        }
       >
         {/* Header */}
         <View className="my-4">
@@ -447,11 +473,13 @@ export default function FinancesPage() {
           {/* Receipt Gallery Button */}
           <TouchableOpacity
             onPress={() => setShowReceiptGallery(true)}
+            disabled={loadingImagePicker}
             className="flex-1 rounded-2xl p-4 justify-center overflow-hidden"
             style={{
               backgroundColor: COLORS.surface,
               borderWidth: 1,
               borderColor: COLORS.glassBorder,
+              opacity: loadingImagePicker ? 0.7 : 1,
             }}
           >
             <View 
@@ -464,20 +492,31 @@ export default function FinancesPage() {
                 backgroundColor: COLORS.glassHighlight,
               }}
             />
-            <View className="flex-row items-center gap-2 mb-2">
-              <View 
-                className="p-2 rounded-lg"
-                style={{ backgroundColor: COLORS.greenGlow }}
-              >
-                <ImageIcon size={18} color={COLORS.green} />
+            {loadingImagePicker ? (
+              <View className="items-center justify-center">
+                <ActivityIndicator size="small" color={COLORS.green} />
+                <Text className="text-xs mt-2" style={{ color: COLORS.green }}>
+                  Opening picker...
+                </Text>
               </View>
-              <Text className="font-semibold text-base flex-1" style={{ color: COLORS.text }}>
-                Receipts
-              </Text>
-            </View>
-            <Text className="text-xs" style={{ color: COLORS.textMuted }}>
-              {receipts.length} uploaded
-            </Text>
+            ) : (
+              <>
+                <View className="flex-row items-center gap-2 mb-2">
+                  <View 
+                    className="p-2 rounded-lg"
+                    style={{ backgroundColor: COLORS.greenGlow }}
+                  >
+                    <ImageIcon size={18} color={COLORS.green} />
+                  </View>
+                  <Text className="font-semibold text-base flex-1" style={{ color: COLORS.text }}>
+                    Receipts
+                  </Text>
+                </View>
+                <Text className="text-xs" style={{ color: COLORS.textMuted }}>
+                  {receipts.length} uploaded
+                </Text>
+              </>
+            )}
           </TouchableOpacity>
         </View>
 
@@ -488,7 +527,7 @@ export default function FinancesPage() {
             backgroundColor: COLORS.surface,
             borderWidth: 1,
             borderColor: COLORS.glassBorder,
-            minHeight: 550,
+            minHeight: 580,
             maxHeight: '45%',
           }}
         >
@@ -561,14 +600,15 @@ export default function FinancesPage() {
             ))}
           </View>
         </View>
-      </ScrollView>
+      </View>
 
       {/* Receipt Gallery Modal */}
       <Modal
         visible={showReceiptGallery}
         transparent={true}
-        animationType="fade"
+        animationType="none"
         onRequestClose={() => setShowReceiptGallery(false)}
+        presentationStyle="overFullScreen"
       >
         <TouchableOpacity 
           activeOpacity={1}
@@ -586,7 +626,8 @@ export default function FinancesPage() {
                 borderWidth: 1,
                 borderColor: COLORS.glassBorder,
                 minHeight: 700, 
-                maxHeight: '85%' 
+                maxHeight: '85%',
+                minWidth: 380,
               }}
             >
               {/* Modal Header */}
@@ -623,7 +664,10 @@ export default function FinancesPage() {
               {/* Gallery Content */}
               <ScrollView className="flex-1 px-6 py-4" showsVerticalScrollIndicator={false}>
                 {receipts.length === 0 ? (
-                  <View className="justify-center items-center py-16">
+                  <View 
+                    className="justify-center items-center py-16"
+                    style={{ width: '100%' }}
+                  >
                     <View 
                       className="p-4 rounded-full mb-4"
                       style={{ backgroundColor: COLORS.surfaceSolid }}
@@ -700,12 +744,7 @@ export default function FinancesPage() {
                 }}
               >
                 <TouchableOpacity
-                  onPress={() => {
-                    setShowReceiptGallery(false);
-                    setTimeout(() => {
-                      handlePickImage();
-                    }, 200);
-                  }}
+                  onPress={handleUploadFromGallery}
                   className="py-3.5 rounded-xl flex-row items-center justify-center gap-2"
                   style={{
                     backgroundColor: COLORS.green,

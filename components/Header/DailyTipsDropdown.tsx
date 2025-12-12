@@ -226,9 +226,13 @@ export default function DailyTipsDropdown({
       if (insertError) throw insertError
 
       setTipAmount('')
+      setIsOpen(false) // Close the modal after successful save
+      
+      // Trigger refresh callback
       onRefresh?.()
     } catch (err) {
       console.error(err)
+      Alert.alert('Error', 'Failed to save tips') // Add error feedback
     } finally {
       setLoading(false)
     }

@@ -64,8 +64,6 @@ export function MessageContent({
 
       const data = await response.json();
       
-      console.log('Test message response:', data);
-
       if (!data || typeof data !== 'object') {
         throw new Error('Invalid response format');
       }

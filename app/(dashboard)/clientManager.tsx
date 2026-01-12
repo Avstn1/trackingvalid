@@ -1,8 +1,9 @@
-import SMSManager from '@/components/ClientManager/SMSManager/SMSManager';
+import ClientSheets from '@/components/ClientManager/ClientSheets/ClientSheets';
 import { CustomHeader } from '@/components/Header/CustomHeader';
-import { Users } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
+import { Bell, Calendar, Send, Users, X } from 'lucide-react-native';
 import React, { useState } from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Modal, Pressable, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const COLORS = {
@@ -12,82 +13,185 @@ const COLORS = {
   glassHighlight: 'rgba(255, 255, 255, 0.05)',
 };
 
+interface ManageOption {
+  id: string;
+  title: string;
+  description: string;
+  icon: any;
+  iconColor: string;
+  bgColor: string;
+  route?: string;
+}
+
+const MANAGE_OPTIONS: ManageOption[] = [
+  {
+    id: 'clients',
+    title: 'Clients',
+    description: 'View and manage client information',
+    icon: Users,
+    iconColor: '#bef264',
+    bgColor: 'bg-lime-300/10',
+  },
+  {
+    id: 'appointments',
+    title: 'Appointments',
+    description: 'Manage appointment schedules',
+    icon: Calendar,
+    iconColor: '#7dd3fc',
+    bgColor: 'bg-sky-300/10',
+    route: '/(tabs)/ClientManager/AppointmentSheets',
+  },
+  {
+    id: 'auto-nudge',
+    title: 'SMS Auto-Nudge',
+    description: 'Automated SMS reminders',
+    icon: Bell,
+    iconColor: '#fbbf24',
+    bgColor: 'bg-amber-300/10',
+    route: '/(tabs)/ClientManager/SMSAutoNudge',
+  },
+  {
+    id: 'campaigns',
+    title: 'SMS Campaigns',
+    description: 'Create and send SMS campaigns',
+    icon: Send,
+    iconColor: '#c084fc',
+    bgColor: 'bg-purple-300/10',
+    route: '/(tabs)/ClientManager/SMSCampaigns',
+  },
+];
+
 export default function ClientManagerScreen() {
-  const [activeView, setActiveView] = useState<'sheets' | 'sms'>('sms');
+  const [modalVisible, setModalVisible] = useState(false);
+  const router = useRouter();
+
+  const handleNavigate = (option: ManageOption) => {
+    setModalVisible(false);
+    
+    if (option.id === 'clients') {
+      // Already showing clients, just close modal
+      return;
+    }
+    
+    if (option.route) {
+      router.push(option.route);
+    }
+  };
 
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: COLORS.background }}>
       <CustomHeader pageName="Client Manager" />
 
       <View className="flex-1 px-4">
-        {/* View Switcher */}
-        <View className="flex-row gap-1 bg-[#1a1a1a] rounded-full p-1 mb-3 mt-3">
+        {/* Manage Button */}
+        <View className="mt-3 mb-3">
           <TouchableOpacity
-            onPress={() => setActiveView('sheets')}
-            className={`flex-1 px-5 py-3 rounded-full ${
-              activeView === 'sheets' ? 'bg-lime-300' : 'bg-transparent'
-            }`}
+            onPress={() => setModalVisible(true)}
+            className="bg-lime-300 rounded-full py-2 px-6"
+            style={{
+              shadowColor: '#bef264',
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.3,
+              shadowRadius: 8,
+              elevation: 5,
+            }}
           >
-            <Text
-              className={`text-xs font-semibold text-center ${
-                activeView === 'sheets' ? 'text-black' : 'text-[#bdbdbd]'
-              }`}
-            >
-              Client Sheets
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setActiveView('sms')}
-            className={`flex-1 px-5 py-3 rounded-full ${
-              activeView === 'sms' ? 'bg-sky-300' : 'bg-transparent'
-            }`}
-          >
-            <Text
-              className={`text-xs font-semibold text-center ${
-                activeView === 'sms' ? 'text-black' : 'text-[#bdbdbd]'
-              }`}
-            >
-              SMS Manager
+            <Text className="text-black text-base font-bold text-center">
+              Manage
             </Text>
           </TouchableOpacity>
         </View>
 
-        {/* Content Area */}
-        {activeView === 'sheets' ? (
-          <View
-            className="flex-1 rounded-2xl p-12 items-center justify-center"
+        {/* Client Sheets Component */}
+        <View className="flex-1">
+          <ClientSheets />
+        </View>
+      </View>
+
+      {/* Modal */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <Pressable
+          className="flex-1 justify-center items-center"
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)' }}
+          onPress={() => setModalVisible(false)}
+        >
+          <Pressable
+            className="w-11/12 max-w-md rounded-3xl p-6"
             style={{
-              backgroundColor: COLORS.surface,
+              backgroundColor: '#1f1f1f',
               borderWidth: 1,
               borderColor: COLORS.glassBorder,
             }}
+            onPress={(e) => e.stopPropagation()}
           >
-            <View
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                height: 1,
-                backgroundColor: COLORS.glassHighlight,
-              }}
-            />
-            <View className="max-w-md items-center">
-              <View className="w-16 h-16 bg-lime-300/10 rounded-full items-center justify-center mb-4">
-                <Users color="#bef264" size={32} />
-              </View>
-              <Text className="text-xl font-semibold text-white mb-2 text-center">
-                Client Sheets
-              </Text>
-              <Text className="text-[#bdbdbd] text-center">
-                View and manage detailed client information, visit history, and preferences.
-              </Text>
+            {/* Modal Header */}
+            <View className="flex-row justify-between items-center mb-6">
+              <Text className="text-white text-2xl font-bold">Manage</Text>
+              <TouchableOpacity
+                onPress={() => setModalVisible(false)}
+                className="w-10 h-10 bg-white/10 rounded-full items-center justify-center"
+              >
+                <X color="#fff" size={20} />
+              </TouchableOpacity>
             </View>
-          </View>
-        ) : (
-          <SMSManager />
-        )}
-      </View>
+
+            {/* Options Grid */}
+            <View className="gap-3">
+              {MANAGE_OPTIONS.map((option) => {
+                const Icon = option.icon;
+                const isActive = option.id === 'clients';
+                
+                return (
+                  <TouchableOpacity
+                    key={option.id}
+                    onPress={() => handleNavigate(option)}
+                    className="rounded-2xl p-4"
+                    style={{
+                      backgroundColor: isActive 
+                        ? 'rgba(190, 242, 100, 0.1)' 
+                        : COLORS.surface,
+                      borderWidth: 1,
+                      borderColor: isActive 
+                        ? 'rgba(190, 242, 100, 0.3)' 
+                        : COLORS.glassBorder,
+                    }}
+                  >
+                    <View className="flex-row items-center">
+                      <View
+                        className={`w-12 h-12 rounded-full items-center justify-center mr-4 ${option.bgColor}`}
+                      >
+                        <Icon color={option.iconColor} size={24} />
+                      </View>
+                      <View className="flex-1">
+                        <View className="flex-row items-center gap-2">
+                          <Text className="text-white text-base font-semibold">
+                            {option.title}
+                          </Text>
+                          {isActive && (
+                            <View className="px-2 py-0.5 rounded-full bg-lime-300/20">
+                              <Text className="text-lime-300 text-xs font-semibold">
+                                Active
+                              </Text>
+                            </View>
+                          )}
+                        </View>
+                        <Text className="text-[#bdbdbd] text-xs mt-1">
+                          {option.description}
+                        </Text>
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 }

@@ -67,7 +67,7 @@ export default function AuthLoadingSplash({ message = 'Loading...' }: AuthLoadin
             marginBottom: 20,
           }}
         >
-          ShearWork
+          Corva
         </Text>
         <ActivityIndicator size="large" color={COLORS.green} />
         {message && (

@@ -74,7 +74,7 @@ function AuthLoadingSplash() {
             marginBottom: 20,
           }}
         >
-          ShearWork
+          Corva
         </Text>
         <ActivityIndicator size="large" color={COLORS.green} />
       </Animated.View>
@@ -242,7 +242,7 @@ export default function LoginPage() {
               className="text-4xl font-bold tracking-tight"
               style={{ color: COLORS.text }}
             >
-              ShearWork
+              Corva
             </Text>
             <View 
               className="h-1 w-16 rounded-full mt-2"

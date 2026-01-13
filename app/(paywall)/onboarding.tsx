@@ -35,7 +35,7 @@ type OnboardingPage = {
 const pages: OnboardingPage[] = [
   {
     image: require('@/assets/images/shearworklogo.png'),
-    title: 'Welcome to ShearWork',
+    title: 'Welcome to Corva',
     description: 'The all-in-one business management platform designed specifically for you.',
     gradient: ['#101312', '#1a1f1b', '#1e2b22'],
   },
@@ -90,7 +90,7 @@ export default function OnboardingScreen() {
   const goToPricing = async () => {
     Alert.alert(
       'Redirect to Web',
-      'You will be redirected to ShearWork Web to complete your subscription.',
+      'You will be redirected to Corva Web to complete your subscription.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -294,7 +294,7 @@ export default function OnboardingScreen() {
               Ready to Get Started?
             </Text>
             <Text className="text-base text-gray-300 text-center leading-6 mb-8">
-              Choose a plan that works for you and unlock all the powerful features ShearWork has to offer.
+              Choose a plan that works for you and unlock all the powerful features Corva has to offer.
             </Text>
             
             <TouchableOpacity
@@ -330,7 +330,7 @@ export default function OnboardingScreen() {
             </TouchableOpacity>
 
             <Text className="text-xs text-gray-400 text-center mt-4">
-              This will redirect you to ShearWork Web&apos;s pricing page
+              This will redirect you to Corva Web&apos;s pricing page
             </Text>
           </Animated.View>
         </LinearGradient>

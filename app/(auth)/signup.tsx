@@ -131,7 +131,7 @@ export default function SignUpPage() {
               className="text-4xl font-bold tracking-tight"
               style={{ color: COLORS.text }}
             >
-              ShearWork
+              Corva
             </Text>
             <View
               className="h-1 w-16 rounded-full mt-2"

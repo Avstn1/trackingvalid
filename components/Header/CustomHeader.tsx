@@ -1,12 +1,12 @@
 // app/components/Header/CustomHeader.tsx
 
 import AuthLoadingSplash from '@/components/AuthLoadingSpash';
-import DailyTipsDropdown from '@/components/Header/DailyTipsDropdown';
+import CreditsModal from '@/components/Header/CreditsModal';
 import NotificationsDropdown from '@/components/Header/NotificationsDropdown';
 import { supabase } from '@/utils/supabaseClient';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { LinearGradient } from 'expo-linear-gradient';
-import { CalendarRange } from 'lucide-react-native';
+import { CalendarRange, Coins } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -98,6 +98,8 @@ export function CustomHeader({
   const [tempTimeframe, setTempTimeframe] = useState(timeframe);
 
   const [componentsReady, setComponentsReady] = useState(false);
+
+  const [showCreditsModal, setShowCreditsModal] = useState(false);
 
   // Check if this page should show the date picker
   const showsDatePicker = ['Dashboard', 'Finances', 'Reports'].includes(
@@ -298,18 +300,22 @@ export function CustomHeader({
                   {getDateLabel()}
                 </Text>
               </TouchableOpacity>
-              <DailyTipsDropdown
-                barberId={profile.user_id}
-                onRefresh={onRefresh}
-              />
+              <TouchableOpacity
+                onPress={() => setShowCreditsModal(true)}
+                className="pl-3"
+              >
+                <Coins size={24} color="#ffffff" />
+              </TouchableOpacity>
               <NotificationsDropdown userId={profile.user_id} />
             </>
           ) : (
             <>
-              <DailyTipsDropdown
-                barberId={profile.user_id}
-                onRefresh={onRefresh}
-              />
+              <TouchableOpacity
+                onPress={() => setShowCreditsModal(true)}
+                className="pl-3"
+              >
+                <Coins size={24} color="#ffffff" />
+              </TouchableOpacity>
               <NotificationsDropdown userId={profile.user_id} />
             </>
           )}
@@ -328,6 +334,13 @@ export function CustomHeader({
           onTimeframeChange={setTempTimeframe}
           tempDate={tempDate}
           onDateChange={handleDateChange}
+        />
+      )}
+
+      {showCreditsModal && (
+        <CreditsModal
+          isOpen={showCreditsModal}
+          onClose={() => setShowCreditsModal(false)}
         />
       )}
     </View>

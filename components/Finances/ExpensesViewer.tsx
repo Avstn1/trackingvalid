@@ -31,6 +31,8 @@ const COLORS = {
   amberGlow: 'rgba(251, 191, 36, 0.2)',
   red: '#dc2626',
   redGlow: 'rgba(220, 38, 38, 0.2)',
+  gray: '#6b7280',
+  grayGlow: 'rgba(107, 114, 128, 0.2)',
 };
 
 interface ExpensesViewerProps {
@@ -56,10 +58,20 @@ interface RecurringExpense {
   updated_at: string;
 }
 
+interface ExpenseStatus {
+  lastAdded: string | null;
+  nextPending: string | null;
+}
+
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MONTHS = [
   'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+];
+
+const MONTH_NAMES = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
 ];
 
 export default function ExpensesViewer({
@@ -94,36 +106,136 @@ export default function ExpensesViewer({
   const PAGE_SIZE = 10;
   const [totalCount, setTotalCount] = useState(0);
 
+  // Helper to parse date strings as local dates
+  const parseLocalDate = (dateString: string): Date => {
+    const [year, month, day] = dateString.split('-').map(Number);
+    return new Date(year, month - 1, day);
+  };
+
+  // Helper to get expense status for selected month
+  const getExpenseStatus = (exp: RecurringExpense, month: string, year: number): ExpenseStatus => {
+    const monthIndex = MONTH_NAMES.indexOf(month);
+    const today = new Date();
+    const start = parseLocalDate(exp.start_date);
+    const end = exp.end_date ? parseLocalDate(exp.end_date) : null;
+    const monthStart = new Date(year, monthIndex, 1);
+    const monthEnd = new Date(year, monthIndex + 1, 0);
+
+    let lastAdded: string | null = null;
+    let nextPending: string | null = null;
+
+    // Check if expense is active during selected month
+    if (start > monthEnd || (end && end < monthStart)) {
+      return { lastAdded: null, nextPending: null };
+    }
+
+    const occurrences: Date[] = [];
+
+    switch (exp.frequency) {
+      case 'once':
+        const expDate = parseLocalDate(exp.start_date);
+        if (expDate.getMonth() === monthIndex && expDate.getFullYear() === year) {
+          occurrences.push(expDate);
+        }
+        break;
+      case 'weekly':
+        const daysOfWeek = exp.weekly_days || [];
+        if (daysOfWeek.length === 0) break;
+
+        const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+        for (let d = 1; d <= daysInMonth; d++) {
+          const date = new Date(year, monthIndex, d);
+          if (date >= start && (!end || date <= end)) {
+            const dayName = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][date.getDay()];
+            if (daysOfWeek.includes(dayName)) occurrences.push(date);
+          }
+        }
+        break;
+      case 'monthly':
+        if (exp.monthly_day && exp.monthly_day <= monthEnd.getDate()) {
+          const occurrenceDate = new Date(year, monthIndex, exp.monthly_day);
+          if (occurrenceDate >= start && (!end || occurrenceDate <= end)) {
+            occurrences.push(occurrenceDate);
+          }
+        }
+        break;
+      case 'yearly':
+        if (exp.yearly_month === monthIndex && exp.yearly_day && exp.yearly_day <= monthEnd.getDate()) {
+          const occurrenceDate = new Date(year, monthIndex, exp.yearly_day);
+          if (occurrenceDate >= start && (!end || occurrenceDate <= end)) {
+            occurrences.push(occurrenceDate);
+          }
+        }
+        break;
+    }
+
+    // Find last added and next pending
+    occurrences.forEach((occ) => {
+      if (occ <= today) {
+        if (!lastAdded || occ > new Date(lastAdded)) {
+          lastAdded = occ.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+      } else {
+        if (!nextPending || occ < new Date(nextPending)) {
+          nextPending = occ.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+      }
+    });
+
+    return { lastAdded, nextPending };
+  };
+
   // Fetch expenses with pagination
   const fetchExpenses = async () => {
     setLoading(true);
     try {
-      // Total count
-      const { count, error: countError } = await supabase
-        .from('recurring_expenses')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', barberId);
-      if (countError) throw countError;
-      setTotalCount(count || 0);
+      const monthIndex = MONTH_NAMES.indexOf(month);
+      const yearNum = parseInt(year);
+      const monthStart = new Date(yearNum, monthIndex, 1);
+      const monthEnd = new Date(yearNum, monthIndex + 1, 0);
 
-      // Calculate valid page range
-      const maxPage = Math.max(1, Math.ceil((count || 0) / PAGE_SIZE));
-      const validPage = Math.min(page, maxPage);
-
-      // Page data
-      const from = (validPage - 1) * PAGE_SIZE;
-      const to = from + PAGE_SIZE - 1;
-
-      const { data, error } = await supabase
+      // Get all expenses for this user
+      const { data: allExpenses, error } = await supabase
         .from('recurring_expenses')
         .select('*')
         .eq('user_id', barberId)
-        .order('created_at', { ascending: false })
-        .range(from, to);
-      if (error) throw error;
-      setExpenses(data || []);
+        .order('created_at', { ascending: false });
 
-      // Update page if it was adjusted
+      if (error) throw error;
+
+      // Filter client-side based on frequency and activity
+      const filteredExpenses = (allExpenses || []).filter((exp: RecurringExpense) => {
+        const start = parseLocalDate(exp.start_date);
+        const end = exp.end_date ? parseLocalDate(exp.end_date) : null;
+
+        if (exp.frequency === 'once') {
+          return start.getMonth() === monthIndex && start.getFullYear() === yearNum;
+        } else {
+          // For recurring, show if active period overlaps with selected month
+          if (start > monthEnd || (end && end < monthStart)) {
+            return false;
+          }
+
+          // Verify it actually has occurrences in this month
+          const status = getExpenseStatus(exp, month, yearNum);
+          return status.lastAdded !== null || status.nextPending !== null;
+        }
+      });
+
+      // Apply pagination
+      const totalFiltered = filteredExpenses.length;
+      setTotalCount(totalFiltered);
+
+      const maxPage = Math.max(1, Math.ceil(totalFiltered / PAGE_SIZE));
+      const validPage = Math.min(page, maxPage);
+
+      const paginatedData = filteredExpenses.slice(
+        (validPage - 1) * PAGE_SIZE,
+        validPage * PAGE_SIZE
+      );
+
+      setExpenses(paginatedData);
+
       if (validPage !== page) {
         setPage(validPage);
       }
@@ -176,7 +288,7 @@ export default function ExpensesViewer({
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [barberId, page]);
+  }, [barberId, page, month, year]);
 
   // Handle automatic page navigation
   useEffect(() => {
@@ -202,7 +314,7 @@ export default function ExpensesViewer({
                 .delete()
                 .eq('id', id);
               if (error) throw error;
-              
+
               Alert.alert('Success', 'Expense deleted');
               fetchExpenses();
               onUpdate?.();
@@ -296,7 +408,7 @@ export default function ExpensesViewer({
         })
         .eq('id', editingId);
       if (error) throw error;
-      
+
       Alert.alert('Success', 'Expense updated');
       setEditingId(null);
       fetchExpenses();
@@ -331,156 +443,113 @@ export default function ExpensesViewer({
     <View className="flex-1">
       {expenses.length === 0 ? (
         <View className="flex-1 justify-center items-center py-12">
-          <Text className="text-sm" style={{ color: COLORS.textMuted }}>No recurring expenses found.</Text>
+          <Text className="text-sm" style={{ color: COLORS.textMuted }}>
+            No recurring expenses found for {month}.
+          </Text>
         </View>
       ) : (
         <View className="flex-1">
           <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
             <View className="gap-3 pb-4">
-              {expenses.map((exp) => (
-                <View
-                  key={exp.id}
-                  className="rounded-xl p-4 overflow-hidden"
-                  style={{
-                    backgroundColor: COLORS.surfaceSolid,
-                    borderWidth: 1,
-                    borderColor: COLORS.glassBorder,
-                  }}
-                >
-                  {editingId === exp.id ? (
-                    // Edit Mode
-                    <View className="gap-3">
-                      <TextInput
-                        value={editLabel}
-                        onChangeText={setEditLabel}
-                        placeholder="Label"
-                        placeholderTextColor={COLORS.textMuted}
-                        className="px-3 py-2 rounded-lg"
-                        style={{
-                          backgroundColor: COLORS.cardBg,
-                          color: COLORS.text,
-                          borderWidth: 1,
-                          borderColor: COLORS.glassBorder,
-                        }}
-                      />
-                      <TextInput
-                        value={editAmount}
-                        onChangeText={setEditAmount}
-                        placeholder="Amount"
-                        placeholderTextColor={COLORS.textMuted}
-                        keyboardType="decimal-pad"
-                        className="px-3 py-2 rounded-lg"
-                        style={{
-                          backgroundColor: COLORS.cardBg,
-                          color: COLORS.text,
-                          borderWidth: 1,
-                          borderColor: COLORS.glassBorder,
-                        }}
-                      />
+              {expenses.map((exp) => {
+                const status = getExpenseStatus(exp, month, parseInt(year));
+                
+                return (
+                  <View
+                    key={exp.id}
+                    className="rounded-xl p-4 overflow-hidden"
+                    style={{
+                      backgroundColor: COLORS.surfaceSolid,
+                      borderWidth: 1,
+                      borderColor: COLORS.glassBorder,
+                    }}
+                  >
+                    {editingId === exp.id ? (
+                      // Edit Mode
+                      <View className="gap-3">
+                        <TextInput
+                          value={editLabel}
+                          onChangeText={setEditLabel}
+                          placeholder="Label"
+                          placeholderTextColor={COLORS.textMuted}
+                          className="px-3 py-2 rounded-lg"
+                          style={{
+                            backgroundColor: COLORS.cardBg,
+                            color: COLORS.text,
+                            borderWidth: 1,
+                            borderColor: COLORS.glassBorder,
+                          }}
+                        />
+                        <TextInput
+                          value={editAmount}
+                          onChangeText={setEditAmount}
+                          placeholder="Amount"
+                          placeholderTextColor={COLORS.textMuted}
+                          keyboardType="decimal-pad"
+                          className="px-3 py-2 rounded-lg"
+                          style={{
+                            backgroundColor: COLORS.cardBg,
+                            color: COLORS.text,
+                            borderWidth: 1,
+                            borderColor: COLORS.glassBorder,
+                          }}
+                        />
 
-                      {/* Frequency Selector */}
-                      <View className="flex-row flex-wrap gap-2">
-                        {(['once', 'weekly', 'monthly', 'yearly'] as const).map((freq) => (
-                          <TouchableOpacity
-                            key={freq}
-                            onPress={() => setEditFrequency(freq)}
-                            className="px-3 py-2 rounded-lg"
-                            style={{
-                              backgroundColor: editFrequency === freq ? COLORS.greenGlow : COLORS.cardBg,
-                              borderWidth: 1,
-                              borderColor: editFrequency === freq ? COLORS.green : COLORS.glassBorder,
-                            }}
-                          >
-                            <Text
-                              className="text-xs font-semibold"
-                              style={{ color: editFrequency === freq ? COLORS.green : COLORS.textMuted }}
-                            >
-                              {freq.charAt(0).toUpperCase() + freq.slice(1)}
-                            </Text>
-                          </TouchableOpacity>
-                        ))}
-                      </View>
-
-                      {/* Weekly Days */}
-                      {editFrequency === 'weekly' && (
+                        {/* Frequency Selector */}
                         <View className="flex-row flex-wrap gap-2">
-                          {DAYS.map((day) => (
+                          {(['once', 'weekly', 'monthly', 'yearly'] as const).map((freq) => (
                             <TouchableOpacity
-                              key={day}
-                              onPress={() => handleDayToggle(day)}
-                              className="px-2 py-1 rounded-lg"
+                              key={freq}
+                              onPress={() => setEditFrequency(freq)}
+                              className="px-3 py-2 rounded-lg"
                               style={{
-                                backgroundColor: editSelectedDays.includes(day) ? COLORS.greenGlow : COLORS.cardBg,
+                                backgroundColor: editFrequency === freq ? COLORS.greenGlow : COLORS.cardBg,
                                 borderWidth: 1,
-                                borderColor: editSelectedDays.includes(day) ? COLORS.green : COLORS.glassBorder,
+                                borderColor: editFrequency === freq ? COLORS.green : COLORS.glassBorder,
                               }}
                             >
                               <Text
                                 className="text-xs font-semibold"
-                                style={{ color: editSelectedDays.includes(day) ? COLORS.green : COLORS.textMuted }}
+                                style={{ color: editFrequency === freq ? COLORS.green : COLORS.textMuted }}
                               >
-                                {day}
+                                {freq.charAt(0).toUpperCase() + freq.slice(1)}
                               </Text>
                             </TouchableOpacity>
                           ))}
                         </View>
-                      )}
 
-                      {/* Monthly Day */}
-                      {editFrequency === 'monthly' && (
-                        <View>
-                          <Text className="text-xs mb-2" style={{ color: COLORS.textMuted }}>Day of Month</Text>
-                          <TextInput
-                            value={editMonthlyDay}
-                            onChangeText={setEditMonthlyDay}
-                            placeholder="1-31"
-                            placeholderTextColor={COLORS.textMuted}
-                            keyboardType="number-pad"
-                            className="px-3 py-2 rounded-lg w-24"
-                            style={{
-                              backgroundColor: COLORS.cardBg,
-                              color: COLORS.text,
-                              borderWidth: 1,
-                              borderColor: COLORS.glassBorder,
-                            }}
-                          />
-                        </View>
-                      )}
-
-                      {/* Yearly Month & Day */}
-                      {editFrequency === 'yearly' && (
-                        <View className="gap-2">
-                          <View>
-                            <Text className="text-xs mb-2" style={{ color: COLORS.textMuted }}>Month</Text>
-                            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                              <View className="flex-row gap-2">
-                                {MONTHS.map((m, idx) => (
-                                  <TouchableOpacity
-                                    key={idx}
-                                    onPress={() => setEditYearlyMonth(idx)}
-                                    className="px-3 py-2 rounded-lg"
-                                    style={{
-                                      backgroundColor: editYearlyMonth === idx ? COLORS.greenGlow : COLORS.cardBg,
-                                      borderWidth: 1,
-                                      borderColor: editYearlyMonth === idx ? COLORS.green : COLORS.glassBorder,
-                                    }}
-                                  >
-                                    <Text
-                                      className="text-xs font-semibold"
-                                      style={{ color: editYearlyMonth === idx ? COLORS.green : COLORS.textMuted }}
-                                    >
-                                      {m}
-                                    </Text>
-                                  </TouchableOpacity>
-                                ))}
-                              </View>
-                            </ScrollView>
+                        {/* Weekly Days */}
+                        {editFrequency === 'weekly' && (
+                          <View className="flex-row flex-wrap gap-2">
+                            {DAYS.map((day) => (
+                              <TouchableOpacity
+                                key={day}
+                                onPress={() => handleDayToggle(day)}
+                                className="px-2 py-1 rounded-lg"
+                                style={{
+                                  backgroundColor: editSelectedDays.includes(day) ? COLORS.greenGlow : COLORS.cardBg,
+                                  borderWidth: 1,
+                                  borderColor: editSelectedDays.includes(day) ? COLORS.green : COLORS.glassBorder,
+                                }}
+                              >
+                                <Text
+                                  className="text-xs font-semibold"
+                                  style={{ color: editSelectedDays.includes(day) ? COLORS.green : COLORS.textMuted }}
+                                >
+                                  {day}
+                                </Text>
+                              </TouchableOpacity>
+                            ))}
                           </View>
+                        )}
+
+                        {/* Monthly Day */}
+                        {editFrequency === 'monthly' && (
                           <View>
-                            <Text className="text-xs mb-2" style={{ color: COLORS.textMuted }}>Day</Text>
+                            <Text className="text-xs mb-2" style={{ color: COLORS.textMuted }}>Day of Month</Text>
                             <TextInput
-                              value={editYearlyDay}
-                              onChangeText={setEditYearlyDay}
+                              value={editMonthlyDay}
+                              onChangeText={setEditMonthlyDay}
                               placeholder="1-31"
                               placeholderTextColor={COLORS.textMuted}
                               keyboardType="number-pad"
@@ -493,121 +562,197 @@ export default function ExpensesViewer({
                               }}
                             />
                           </View>
+                        )}
+
+                        {/* Yearly Month & Day */}
+                        {editFrequency === 'yearly' && (
+                          <View className="gap-2">
+                            <View>
+                              <Text className="text-xs mb-2" style={{ color: COLORS.textMuted }}>Month</Text>
+                              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                                <View className="flex-row gap-2">
+                                  {MONTHS.map((m, idx) => (
+                                    <TouchableOpacity
+                                      key={idx}
+                                      onPress={() => setEditYearlyMonth(idx)}
+                                      className="px-3 py-2 rounded-lg"
+                                      style={{
+                                        backgroundColor: editYearlyMonth === idx ? COLORS.greenGlow : COLORS.cardBg,
+                                        borderWidth: 1,
+                                        borderColor: editYearlyMonth === idx ? COLORS.green : COLORS.glassBorder,
+                                      }}
+                                    >
+                                      <Text
+                                        className="text-xs font-semibold"
+                                        style={{ color: editYearlyMonth === idx ? COLORS.green : COLORS.textMuted }}
+                                      >
+                                        {m}
+                                      </Text>
+                                    </TouchableOpacity>
+                                  ))}
+                                </View>
+                              </ScrollView>
+                            </View>
+                            <View>
+                              <Text className="text-xs mb-2" style={{ color: COLORS.textMuted }}>Day</Text>
+                              <TextInput
+                                value={editYearlyDay}
+                                onChangeText={setEditYearlyDay}
+                                placeholder="1-31"
+                                placeholderTextColor={COLORS.textMuted}
+                                keyboardType="number-pad"
+                                className="px-3 py-2 rounded-lg w-24"
+                                style={{
+                                  backgroundColor: COLORS.cardBg,
+                                  color: COLORS.text,
+                                  borderWidth: 1,
+                                  borderColor: COLORS.glassBorder,
+                                }}
+                              />
+                            </View>
+                          </View>
+                        )}
+
+                        {/* Start Date */}
+                        <View>
+                          <Text className="text-xs mb-2" style={{ color: COLORS.textMuted }}>Start Date</Text>
+                          <TouchableOpacity
+                            onPress={() => {
+                              setTempStartDate(editStartDate);
+                              setShowStartPicker(true);
+                            }}
+                            className="flex-row items-center gap-2 px-3 py-2 rounded-lg"
+                            style={{
+                              backgroundColor: COLORS.cardBg,
+                              borderWidth: 1,
+                              borderColor: COLORS.glassBorder,
+                            }}
+                          >
+                            <Calendar size={14} color={COLORS.green} />
+                            <Text className="text-sm" style={{ color: COLORS.text }}>
+                              {editStartDate.toLocaleDateString()}
+                            </Text>
+                          </TouchableOpacity>
                         </View>
-                      )}
 
-                      {/* Start Date */}
+                        {/* End Date */}
+                        <View>
+                          <Text className="text-xs mb-2" style={{ color: COLORS.textMuted }}>End Date (Optional)</Text>
+                          <TouchableOpacity
+                            onPress={() => {
+                              setTempEndDate(editEndDate || new Date());
+                              setShowEndPicker(true);
+                            }}
+                            className="flex-row items-center gap-2 px-3 py-2 rounded-lg"
+                            style={{
+                              backgroundColor: COLORS.cardBg,
+                              borderWidth: 1,
+                              borderColor: COLORS.glassBorder,
+                            }}
+                          >
+                            <Calendar size={14} color={COLORS.green} />
+                            <Text className="text-sm" style={{ color: COLORS.text }}>
+                              {editEndDate ? editEndDate.toLocaleDateString() : 'Not set'}
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
+
+                        {/* Action Buttons */}
+                        <View className="flex-row gap-2 justify-end mt-2">
+                          <TouchableOpacity
+                            onPress={cancelEdit}
+                            className="px-4 py-2 rounded-lg"
+                            style={{
+                              backgroundColor: COLORS.cardBg,
+                              borderWidth: 1,
+                              borderColor: COLORS.glassBorder,
+                            }}
+                          >
+                            <Text className="font-semibold text-sm" style={{ color: COLORS.text }}>Cancel</Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            onPress={handleSaveEdit}
+                            className="px-4 py-2 rounded-lg"
+                            style={{ backgroundColor: COLORS.green }}
+                          >
+                            <Text className="font-semibold text-sm" style={{ color: COLORS.text }}>Save</Text>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    ) : (
+                      // View Mode
                       <View>
-                        <Text className="text-xs mb-2" style={{ color: COLORS.textMuted }}>Start Date</Text>
-                        <TouchableOpacity
-                          onPress={() => {
-                            setTempStartDate(editStartDate);
-                            setShowStartPicker(true);
-                          }}
-                          className="flex-row items-center gap-2 px-3 py-2 rounded-lg"
-                          style={{
-                            backgroundColor: COLORS.cardBg,
-                            borderWidth: 1,
-                            borderColor: COLORS.glassBorder,
-                          }}
-                        >
-                          <Calendar size={14} color={COLORS.green} />
-                          <Text className="text-sm" style={{ color: COLORS.text }}>
-                            {editStartDate.toLocaleDateString()}
-                          </Text>
-                        </TouchableOpacity>
-                      </View>
+                        <View className="flex-row justify-between items-start mb-2">
+                          <View className="flex-1">
+                            <Text className="font-semibold text-base mb-1" style={{ color: COLORS.text }}>
+                              {exp.label}
+                            </Text>
+                            <Text className="text-sm" style={{ color: COLORS.textMuted }}>
+                              ${exp.amount.toFixed(2)} — {exp.frequency}
+                              {exp.frequency === 'weekly' && exp.weekly_days?.length
+                                ? ` (${exp.weekly_days.join(', ')})`
+                                : ''}
+                            </Text>
+                            <Text className="text-xs mt-1" style={{ color: COLORS.textMuted }}>
+                              {parseLocalDate(exp.start_date).toLocaleDateString()} 
+                              {exp.end_date
+                                ? ` → ${parseLocalDate(exp.end_date).toLocaleDateString()}`
+                                : ''}
+                            </Text>
+                          </View>
+                          <View className="flex-row gap-2">
+                            <TouchableOpacity
+                              onPress={() => startEdit(exp)}
+                              className="p-2 rounded-lg"
+                              style={{ backgroundColor: COLORS.amberGlow }}
+                            >
+                              <Edit2 size={16} color={COLORS.amber} />
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              onPress={() => handleDelete(exp.id)}
+                              className="p-2 rounded-lg"
+                              style={{ backgroundColor: COLORS.redGlow }}
+                            >
+                              <Trash2 size={16} color={COLORS.red} />
+                            </TouchableOpacity>
+                          </View>
+                        </View>
 
-                      {/* End Date */}
-                      <View>
-                        <Text className="text-xs mb-2" style={{ color: COLORS.textMuted }}>End Date (Optional)</Text>
-                        <TouchableOpacity
-                          onPress={() => {
-                            setTempEndDate(editEndDate || new Date());
-                            setShowEndPicker(true);
-                          }}
-                          className="flex-row items-center gap-2 px-3 py-2 rounded-lg"
-                          style={{
-                            backgroundColor: COLORS.cardBg,
-                            borderWidth: 1,
-                            borderColor: COLORS.glassBorder,
-                          }}
-                        >
-                          <Calendar size={14} color={COLORS.green} />
-                          <Text className="text-sm" style={{ color: COLORS.text }}>
-                            {editEndDate ? editEndDate.toLocaleDateString() : 'Not set'}
-                          </Text>
-                        </TouchableOpacity>
+                        {/* Status Badges */}
+                        <View className="flex-row flex-wrap gap-2 mt-2">
+                          {status.lastAdded && (
+                            <View className="px-2 py-1 rounded-full" style={{ backgroundColor: COLORS.greenGlow, borderWidth: 1, borderColor: COLORS.green }}>
+                              <Text className="text-xs font-medium" style={{ color: COLORS.green }}>
+                                Added on {status.lastAdded}
+                              </Text>
+                            </View>
+                          )}
+                          {status.nextPending && (
+                            <View className="px-2 py-1 rounded-full" style={{ backgroundColor: COLORS.amberGlow, borderWidth: 1, borderColor: COLORS.amber }}>
+                              <Text className="text-xs font-medium" style={{ color: COLORS.amber }}>
+                                Next: {status.nextPending}
+                              </Text>
+                            </View>
+                          )}
+                          {!status.lastAdded && !status.nextPending && (
+                            <View className="px-2 py-1 rounded-full" style={{ backgroundColor: COLORS.grayGlow, borderWidth: 1, borderColor: COLORS.gray }}>
+                              <Text className="text-xs font-medium" style={{ color: COLORS.gray }}>
+                                Not active this month
+                              </Text>
+                            </View>
+                          )}
+                        </View>
                       </View>
-
-                      {/* Action Buttons */}
-                      <View className="flex-row gap-2 justify-end mt-2">
-                        <TouchableOpacity
-                          onPress={cancelEdit}
-                          className="px-4 py-2 rounded-lg"
-                          style={{
-                            backgroundColor: COLORS.cardBg,
-                            borderWidth: 1,
-                            borderColor: COLORS.glassBorder,
-                          }}
-                        >
-                          <Text className="font-semibold text-sm" style={{ color: COLORS.text }}>Cancel</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          onPress={handleSaveEdit}
-                          className="px-4 py-2 rounded-lg"
-                          style={{ backgroundColor: COLORS.green }}
-                        >
-                          <Text className="font-semibold text-sm" style={{ color: COLORS.text }}>Save</Text>
-                        </TouchableOpacity>
-                      </View>
-                    </View>
-                  ) : (
-                    // View Mode
-                    <View className="flex-row justify-between items-start">
-                      <View className="flex-1">
-                        <Text className="font-semibold text-base mb-1" style={{ color: COLORS.text }}>
-                          {exp.label}
-                        </Text>
-                        <Text className="text-sm" style={{ color: COLORS.textMuted }}>
-                          ${exp.amount.toFixed(2)} — {exp.frequency}
-                          {exp.frequency === 'weekly' && exp.weekly_days?.length
-                            ? ` (${exp.weekly_days.join(', ')})`
-                            : ''}
-                        </Text>
-                        <Text className="text-xs mt-1" style={{ color: COLORS.textMuted }}>
-                          {new Date(exp.start_date).toLocaleDateString()}
-                          {exp.end_date
-                            ? ` → ${new Date(exp.end_date).toLocaleDateString()}`
-                            : ''}
-                        </Text>
-                      </View>
-                      <View className="flex-row gap-2">
-                        <TouchableOpacity
-                          onPress={() => startEdit(exp)}
-                          className="p-2 rounded-lg"
-                          style={{ backgroundColor: COLORS.amberGlow }}
-                        >
-                          <Edit2 size={16} color={COLORS.amber} />
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          onPress={() => handleDelete(exp.id)}
-                          className="p-2 rounded-lg"
-                          style={{ backgroundColor: COLORS.redGlow }}
-                        >
-                          <Trash2 size={16} color={COLORS.red} />
-                        </TouchableOpacity>
-                      </View>
-                    </View>
-                  )}
-                </View>
-              ))}
+                    )}
+                  </View>
+                );
+              })}
             </View>
           </ScrollView>
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <View 
+            <View
               className="flex-row items-center justify-center gap-3 py-4"
               style={{
                 borderTopWidth: 1,
@@ -656,7 +801,7 @@ export default function ExpensesViewer({
         onRequestClose={() => setShowStartPicker(false)}
       >
         <View className="flex-1 justify-center items-center bg-black/70">
-          <View 
+          <View
             className="rounded-2xl p-6 w-[90%] max-w-md overflow-hidden"
             style={{
               backgroundColor: COLORS.cardBg,
@@ -664,7 +809,7 @@ export default function ExpensesViewer({
               borderColor: COLORS.glassBorder,
             }}
           >
-            <View 
+            <View
               style={{
                 position: 'absolute',
                 top: 0,
@@ -677,7 +822,7 @@ export default function ExpensesViewer({
             <Text className="text-lg font-semibold mb-4 text-center" style={{ color: COLORS.text }}>
               Select Start Date
             </Text>
-            <View 
+            <View
               className="rounded-xl overflow-hidden"
               style={{
                 backgroundColor: COLORS.surfaceSolid,
@@ -726,7 +871,7 @@ export default function ExpensesViewer({
         onRequestClose={() => setShowEndPicker(false)}
       >
         <View className="flex-1 justify-center items-center bg-black/70">
-          <View 
+          <View
             className="rounded-2xl p-6 w-[90%] max-w-md overflow-hidden"
             style={{
               backgroundColor: COLORS.cardBg,
@@ -734,7 +879,7 @@ export default function ExpensesViewer({
               borderColor: COLORS.glassBorder,
             }}
           >
-            <View 
+            <View
               style={{
                 position: 'absolute',
                 top: 0,
@@ -747,7 +892,7 @@ export default function ExpensesViewer({
             <Text className="text-lg font-semibold mb-4 text-center" style={{ color: COLORS.text }}>
               Select End Date
             </Text>
-            <View 
+            <View
               className="rounded-xl overflow-hidden"
               style={{
                 backgroundColor: COLORS.surfaceSolid,

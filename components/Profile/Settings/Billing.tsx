@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import {
-    ActivityIndicator,
-    Modal,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Modal,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 // Match the palette you use in Profile/Settings
@@ -94,7 +94,7 @@ export default function Billing() {
           className="text-base font-semibold"
           style={{ color: COLORS.text }}
         >
-          {hasSubscription ? 'ShearWork Pro' : 'No active subscription'}
+          {hasSubscription ? 'Corva Pro' : 'No active subscription'}
         </Text>
 
         {hasSubscription && (

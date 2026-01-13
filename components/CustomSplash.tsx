@@ -82,7 +82,7 @@ export default function CustomSplash({ onFinish }: CustomSplashProps) {
             letterSpacing: -0.5,
           }}
         >
-          ShearWork
+          Corva
         </Text>
         <Animated.View
           style={{

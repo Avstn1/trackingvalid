@@ -1,6 +1,6 @@
+import AppointmentSheets from '@/components/ClientManager/AppointmentSheets/AppointmentSheets';
 import ClientSheets from '@/components/ClientManager/ClientSheets/ClientSheets';
 import { CustomHeader } from '@/components/Header/CustomHeader';
-import { useRouter } from 'expo-router';
 import { Bell, Calendar, Send, Users, X } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { Modal, Pressable, Text, TouchableOpacity, View } from 'react-native';
@@ -20,7 +20,6 @@ interface ManageOption {
   icon: any;
   iconColor: string;
   bgColor: string;
-  route?: string;
 }
 
 const MANAGE_OPTIONS: ManageOption[] = [
@@ -39,7 +38,6 @@ const MANAGE_OPTIONS: ManageOption[] = [
     icon: Calendar,
     iconColor: '#7dd3fc',
     bgColor: 'bg-sky-300/10',
-    route: '/(tabs)/ClientManager/AppointmentSheets',
   },
   {
     id: 'auto-nudge',
@@ -48,7 +46,6 @@ const MANAGE_OPTIONS: ManageOption[] = [
     icon: Bell,
     iconColor: '#fbbf24',
     bgColor: 'bg-amber-300/10',
-    route: '/(tabs)/ClientManager/SMSAutoNudge',
   },
   {
     id: 'campaigns',
@@ -57,24 +54,42 @@ const MANAGE_OPTIONS: ManageOption[] = [
     icon: Send,
     iconColor: '#c084fc',
     bgColor: 'bg-purple-300/10',
-    route: '/(tabs)/ClientManager/SMSCampaigns',
   },
 ];
 
 export default function ClientManagerScreen() {
   const [modalVisible, setModalVisible] = useState(false);
-  const router = useRouter();
+  const [activeView, setActiveView] = useState<string>('clients');
 
   const handleNavigate = (option: ManageOption) => {
     setModalVisible(false);
-    
-    if (option.id === 'clients') {
-      // Already showing clients, just close modal
-      return;
-    }
-    
-    if (option.route) {
-      router.push(option.route);
+    setActiveView(option.id);
+  };
+
+  const renderActiveView = () => {
+    switch (activeView) {
+      case 'clients':
+        return <ClientSheets />;
+      case 'appointments':
+        return <AppointmentSheets />;
+      case 'auto-nudge':
+        return (
+          <View className="flex-1 items-center justify-center">
+            <Bell color="#fbbf24" size={48} />
+            <Text className="text-white text-lg font-semibold mt-4">SMS Auto-Nudge</Text>
+            <Text className="text-[#bdbdbd] text-sm mt-2">Coming soon...</Text>
+          </View>
+        );
+      case 'campaigns':
+        return (
+          <View className="flex-1 items-center justify-center">
+            <Send color="#c084fc" size={48} />
+            <Text className="text-white text-lg font-semibold mt-4">SMS Campaigns</Text>
+            <Text className="text-[#bdbdbd] text-sm mt-2">Coming soon...</Text>
+          </View>
+        );
+      default:
+        return <ClientSheets />;
     }
   };
 
@@ -102,9 +117,9 @@ export default function ClientManagerScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Client Sheets Component */}
+        {/* Active View */}
         <View className="flex-1">
-          <ClientSheets />
+          {renderActiveView()}
         </View>
       </View>
 
@@ -144,7 +159,7 @@ export default function ClientManagerScreen() {
             <View className="gap-3">
               {MANAGE_OPTIONS.map((option) => {
                 const Icon = option.icon;
-                const isActive = option.id === 'clients';
+                const isActive = option.id === activeView;
                 
                 return (
                   <TouchableOpacity

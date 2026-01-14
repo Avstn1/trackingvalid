@@ -95,6 +95,32 @@ export default function DayPicker({
     }
   };
 
+  // Create a stable date at noon to avoid timezone boundary issues
+  const normalizedDate = React.useMemo(() => {
+    const year = tempDate.getFullYear();
+    const month = tempDate.getMonth();
+    const day = tempDate.getDate();
+    return new Date(year, month, day, 12, 0, 0, 0);
+  }, [tempDate]);
+
+  const handleDateChange = (event: any, selectedDate?: Date) => {
+    if (event.type === 'dismissed') {
+      onDateChange(event, undefined);
+      return;
+    }
+    
+    if (selectedDate) {
+      // Extract date components directly to avoid timezone conversion issues
+      const year = selectedDate.getFullYear();
+      const month = selectedDate.getMonth();
+      const day = selectedDate.getDate();
+      
+      // Create new date object at noon in local timezone
+      const stabilizedDate = new Date(year, month, day, 12, 0, 0, 0);
+      onDateChange(event, stabilizedDate);
+    }
+  };
+
   return (
     <Modal
       visible={visible}
@@ -190,13 +216,14 @@ export default function DayPicker({
                       }}
                     >
                       <DateTimePicker
-                        value={tempDate}
+                        value={normalizedDate}
                         mode="date"
                         display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                        onChange={onDateChange}
+                        onChange={handleDateChange}
                         maximumDate={new Date()}
                         textColor={COLORS.text}
                         themeVariant="dark"
+                        timeZoneName="America/Toronto"
                       />
                     </View>
                   </>
@@ -267,14 +294,15 @@ export default function DayPicker({
                   }}
                 >
                   <DateTimePicker
-                    value={tempDate}
+                    value={normalizedDate}
                     mode="date"
                     display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                    onChange={onDateChange}
+                    onChange={handleDateChange}
                     minimumDate={new Date(2020, 0, 1)}
                     maximumDate={new Date()}
                     textColor={COLORS.text}
                     themeVariant="dark"
+                    timeZoneName="America/Toronto"
                   />
                 </View>
 

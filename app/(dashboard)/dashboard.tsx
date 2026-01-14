@@ -209,8 +209,8 @@ export default function DashboardPage() {
       const { data: { session } } = await supabase.auth.getSession();
       const accessToken = session?.access_token;
 
-      const res = await fetch(
-        `${process.env.EXPO_PUBLIC_API_URL}/api/acuity/pull?endpoint=appointments&month=${encodeURIComponent(selectedMonth)}&year=${selectedYear}`,
+      const res = await fetch( 
+        `${process.env.EXPO_PUBLIC_API_URL}/api/pull?granularity=month&month=${encodeURIComponent(selectedMonth)}&year=${selectedYear}`,
         {
           headers: {
             'x-client-access-token': accessToken,

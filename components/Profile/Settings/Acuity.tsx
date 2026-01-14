@@ -143,39 +143,12 @@ export default function AcuityTab() {
     }
   };
 
-  const syncYear = async () => {
-    if (!profile) return;
-    setSyncingClients(true);
-
-    const { data: { session } } = await supabase.auth.getSession();
-    const accessToken = session?.access_token;
-
-    try {
-      const res = await fetch(
-        `${API_BASE_URL}/api/acuity/pull-clients?year=${encodeURIComponent(year)}`,
-        {
-          headers: {
-            'x-client-access-token': accessToken,
-          },
-        }
-      );
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Client sync failed');
-      Alert.alert('Success', `Synced ${data.totalClients} clients for ${year}!`);
-    } catch (err: any) {
-      console.error(err);
-      Alert.alert('Error', `Failed to sync clients for ${year}`);
-    } finally {
-      setSyncingClients(false);
-    }
-  };
-
   const syncFullYear = async () => {
     if (!profile) return;
 
     Alert.alert(
       'Confirm',
-      `This will sync all appointments for ${year}. Continue?`,
+      `This will sync all appointments and clients for ${year}. Continue?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -189,8 +162,8 @@ export default function AcuityTab() {
             try {
               for (const month of MONTHS) {
                 try {
-                  const res = await fetch(
-                    `${API_BASE_URL}/api/acuity/pull?endpoint=appointments&month=${encodeURIComponent(month)}&year=${encodeURIComponent(year)}`,
+                  const res = await fetch( 
+                    `${API_BASE_URL}/api/pull?granularity=month&month=${encodeURIComponent(month)}&year=${encodeURIComponent(year)}`,
                     {
                       headers: {
                         'x-client-access-token': accessToken,
@@ -203,10 +176,10 @@ export default function AcuityTab() {
                   console.error(`Error syncing ${month}:`, err);
                 }
               }
-              Alert.alert('Success', `Successfully synced all appointments for ${year}!`);
+              Alert.alert('Success', `Successfully synced all appointments and clients for ${year}!`);
             } catch (err: any) {
               console.error(err);
-              Alert.alert('Error', `Failed to sync appointments for ${year}`);
+              Alert.alert('Error', `Failed to sync appointments and clients for ${year}`);
             } finally {
               setSyncingAppointments(false);
             }
@@ -327,27 +300,6 @@ export default function AcuityTab() {
         {/* Sync Buttons */}
         <View className="gap-3">
           <TouchableOpacity
-            onPress={syncYear}
-            disabled={syncingClients || !isConnected || !selectedCalendar}
-            className="py-3 rounded-xl"
-            style={{
-              backgroundColor: syncingClients || !isConnected || !selectedCalendar ? COLORS.surfaceSolid : COLORS.green,
-              opacity: syncingClients || !isConnected || !selectedCalendar ? 0.5 : 1,
-            }}
-          >
-            {syncingClients ? (
-              <ActivityIndicator color={COLORS.text} />
-            ) : (
-              <Text 
-                className="text-center font-bold"
-                style={{ color: COLORS.text }}
-              >
-                Sync Clients for {year}
-              </Text>
-            )}
-          </TouchableOpacity>
-
-          <TouchableOpacity
             onPress={syncFullYear}
             disabled={syncingAppointments || !isConnected || !selectedCalendar}
             className="py-3 rounded-xl"
@@ -365,7 +317,7 @@ export default function AcuityTab() {
                 className="text-center font-semibold"
                 style={{ color: COLORS.green }}
               >
-                Sync All Appointments for {year}
+                Sync All Appointments and Clients for {year}
               </Text>
             )}
           </TouchableOpacity>

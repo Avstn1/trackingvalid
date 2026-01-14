@@ -85,6 +85,7 @@ export default function AppointmentEditModal({ isOpen, appointment, onClose, onU
       const { data: { session } } = await supabase.auth.getSession();
       const accessToken = session?.access_token;
 
+      console.log('Updating appointment with:', { id: appointment.id, tip: tipValue, revenue: revenueValue });
       const res = await fetch(
         `${process.env.EXPO_PUBLIC_API_URL}/api/appointment-manager/appointments`,
         {
@@ -102,6 +103,7 @@ export default function AppointmentEditModal({ isOpen, appointment, onClose, onU
       );
 
       const body = await res.json();
+      console.log('Update response:', body);
 
       if (!res.ok) {
         throw new Error(body.error || 'Failed to update appointment');

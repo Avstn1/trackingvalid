@@ -1,7 +1,7 @@
 import ReportViewerModal from '@/components/Reports/ReportViewerModal'
 import { supabase } from '@/utils/supabaseClient'
 import { useRouter } from 'expo-router'
-import { Bell } from 'lucide-react-native'
+import { ArrowLeft, Bell } from 'lucide-react-native'
 import React, { useCallback, useEffect, useState } from 'react'
 import {
   Modal,
@@ -83,9 +83,13 @@ interface Report {
 
 interface NotificationsDropdownProps {
   userId: string
+  inSidebar?: boolean
+  externalTrigger?: boolean
+  onExternalTriggerHandled?: () => void
+  onBack?: () => void
 }
 
-export default function NotificationsDropdown({ userId }: NotificationsDropdownProps) {
+export default function NotificationsDropdown({ userId, inSidebar = false, externalTrigger = false, onExternalTriggerHandled, onBack }: NotificationsDropdownProps) {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [open, setOpen] = useState(false)
   const [isClosing, setIsClosing] = useState(false)
@@ -95,6 +99,16 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
 
   const translateY = useSharedValue(0)
   const opacity = useSharedValue(0)
+
+  // Handle external trigger
+  useEffect(() => {
+    if (externalTrigger && !open) {
+      setOpen(true)
+      if (onExternalTriggerHandled) {
+        onExternalTriggerHandled()
+      }
+    }
+  }, [externalTrigger, open, onExternalTriggerHandled])
 
   const fetchNotifications = useCallback(async () => {
     if (!userId) return
@@ -167,16 +181,16 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
 
   // Animate modal open
   useEffect(() => {
-    if (open) {
+    if (open && !inSidebar) {
       translateY.value = 1000
       opacity.value = 0
       translateY.value = withTiming(0, { duration: 250 })
       opacity.value = withTiming(1, { duration: 250 })
     }
-  }, [open, translateY, opacity])
+  }, [open, translateY, opacity, inSidebar])
 
   const closeModal = useCallback(() => {
-    if (isClosing) return
+    if (isClosing || inSidebar) return
     setIsClosing(true)
     translateY.value = withTiming(1000, { duration: 250 })
     opacity.value = withTiming(0, { duration: 250 })
@@ -185,18 +199,18 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
       setIsClosing(false)
       translateY.value = 0
     }, 250)
-  }, [translateY, opacity, isClosing])
+  }, [translateY, opacity, isClosing, inSidebar])
 
   const panGesture = Gesture.Pan()
     .onUpdate((event) => {
-      if (event.translationY > 0) {
+      if (event.translationY > 0 && !inSidebar) {
         translateY.value = event.translationY
         const progress = Math.min(event.translationY / 300, 1)
         opacity.value = 1 - progress
       }
     })
     .onEnd((event) => {
-      if (event.translationY > 100 || event.velocityY > 500) {
+      if (!inSidebar && (event.translationY > 100 || event.velocityY > 500)) {
         runOnJS(closeModal)()
       } else {
         translateY.value = withTiming(0, { duration: 200 })
@@ -220,7 +234,9 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
       )
     }
 
-    setOpen(false)
+    if (!inSidebar) {
+      setOpen(false)
+    }
 
     const reportTypes = ['weekly', 'monthly', 'weekly_comparison']
     if (n.reference && n.reference_type && reportTypes.includes(n.reference_type)) {
@@ -296,6 +312,73 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
 
   const unreadCount = notifications.filter((n) => !n.is_read).length
 
+  // If in sidebar, render inline list without modal
+  if (inSidebar) {
+    return (
+      <>
+        <View className="mt-2">
+          {notifications.length === 0 ? (
+            <View className="py-4 items-center">
+              <Text className="text-xs" style={{ color: COLORS.textMuted }}>
+                No notifications
+              </Text>
+            </View>
+          ) : (
+            <ScrollView 
+              showsVerticalScrollIndicator={false}
+              style={{ maxHeight: 200 }}
+              contentContainerStyle={{ paddingBottom: 8 }}
+            >
+              {notifications.slice(0, 5).map((n) => (
+                <TouchableOpacity
+                  key={n.id}
+                  onPress={() => handleClickNotification(n)}
+                  activeOpacity={0.7}
+                  className="px-3 py-2.5 rounded-lg mb-2"
+                  style={{
+                    backgroundColor: !n.is_read ? COLORS.greenLight : COLORS.surface,
+                    borderWidth: 1,
+                    borderColor: !n.is_read ? COLORS.green : COLORS.glassBorder,
+                  }}
+                >
+                  <Text 
+                    className="text-xs mb-1"
+                    style={{ 
+                      color: COLORS.text,
+                      fontWeight: !n.is_read ? '600' : '400'
+                    }}
+                  >
+                    {n.header}
+                  </Text>
+                  <Text 
+                    className="text-[10px] leading-4"
+                    style={{ color: COLORS.textMuted }}
+                    numberOfLines={2}
+                  >
+                    {n.message}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+              {notifications.length > 5 && (
+                <Text className="text-[10px] text-center mt-1" style={{ color: COLORS.textMuted }}>
+                  +{notifications.length - 5} more
+                </Text>
+              )}
+            </ScrollView>
+          )}
+        </View>
+
+        {/* Report Viewer Modal */}
+        <ReportViewerModal
+          report={selectedReport}
+          visible={reportModalVisible}
+          onClose={handleCloseReportModal}
+        />
+      </>
+    )
+  }
+
+  // Original modal behavior when not in sidebar
   return (
     <>
       <View className="relative">
@@ -360,11 +443,16 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
 
                       {/* Header */}
                       <View 
-                        className="flex-row justify-between items-center px-6 py-4"
+                        className="flex-row items-center px-6 py-4"
                         style={{ borderBottomWidth: 1, borderBottomColor: COLORS.glassBorder }}
                       >
+                        {onBack && (
+                          <TouchableOpacity onPress={onBack} className="p-1 mr-2">
+                            <ArrowLeft size={24} color={COLORS.textMuted} />
+                          </TouchableOpacity>
+                        )}
                         <Text 
-                          className="font-semibold text-base tracking-wide"
+                          className="font-semibold text-base tracking-wide flex-1"
                           style={{ color: COLORS.green }}
                         >
                           Notifications

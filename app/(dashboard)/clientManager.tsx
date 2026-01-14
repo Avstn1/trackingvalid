@@ -34,7 +34,7 @@ const MANAGE_OPTIONS: ManageOption[] = [
   {
     id: 'appointments',
     title: 'Appointments',
-    description: 'Manage appointment schedules',
+    description: 'Manage appointment revenue and tips',
     icon: Calendar,
     iconColor: '#7dd3fc',
     bgColor: 'bg-sky-300/10',

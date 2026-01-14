@@ -25,6 +25,17 @@ interface DailyRevenueCardProps {
   selectedDate?: string;
 }
 
+const formatReadableDate = (dateStr: string) => {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const date = new Date(y, m - 1, d); // local time
+
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+};
+
 export default function DailyRevenueCard({ userId, selectedDate }: DailyRevenueCardProps) {
   const [revenue, setRevenue] = useState<number | null>(null);
   const [prevRevenue, setPrevRevenue] = useState<number | null>(null);
@@ -33,7 +44,9 @@ export default function DailyRevenueCard({ userId, selectedDate }: DailyRevenueC
   const [barberType, setBarberType] = useState<'rental' | 'commission' | undefined>();
   const [commissionRate, setCommissionRate] = useState<number | null>(null);
 
-  const todayStr = selectedDate ?? new Date().toISOString().slice(0, 10);
+  const selectedDateStr = selectedDate ?? new Date().toLocaleDateString('en-CA');
+  const todayStr = new Date().toLocaleDateString('en-CA');
+  const label = selectedDateStr === todayStr ? 'TODAY' : formatReadableDate(selectedDateStr);
 
   useEffect(() => {
     if (!userId) return;
@@ -68,7 +81,7 @@ export default function DailyRevenueCard({ userId, selectedDate }: DailyRevenueC
           .from('daily_data')
           .select('final_revenue, tips')
           .eq('user_id', userId)
-          .eq('date', todayStr)
+          .eq('date', selectedDateStr)
           .maybeSingle();
 
         if (todayData) {
@@ -85,7 +98,7 @@ export default function DailyRevenueCard({ userId, selectedDate }: DailyRevenueC
           .from('daily_data')
           .select('final_revenue, tips, date')
           .eq('user_id', userId)
-          .lt('date', todayStr)
+          .lt('date', selectedDateStr)
           .order('date', { ascending: false })
           .limit(1)
           .maybeSingle();
@@ -111,7 +124,7 @@ export default function DailyRevenueCard({ userId, selectedDate }: DailyRevenueC
     };
 
     fetchRevenue();
-  }, [userId, todayStr, barberType, commissionRate]);
+  }, [userId, selectedDateStr, barberType, commissionRate]);
 
   const formatCurrency = (amount: number) =>
     `$${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -193,7 +206,7 @@ export default function DailyRevenueCard({ userId, selectedDate }: DailyRevenueC
                 }}
               >
                 <Text className="text-xs font-bold" style={{ color: COLORS.text }}>
-                  TODAY
+                  {label}
                 </Text>
               </View>
             </View>

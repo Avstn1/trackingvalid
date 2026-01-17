@@ -1,5 +1,7 @@
 import AppointmentSheets from '@/components/ClientManager/AppointmentSheets/AppointmentSheets';
 import ClientSheets from '@/components/ClientManager/ClientSheets/ClientSheets';
+import SMSAutoNudge from '@/components/ClientManager/SMSAutoNudge/SMSAutoNudge';
+import SMSCampaigns from '@/components/ClientManager/SMSCampaigns/SMSCampaigns';
 import { CustomHeader } from '@/components/Header/CustomHeader';
 import { Bell, Calendar, Send, Users, X } from 'lucide-react-native';
 import React, { useState } from 'react';
@@ -73,21 +75,9 @@ export default function ClientManagerScreen() {
       case 'appointments':
         return <AppointmentSheets />;
       case 'auto-nudge':
-        return (
-          <View className="flex-1 items-center justify-center">
-            <Bell color="#fbbf24" size={48} />
-            <Text className="text-white text-lg font-semibold mt-4">SMS Auto-Nudge</Text>
-            <Text className="text-[#bdbdbd] text-sm mt-2">Coming soon...</Text>
-          </View>
-        );
+        return <SMSAutoNudge />;
       case 'campaigns':
-        return (
-          <View className="flex-1 items-center justify-center">
-            <Send color="#c084fc" size={48} />
-            <Text className="text-white text-lg font-semibold mt-4">SMS Campaigns</Text>
-            <Text className="text-[#bdbdbd] text-sm mt-2">Coming soon...</Text>
-          </View>
-        );
+        return <SMSCampaigns />;
       default:
         return <ClientSheets />;
     }

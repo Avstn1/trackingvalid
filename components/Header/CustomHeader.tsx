@@ -2,12 +2,13 @@
 
 import AuthLoadingSplash from '@/components/AuthLoadingSpash';
 import CreditsModal from '@/components/Header/CreditsModal';
+import FAQModal from '@/components/Header/FAQModal';
 import NewFeaturesModal from '@/components/Header/FeatureUpdatesModal';
 import NotificationsDropdown from '@/components/Header/NotificationsDropdown';
 import { supabase } from '@/utils/supabaseClient';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Bell, CalendarRange, Coins, Megaphone, Menu, X } from 'lucide-react-native';
+import { Bell, CalendarRange, Coins, HelpCircle, Megaphone, Menu, X } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -110,11 +111,13 @@ export function CustomHeader({
 
   const [componentsReady, setComponentsReady] = useState(false);
 
-  const [showCreditsModal, setShowCreditsModal] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
+
+  const [showCreditsModal, setShowCreditsModal] = useState(false);
   const [showNotificationsModal, setShowNotificationsModal] = useState(false);
   const [showFeaturesModal, setShowFeaturesModal] = useState(false);
+  const [showFAQModal, setShowFAQModal] = useState(false);
 
   const translateY = useSharedValue(SIDEBAR_HEIGHT);
   const opacity = useSharedValue(0);
@@ -564,6 +567,29 @@ export function CustomHeader({
                           Notifications
                         </Text>
                       </TouchableOpacity>
+
+                      {/* FAQ Modal */}
+                      <TouchableOpacity
+                        onPress={() => {
+                          closeSidebar();
+                          setTimeout(() => setShowFAQModal(true), 300);
+                        }}
+                        className="flex-row items-center px-5 py-4"
+                        style={{
+                          borderBottomWidth: 1,
+                          borderBottomColor: COLORS.glassBorder,
+                        }}
+                      >
+                        <View
+                          className="p-2 rounded-full mr-4"
+                          style={{ backgroundColor: COLORS.surface }}
+                        >
+                          <HelpCircle size={20} color={COLORS.green} />
+                        </View>
+                        <Text className="text-base font-medium" style={{ color: COLORS.text }}>
+                          Frequently Asked Questions
+                        </Text>
+                      </TouchableOpacity>
                     </View>
                   </Pressable>
                 </Animated.View>
@@ -598,6 +624,11 @@ export function CustomHeader({
         isOpen={showFeaturesModal}
         onClose={() => setShowFeaturesModal(false)}
         userId={profile?.user_id}
+      />
+
+      <FAQModal 
+        isOpen={showFAQModal} 
+        onClose={() => setShowFAQModal(false)}
       />
 
       {/* NotificationsDropdown with external trigger - bell hidden but modal works */}

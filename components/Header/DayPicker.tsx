@@ -1,4 +1,5 @@
 // components/Header/DayPicker.tsx
+import { supabase } from '@/utils/supabaseClient';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useState } from 'react';
@@ -72,6 +73,7 @@ export default function DayPicker({
 }: DayPickerProps) {
   const [localDashboardView, setLocalDashboardView] = useState(dashboardView);
   const [localTimeframe, setLocalTimeframe] = useState(timeframe);
+  const [minYear, setMinYear] = useState(2020);
 
   useEffect(() => {
     setLocalDashboardView(dashboardView);
@@ -80,6 +82,35 @@ export default function DayPicker({
   useEffect(() => {
     setLocalTimeframe(timeframe);
   }, [timeframe]);
+
+  // Fetch minimum year from oldest appointment
+  useEffect(() => {
+    if (!visible) return;
+
+    const fetchMinYear = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { data, error } = await supabase
+          .from('acuity_appointments')
+          .select('appointment_date')
+          .eq('user_id', user.id)
+          .order('appointment_date', { ascending: true })
+          .limit(1)
+          .single();
+
+        if (!error && data) {
+          const oldestYear = new Date(data.appointment_date).getFullYear();
+          setMinYear(oldestYear);
+        }
+      } catch (err) {
+        console.error('Error fetching minimum year:', err);
+      }
+    };
+
+    fetchMinYear();
+  }, [visible]);
 
   const handleDashboardViewChange = (view: "monthly" | "yearly") => {
     setLocalDashboardView(view);
@@ -129,6 +160,11 @@ export default function DayPicker({
       onRequestClose={onClose}
     >
       <View className="flex-1 justify-center items-center bg-black/70">
+        <TouchableOpacity 
+          activeOpacity={1} 
+          className="absolute inset-0" 
+          onPress={onClose}
+        />
         <View 
           className="rounded-3xl p-6 overflow-hidden"
           style={{ 
@@ -220,6 +256,7 @@ export default function DayPicker({
                         mode="date"
                         display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                         onChange={handleDateChange}
+                        minimumDate={new Date(minYear, 0, 1)}
                         maximumDate={new Date()}
                         textColor={COLORS.text}
                         themeVariant="dark"
@@ -230,48 +267,158 @@ export default function DayPicker({
                 ) : (
                   <>
                     <Text className="text-lg font-semibold mb-4 text-center" style={{ color: COLORS.text }}>
-                      Choose Timeframe
+                      Choose Year & Timeframe
                     </Text>
 
-                    <View>
-                      {timeframeOptions.map((option) => (
+                    {/* Year Selector */}
+                    <View className="mb-3">
+                      <View className="flex-row items-center justify-center gap-3">
                         <TouchableOpacity
-                          key={option.value}
-                          onPress={() => handleTimeframeChange(option.value as Timeframe)}
-                          className="mb-3 rounded-xl overflow-hidden"
-                          style={{
+                          onPress={() => {
+                            const newDate = new Date(normalizedDate);
+                            newDate.setFullYear(normalizedDate.getFullYear() - 1);
+                            onDateChange({}, newDate);
+                          }}
+                          className="px-3 py-1.5 rounded-lg"
+                          style={{ 
+                            backgroundColor: COLORS.cardBg,
                             borderWidth: 1,
-                            borderColor: localTimeframe === option.value ? COLORS.green : COLORS.glassBorder,
+                            borderColor: COLORS.glassBorder,
+                          }}
+                          disabled={normalizedDate.getFullYear() <= minYear}
+                        >
+                          <Text className="text-lg font-bold" style={{ color: normalizedDate.getFullYear() <= minYear ? COLORS.textMuted : COLORS.text }}>←</Text>
+                        </TouchableOpacity>
+                        
+                        <View 
+                          className="px-6 py-2 rounded-lg overflow-hidden"
+                          style={{ 
+                            borderWidth: 1,
+                            borderColor: COLORS.green,
+                            minWidth: 100,
                           }}
                         >
-                          {localTimeframe === option.value && (
-                            <LinearGradient
-                              colors={['#8bcf68ff', '#beb348ff']}
-                              start={{ x: 0, y: 0 }}
-                              end={{ x: 1, y: 0 }}
-                              style={{
-                                position: 'absolute',
-                                top: 0,
-                                left: 0,
-                                right: 0,
-                                bottom: 0,
-                                opacity: 0.15,
-                              }}
-                            />
-                          )}
-                          <View className="py-3 px-4">
-                            <Text 
-                              className="text-sm text-center"
-                              style={{ 
-                                color: localTimeframe === option.value ? COLORS.green : COLORS.text,
-                                fontWeight: localTimeframe === option.value ? 'bold' : 'normal'
-                              }}
-                            >
-                              {option.label}
-                            </Text>
-                          </View>
+                          <LinearGradient
+                            colors={['#8bcf68ff', '#beb348ff']}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 0 }}
+                            style={{
+                              position: 'absolute',
+                              top: 0,
+                              left: 0,
+                              right: 0,
+                              bottom: 0,
+                              opacity: 0.15,
+                            }}
+                          />
+                          <Text className="text-xl font-bold text-center" style={{ color: COLORS.green }}>
+                            {normalizedDate.getFullYear()}
+                          </Text>
+                        </View>
+
+                        <TouchableOpacity
+                          onPress={() => {
+                            const newDate = new Date(normalizedDate);
+                            newDate.setFullYear(normalizedDate.getFullYear() + 1);
+                            onDateChange({}, newDate);
+                          }}
+                          className="px-3 py-1.5 rounded-lg"
+                          style={{ 
+                            backgroundColor: COLORS.cardBg,
+                            borderWidth: 1,
+                            borderColor: COLORS.glassBorder,
+                          }}
+                          disabled={normalizedDate.getFullYear() >= new Date().getFullYear()}
+                        >
+                          <Text className="text-lg font-bold" style={{ color: normalizedDate.getFullYear() >= new Date().getFullYear() ? COLORS.textMuted : COLORS.text }}>→</Text>
                         </TouchableOpacity>
-                      ))}
+                      </View>
+                    </View>
+
+                    <Text className="text-xs font-medium mb-3 mt-1 text-center" style={{ color: COLORS.textMuted }}>
+                      Select Timeframe for {normalizedDate.getFullYear()}
+                    </Text>
+
+                    <View className="gap-2">
+                      {/* Year option - full width */}
+                      <TouchableOpacity
+                        onPress={() => handleTimeframeChange('year')}
+                        className="rounded-xl overflow-hidden"
+                        style={{
+                          borderWidth: 1,
+                          borderColor: localTimeframe === 'year' ? COLORS.green : COLORS.glassBorder,
+                        }}
+                      >
+                        {localTimeframe === 'year' && (
+                          <LinearGradient
+                            colors={['#8bcf68ff', '#beb348ff']}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 0 }}
+                            style={{
+                              position: 'absolute',
+                              top: 0,
+                              left: 0,
+                              right: 0,
+                              bottom: 0,
+                              opacity: 0.15,
+                            }}
+                          />
+                        )}
+                        <View className="py-3 px-4">
+                          <Text 
+                            className="text-sm text-center"
+                            style={{ 
+                              color: localTimeframe === 'year' ? COLORS.green : COLORS.text,
+                              fontWeight: localTimeframe === 'year' ? 'bold' : 'normal'
+                            }}
+                          >
+                            Year
+                          </Text>
+                        </View>
+                      </TouchableOpacity>
+
+                      {/* Quarters - 2x2 grid */}
+                      <View className="flex-row flex-wrap gap-2">
+                        {timeframeOptions.slice(1).map((option) => (
+                          <TouchableOpacity
+                            key={option.value}
+                            onPress={() => handleTimeframeChange(option.value as Timeframe)}
+                            className="rounded-xl overflow-hidden"
+                            style={{
+                              width: '48%',
+                              borderWidth: 1,
+                              borderColor: localTimeframe === option.value ? COLORS.green : COLORS.glassBorder,
+                            }}
+                          >
+                            {localTimeframe === option.value && (
+                              <LinearGradient
+                                colors={['#8bcf68ff', '#beb348ff']}
+                                start={{ x: 0, y: 0 }}
+                                end={{ x: 1, y: 0 }}
+                                style={{
+                                  position: 'absolute',
+                                  top: 0,
+                                  left: 0,
+                                  right: 0,
+                                  bottom: 0,
+                                  opacity: 0.15,
+                                }}
+                              />
+                            )}
+                            <View className="py-3 px-3">
+                              <Text 
+                                className="text-sm text-center"
+                                style={{ 
+                                  color: localTimeframe === option.value ? COLORS.green : COLORS.text,
+                                  fontWeight: localTimeframe === option.value ? 'bold' : 'normal'
+                                }}
+                              >
+                                {option.label}
+                              </Text>
+                            </View>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
                     </View>
                   </>
                 )}
@@ -298,7 +445,7 @@ export default function DayPicker({
                     mode="date"
                     display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                     onChange={handleDateChange}
-                    minimumDate={new Date(2020, 0, 1)}
+                    minimumDate={new Date(minYear, 0, 1)}
                     maximumDate={new Date()}
                     textColor={COLORS.text}
                     themeVariant="dark"
@@ -311,6 +458,12 @@ export default function DayPicker({
                 </Text>
               </View>
             </>
+          )}
+
+          {minYear !== 2020 && (
+            <Text className="text-xs text-center mt-0" style={{ color: COLORS.textMuted }}>
+              Oldest appointment: {minYear}
+            </Text>
           )}
 
           <View className="flex-row gap-3 mt-6">

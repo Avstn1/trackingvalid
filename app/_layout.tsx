@@ -17,13 +17,13 @@ SplashScreen.preventAutoHideAsync();
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const [appIsReady, setAppIsReady] = useState(false);
-  const [showCustomSplash, setShowCustomSplash] = useState(true);
+  const [showCustomSplash, setShowCustomSplash] = useState(false);
 
   useEffect(() => {
     async function prepare() {
       try {
+        // Just hide the native splash screen once, don't call it again
         await SplashScreen.hideAsync();
-        await new Promise(resolve => setTimeout(resolve, 100));
       } catch (e) {
         console.warn(e);
       } finally {

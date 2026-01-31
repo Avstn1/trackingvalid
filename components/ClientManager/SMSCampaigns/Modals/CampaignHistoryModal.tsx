@@ -1,7 +1,7 @@
 import { supabase } from '@/utils/supabaseClient';
 import { AlertCircle, ArrowLeft, Calendar, CheckCircle, Clock, Users, X, XCircle } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Modal, Pressable, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Modal, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import Animated, { FadeIn, FadeOut, SlideInRight, SlideOutLeft } from 'react-native-reanimated';
 
 interface CampaignHistoryModalProps {
@@ -161,191 +161,196 @@ export default function CampaignHistoryModal({ isOpen, onClose, session }: Campa
       animationType="fade"
       onRequestClose={onClose}
     >
-      <Pressable className="flex-1 bg-black/60 justify-center items-center p-2" onPress={onClose}>
+      <View className="flex-1 bg-black/60 justify-center items-center p-2">
+        <TouchableOpacity 
+          activeOpacity={1} 
+          className="absolute inset-0" 
+          onPress={onClose}
+        />
         <Animated.View 
           entering={FadeIn}
           exiting={FadeOut}
           className="w-[95%] h-[75%]"
         >
-          <Pressable onPress={(e) => e.stopPropagation()}>
-            <View className="bg-[#1a1a1a] border border-white/10 rounded-2xl shadow-2xl h-full flex">
-              {view === 'list' ? (
-                <Animated.View
-                  key="list"
-                  entering={SlideInRight.duration(200)}
-                  exiting={SlideOutLeft.duration(200)}
-                  className="flex-1 flex"
-                >
-                  {/* Modal Header - Fixed */}
-                  <View className="flex-row items-center justify-between p-4 border-b border-white/10 bg-gradient-to-r from-purple-500/10 to-pink-500/10">
-                    <View className="flex-1 pr-2">
-                      <View className="flex-row items-center gap-2">
-                        <Clock color="#d8b4fe" size={24} />
-                        <Text className="text-xl font-bold text-white" numberOfLines={1}>
-                          Campaign History
-                        </Text>
-                      </View>
-                      <Text className="text-xs text-[#bdbdbd] mt-1">
-                        View your past SMS campaigns and their performance
+          <View className="bg-[#1a1a1a] border border-white/10 rounded-2xl shadow-2xl h-full flex">
+            {view === 'list' ? (
+              <Animated.View
+                key="list"
+                entering={SlideInRight.duration(200)}
+                exiting={SlideOutLeft.duration(200)}
+                className="flex-1 flex"
+              >
+                {/* Modal Header - Fixed */}
+                <View className="flex-row items-center justify-between p-4 border-b border-white/10 bg-gradient-to-r from-purple-500/10 to-pink-500/10">
+                  <View className="flex-1 pr-2">
+                    <View className="flex-row items-center gap-2">
+                      <Clock color="#d8b4fe" size={24} />
+                      <Text className="text-xl font-bold text-white" numberOfLines={1}>
+                        Campaign History
                       </Text>
                     </View>
-                    <TouchableOpacity
-                      onPress={onClose}
-                      className="p-2 hover:bg-white/10 rounded-full"
-                    >
-                      <X color="#bdbdbd" size={20} />
-                    </TouchableOpacity>
+                    <Text className="text-xs text-[#bdbdbd] mt-1">
+                      View your past SMS campaigns and their performance
+                    </Text>
                   </View>
+                  <TouchableOpacity
+                    onPress={onClose}
+                    className="p-2 hover:bg-white/10 rounded-full"
+                  >
+                    <X color="#bdbdbd" size={20} />
+                  </TouchableOpacity>
+                </View>
 
-                  {/* Campaigns List - Scrollable */}
-                  <ScrollView className="flex-1 p-4">
-                    {isLoading ? (
-                      <View className="items-center py-12">
-                        <ActivityIndicator size="large" color="#d8b4fe" className="mb-4" />
-                        <Text className="text-sm text-[#bdbdbd]">Loading campaigns...</Text>
-                      </View>
-                    ) : campaigns.length === 0 ? (
-                      <View className="items-center py-12">
-                        <Clock color="#bdbdbd" size={48} style={{ opacity: 0.5 }} />
-                        <Text className="text-sm text-[#bdbdbd] mt-4">No completed campaigns yet</Text>
-                        <Text className="text-xs text-[#bdbdbd] mt-2">
-                          Completed campaigns will appear here
-                        </Text>
-                      </View>
-                    ) : (
-                      <View className="gap-3">
-                        {campaigns.map((campaign) => (
-                          <TouchableOpacity
-                            key={campaign.id}
-                            onPress={() => handleCampaignClick(campaign)}
-                            className="p-4 bg-white/5 border border-white/10 rounded-xl active:bg-white/10"
-                          >
-                            <View className="flex-row items-start justify-between mb-2 gap-2">
-                              <Text className="font-semibold text-white text-base flex-1" numberOfLines={1}>
-                                {campaign.title}
-                              </Text>
-                              <View className="px-2 py-1 rounded-full bg-lime-300/10 border border-lime-300/20">
-                                <Text className="text-xs font-semibold text-lime-300">
-                                  Completed
-                                </Text>
-                              </View>
-                            </View>
-                            <View className="flex-row items-center gap-2 flex-wrap">
-                              <View className="flex-row items-center gap-1">
-                                <Calendar color="#bdbdbd" size={12} />
-                                <Text className="text-xs text-[#bdbdbd]">
-                                  {formatDate(campaign.cron)}
-                                </Text>
-                              </View>
-                              <Text className="text-xs text-[#bdbdbd]">•</Text>
-                              <Text className="text-xs text-[#bdbdbd]">
-                                {campaign.final_clients_to_message || 0} recipients
-                              </Text>
-                              <Text className="text-xs text-[#bdbdbd]">•</Text>
-                              <Text className="text-xs text-lime-300">
-                                {campaign.success} sent
-                              </Text>
-                              <Text className="text-xs text-[#bdbdbd]">•</Text>
-                              <Text className="text-xs text-rose-300">
-                                {campaign.fail || 0} failed
-                              </Text>
-                              {(campaign.success + (campaign.fail || 0)) > 0 && (
-                                <>
-                                  <Text className="text-xs text-[#bdbdbd]">•</Text>
-                                  <Text className="text-xs text-sky-300">
-                                    {((campaign.success / (campaign.success + (campaign.fail || 0))) * 100).toFixed(1)}% rate
-                                  </Text>
-                                </>
-                              )}
-                            </View>
-                            <Text className="mt-2 text-xs text-[#bdbdbd]" numberOfLines={2}>
-                              {campaign.message}
-                            </Text>
-                          </TouchableOpacity>
-                        ))}
-                      </View>
-                    )}
-                  </ScrollView>
-
-                  {/* Footer */}
-                  <View className="border-t border-white/10 p-4 bg-white/5">
-                    <TouchableOpacity
-                      onPress={onClose}
-                      className="px-6 py-3 rounded-xl font-bold bg-white/10 items-center"
-                    >
-                      <Text className="text-sm font-bold text-white">Close</Text>
-                    </TouchableOpacity>
-                  </View>
-                </Animated.View>
-              ) : (
-                <Animated.View
-                  key="details"
-                  entering={SlideInRight.duration(200)}
-                  exiting={SlideOutLeft.duration(200)}
-                  className="flex-1 flex"
-                >
-                  {/* Modal Header - Fixed */}
-                  <View className="flex-row items-center justify-between p-4 border-b border-white/10">
-                    <View className="flex-row items-center gap-3 flex-1">
-                      <TouchableOpacity
-                        onPress={handleBack}
-                        className="p-2 rounded-full active:bg-white/10"
-                      >
-                        <ArrowLeft color="#bdbdbd" size={16} />
-                      </TouchableOpacity>
-                      <View className="flex-1">
-                        <Text className="text-lg font-bold text-white" numberOfLines={1}>
-                          {selectedCampaign?.title}
-                        </Text>
-                        <Text className="text-xs text-[#bdbdbd] mt-0.5" numberOfLines={1}>
-                          {selectedCampaign && formatDate(selectedCampaign.cron)}
-                        </Text>
-                      </View>
+                {/* Campaigns List - Scrollable */}
+                <ScrollView className="flex-1 p-4">
+                  {isLoading ? (
+                    <View className="items-center py-12">
+                      <ActivityIndicator size="large" color="#d8b4fe" className="mb-4" />
+                      <Text className="text-sm text-[#bdbdbd]">Loading campaigns...</Text>
                     </View>
-                    <TouchableOpacity
-                      onPress={onClose}
-                      className="p-1.5 rounded-full"
-                    >
-                      <X color="#bdbdbd" size={16} />
-                    </TouchableOpacity>
-                  </View>
-
-                  {/* Stats Bar - Fixed */}
-                  {recipientsStats && (
-                    <View className="px-4 py-2.5 border-b border-white/10 bg-white/5">
-                      <View className="flex-row gap-4 mb-2">
-                        <View>
-                          <Text className="text-xs text-[#bdbdbd] mb-0.5">Total</Text>
-                          <Text className="text-base font-bold text-white">{recipientsStats.total}</Text>
-                        </View>
-                        <View>
-                          <Text className="text-xs text-[#bdbdbd] mb-0.5">Successful</Text>
-                          <Text className="text-base font-bold text-lime-300">{recipientsStats.successful}</Text>
-                        </View>
-                        <View>
-                          <Text className="text-xs text-[#bdbdbd] mb-0.5">Failed</Text>
-                          <Text className="text-base font-bold text-rose-300">{recipientsStats.failed || 0}</Text>
-                        </View>
-                        {(recipientsStats.successful + (recipientsStats.failed || 0)) > 0 && (
-                          <View>
-                            <Text className="text-xs text-[#bdbdbd] mb-0.5">Success Rate</Text>
-                            <Text className="text-base font-bold text-sky-300">
-                              {((recipientsStats.successful / (recipientsStats.successful + (recipientsStats.failed || 0))) * 100).toFixed(1)}%
+                  ) : campaigns.length === 0 ? (
+                    <View className="items-center py-12">
+                      <Clock color="#bdbdbd" size={48} style={{ opacity: 0.5 }} />
+                      <Text className="text-sm text-[#bdbdbd] mt-4">No completed campaigns yet</Text>
+                      <Text className="text-xs text-[#bdbdbd] mt-2">
+                        Completed campaigns will appear here
+                      </Text>
+                    </View>
+                  ) : (
+                    <View className="gap-3">
+                      {campaigns.map((campaign) => (
+                        <TouchableOpacity
+                          key={campaign.id}
+                          onPress={() => handleCampaignClick(campaign)}
+                          className="p-4 bg-white/5 border border-white/10 rounded-xl active:bg-white/10"
+                        >
+                          <View className="flex-row items-start justify-between mb-2 gap-2">
+                            <Text className="font-semibold text-white text-base flex-1" numberOfLines={1}>
+                              {campaign.title}
                             </Text>
+                            <View className="px-2 py-1 rounded-full bg-lime-300/10 border border-lime-300/20">
+                              <Text className="text-xs font-semibold text-lime-300">
+                                Completed
+                              </Text>
+                            </View>
                           </View>
-                        )}
-                      </View>
-                      <Text className="text-xs text-white/60 border-t border-white/10 pt-2" numberOfLines={2}>
-                        {selectedCampaign?.message}
-                      </Text>
+                          <View className="flex-row items-center gap-2 flex-wrap">
+                            <View className="flex-row items-center gap-1">
+                              <Calendar color="#bdbdbd" size={12} />
+                              <Text className="text-xs text-[#bdbdbd]">
+                                {formatDate(campaign.cron)}
+                              </Text>
+                            </View>
+                            <Text className="text-xs text-[#bdbdbd]">•</Text>
+                            <Text className="text-xs text-[#bdbdbd]">
+                              {campaign.final_clients_to_message || 0} recipients
+                            </Text>
+                            <Text className="text-xs text-[#bdbdbd]">•</Text>
+                            <Text className="text-xs text-lime-300">
+                              {campaign.success} sent
+                            </Text>
+                            <Text className="text-xs text-[#bdbdbd]">•</Text>
+                            <Text className="text-xs text-rose-300">
+                              {campaign.fail || 0} failed
+                            </Text>
+                            {(campaign.success + (campaign.fail || 0)) > 0 && (
+                              <>
+                                <Text className="text-xs text-[#bdbdbd]">•</Text>
+                                <Text className="text-xs text-sky-300">
+                                  {((campaign.success / (campaign.success + (campaign.fail || 0))) * 100).toFixed(1)}% rate
+                                </Text>
+                              </>
+                            )}
+                          </View>
+                          <Text className="mt-2 text-xs text-[#bdbdbd]" numberOfLines={2}>
+                            {campaign.message}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
                     </View>
                   )}
+                </ScrollView>
 
-                  {/* Recipients List - Scrollable */}
+                {/* Footer */}
+                <View className="border-t border-white/10 p-4 bg-white/5">
+                  <TouchableOpacity
+                    onPress={onClose}
+                    className="px-6 py-3 rounded-xl font-bold bg-white/10 items-center"
+                  >
+                    <Text className="text-sm font-bold text-white">Close</Text>
+                  </TouchableOpacity>
+                </View>
+              </Animated.View>
+            ) : (
+              <Animated.View
+                key="details"
+                entering={SlideInRight.duration(200)}
+                exiting={SlideOutLeft.duration(200)}
+                className="flex-1 flex"
+              >
+                {/* Modal Header - Fixed */}
+                <View className="flex-row items-center justify-between p-4 border-b border-white/10">
+                  <View className="flex-row items-center gap-3 flex-1">
+                    <TouchableOpacity
+                      onPress={handleBack}
+                      className="p-2 rounded-full active:bg-white/10"
+                    >
+                      <ArrowLeft color="#bdbdbd" size={16} />
+                    </TouchableOpacity>
+                    <View className="flex-1">
+                      <Text className="text-lg font-bold text-white" numberOfLines={1}>
+                        {selectedCampaign?.title}
+                      </Text>
+                      <Text className="text-xs text-[#bdbdbd] mt-0.5" numberOfLines={1}>
+                        {selectedCampaign && formatDate(selectedCampaign.cron)}
+                      </Text>
+                    </View>
+                  </View>
+                  <TouchableOpacity
+                    onPress={onClose}
+                    className="p-1.5 rounded-full"
+                  >
+                    <X color="#bdbdbd" size={16} />
+                  </TouchableOpacity>
+                </View>
+
+                {/* Stats Bar - Fixed */}
+                {recipientsStats && (
+                  <View className="px-4 py-2.5 border-b border-white/10 bg-white/5">
+                    <View className="flex-row gap-4 mb-2">
+                      <View>
+                        <Text className="text-xs text-[#bdbdbd] mb-0.5">Total</Text>
+                        <Text className="text-base font-bold text-white">{recipientsStats.total}</Text>
+                      </View>
+                      <View>
+                        <Text className="text-xs text-[#bdbdbd] mb-0.5">Successful</Text>
+                        <Text className="text-base font-bold text-lime-300">{recipientsStats.successful}</Text>
+                      </View>
+                      <View>
+                        <Text className="text-xs text-[#bdbdbd] mb-0.5">Failed</Text>
+                        <Text className="text-base font-bold text-rose-300">{recipientsStats.failed || 0}</Text>
+                      </View>
+                      {(recipientsStats.successful + (recipientsStats.failed || 0)) > 0 && (
+                        <View>
+                          <Text className="text-xs text-[#bdbdbd] mb-0.5">Success Rate</Text>
+                          <Text className="text-base font-bold text-sky-300">
+                            {((recipientsStats.successful / (recipientsStats.successful + (recipientsStats.failed || 0))) * 100).toFixed(1)}%
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+                    <Text className="text-xs text-white/60 border-t border-white/10 pt-2" numberOfLines={2}>
+                      {selectedCampaign?.message}
+                    </Text>
+                  </View>
+                )}
+
+                {/* Recipients List - Scrollable */}
+                <View className="flex-1">
                   <ScrollView 
-                    className="flex-1 p-4"
+                    className="flex-1"
+                    contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 16 }}
                     showsVerticalScrollIndicator={true}
-                    nestedScrollEnabled={true}
                   >
                     {loadingRecipients ? (
                       <View className="items-center py-12">
@@ -415,22 +420,22 @@ export default function CampaignHistoryModal({ isOpen, onClose, session }: Campa
                       </View>
                     )}
                   </ScrollView>
+                </View>
 
-                  {/* Footer */}
-                  <View className="border-t border-white/10 px-4 py-3 bg-white/5">
-                    <TouchableOpacity
-                      onPress={handleBack}
-                      className="px-4 py-2 rounded-lg bg-white/10 items-center"
-                    >
-                      <Text className="text-sm font-semibold text-white">Back to History</Text>
-                    </TouchableOpacity>
-                  </View>
-                </Animated.View>
-              )}
-            </View>
-          </Pressable>
+                {/* Footer */}
+                <View className="border-t border-white/10 px-4 py-3 bg-white/5">
+                  <TouchableOpacity
+                    onPress={handleBack}
+                    className="px-4 py-2 rounded-lg bg-white/10 items-center"
+                  >
+                    <Text className="text-sm font-semibold text-white">Back to History</Text>
+                  </TouchableOpacity>
+                </View>
+              </Animated.View>
+            )}
+          </View>
         </Animated.View>
-      </Pressable>
+      </View>
     </Modal>
   );
 }

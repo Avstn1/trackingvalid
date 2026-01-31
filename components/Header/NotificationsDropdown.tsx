@@ -87,10 +87,24 @@ interface NotificationsDropdownProps {
   externalTrigger?: boolean
   onExternalTriggerHandled?: () => void
   onBack?: () => void
+  initialNotifications?: Notification[]
+  onNotificationsUpdate?: (notifications: Notification[]) => void
+  hasMoreNotifications?: boolean
+  onLoadMore?: () => void
 }
 
-export default function NotificationsDropdown({ userId, inSidebar = false, externalTrigger = false, onExternalTriggerHandled, onBack }: NotificationsDropdownProps) {
-  const [notifications, setNotifications] = useState<Notification[]>([])
+export default function NotificationsDropdown({ 
+  userId, 
+  inSidebar = false, 
+  externalTrigger = false, 
+  onExternalTriggerHandled, 
+  onBack,
+  initialNotifications = [],
+  onNotificationsUpdate,
+  hasMoreNotifications = false,
+  onLoadMore
+}: NotificationsDropdownProps) {
+  const [notifications, setNotifications] = useState<Notification[]>(initialNotifications)
   const [open, setOpen] = useState(false)
   const [isClosing, setIsClosing] = useState(false)
   const [selectedReport, setSelectedReport] = useState<Report | null>(null)
@@ -99,6 +113,11 @@ export default function NotificationsDropdown({ userId, inSidebar = false, exter
 
   const translateY = useSharedValue(0)
   const opacity = useSharedValue(0)
+
+  // Sync with parent notifications
+  useEffect(() => {
+    setNotifications(initialNotifications)
+  }, [initialNotifications])
 
   // Handle external trigger
   useEffect(() => {
@@ -109,75 +128,6 @@ export default function NotificationsDropdown({ userId, inSidebar = false, exter
       }
     }
   }, [externalTrigger, open, onExternalTriggerHandled])
-
-  const fetchNotifications = useCallback(async () => {
-    if (!userId) return
-
-    try {
-      const { data, error } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', userId)
-        .order('timestamp', { ascending: false })
-        .limit(15)
-
-      if (error) console.error('Failed to fetch notifications:', error)
-
-      const mapped = (data || []).map(item => ({
-        id: item.id,
-        header: item.header,
-        message: item.message,
-        is_read: item.read === true,
-        created_at: item.timestamp,
-        reference: item.reference,
-        reference_type: item.reference_type
-      }))
-
-      setNotifications(mapped)
-    } catch (err) {
-      console.error(err)
-    }
-  }, [userId])
-
-  useEffect(() => {
-    if (userId) fetchNotifications()
-  }, [userId, fetchNotifications])
-
-  useEffect(() => {
-    if (!userId) return
-
-    const channel = supabase
-      .channel('notifications-realtime')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${userId}`,
-        },
-        (payload) => {
-          const newN = payload.new as any
-
-          const formatted: Notification = {
-            id: newN.id,
-            header: newN.header,
-            message: newN.message,
-            is_read: newN.read === true,
-            created_at: newN.timestamp,
-            reference: newN.reference,
-            reference_type: newN.reference_type
-          }
-
-          setNotifications((prev) => [formatted, ...prev])
-        }
-      )
-      .subscribe()
-
-    return () => {
-      supabase.removeChannel(channel)
-    }
-  }, [userId])
 
   // Animate modal open
   useEffect(() => {
@@ -229,9 +179,15 @@ export default function NotificationsDropdown({ userId, inSidebar = false, exter
   const handleClickNotification = async (n: Notification) => {
     if (!n.is_read) {
       await supabase.from('notifications').update({ read: true }).eq('id', n.id)
-      setNotifications((prev) => 
-        prev.map((notif) => notif.id === n.id ? { ...notif, is_read: true } : notif)
+      const updatedNotifications = notifications.map((notif) => 
+        notif.id === n.id ? { ...notif, is_read: true } : notif
       )
+      setNotifications(updatedNotifications)
+      
+      // Update parent
+      if (onNotificationsUpdate) {
+        onNotificationsUpdate(updatedNotifications)
+      }
     }
 
     if (!inSidebar) {
@@ -307,7 +263,13 @@ export default function NotificationsDropdown({ userId, inSidebar = false, exter
 
   const handleMarkAllRead = async () => {
     await supabase.from('notifications').update({ read: true }).eq('user_id', userId)
-    setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })))
+    const updatedNotifications = notifications.map((n) => ({ ...n, is_read: true }))
+    setNotifications(updatedNotifications)
+    
+    // Update parent
+    if (onNotificationsUpdate) {
+      onNotificationsUpdate(updatedNotifications)
+    }
   }
 
   const unreadCount = notifications.filter((n) => !n.is_read).length
@@ -520,6 +482,21 @@ export default function NotificationsDropdown({ userId, inSidebar = false, exter
                               </Text>
                             </TouchableOpacity>
                           ))}
+                          
+                          {/* Load More Button */}
+                          {hasMoreNotifications && (
+                            <TouchableOpacity
+                              onPress={onLoadMore}
+                              className="py-3 items-center"
+                            >
+                              <Text 
+                                className="text-sm font-semibold"
+                                style={{ color: COLORS.green }}
+                              >
+                                See more
+                              </Text>
+                            </TouchableOpacity>
+                          )}
                         </ScrollView>
                       )}
                     </Pressable>

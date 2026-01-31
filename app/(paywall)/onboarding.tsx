@@ -34,7 +34,7 @@ type OnboardingPage = {
 
 const pages: OnboardingPage[] = [
   {
-    image: require('@/assets/images/shearworklogo.png'),
+    image: require('@/assets/images/corvalogoTransparent.png'),
     title: 'Welcome to Corva',
     description: 'The all-in-one business management platform designed specifically for you.',
     gradient: ['#101312', '#1a1f1b', '#1e2b22'],

@@ -14,7 +14,7 @@ export default function LogoutSection() {
         text: 'Logout',
         style: 'destructive',
         onPress: async () => {
-          await supabase.auth.signOut();
+          await supabase.auth.signOut({ scope: 'local' });
           router.replace('/login');
         },
       },

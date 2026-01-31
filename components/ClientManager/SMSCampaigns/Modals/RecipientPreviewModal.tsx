@@ -10,6 +10,7 @@ import {
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   Keyboard,
   Modal,
@@ -265,14 +266,20 @@ export default function RecipientPreviewModal({
   // Handle batch confirm button
   const handleBatchConfirm = async (actionType: "select" | "deselect") => {
     if (batchSelectedForAction.size === 0) {
-      Toast.show({
-        type: "error",
-        text1: "Please select at least one client",
-      });
+      Alert.alert(
+        "No client selected",
+        "Please select at least one client"
+      );
       return;
     }
 
-    if (!(await checkMessageExistsInDatabase())) return;
+    if (!(await checkMessageExistsInDatabase())) {
+      Alert.alert(
+        "Save Required",
+        "Please save this message as a draft first"
+      );
+      return;
+    }
 
     setBatchActionType(actionType);
     setShowBatchConfirmModal(true);
@@ -338,9 +345,9 @@ export default function RecipientPreviewModal({
             const phone = c.phone_normalized || "";
             const wasManuallyDeselected = deselectedClients.includes(phone);
 
-            console.log(
-              `Phone ${phone}: wasManuallyDeselected=${wasManuallyDeselected}`
-            );
+            // // console.log(
+            //   `Phone ${phone}: wasManuallyDeselected=${wasManuallyDeselected}`
+            // );
 
             return phonesToProcess.includes(phone) && !wasManuallyDeselected;
           })
@@ -351,7 +358,7 @@ export default function RecipientPreviewModal({
             phone_normalized: c.phone_normalized,
           }));
 
-        console.log("Clients to add:", clientsToAdd);
+        // console.log("Clients to add:", clientsToAdd);
 
         const updatedSelected = [...selectedClients, ...clientsToAdd];
 
@@ -625,9 +632,9 @@ export default function RecipientPreviewModal({
       } = await supabase.auth.getUser();
       if (!user) return;
 
-      console.log("Removing phone:", pendingReselectPhone);
-      console.log("Current deselected:", deselectedClients);
-      console.log("Current selected:", selectedClients);
+      // console.log("Removing phone:", pendingReselectPhone);
+      // console.log("Current deselected:", deselectedClients);
+      // console.log("Current selected:", selectedClients);
 
       const updatedDeselected = deselectedClients.filter(
         (phone) => phone !== pendingReselectPhone
@@ -637,8 +644,8 @@ export default function RecipientPreviewModal({
         (c) => c.phone_normalized !== pendingReselectPhone
       );
 
-      console.log("Updated deselected:", updatedDeselected);
-      console.log("Updated selected:", updatedSelected);
+      // console.log("Updated deselected:", updatedDeselected);
+      // console.log("Updated selected:", updatedSelected);
 
       const { error } = await supabase
         .from("sms_scheduled_messages")
@@ -654,7 +661,7 @@ export default function RecipientPreviewModal({
         throw error;
       }
 
-      console.log("Database updated successfully");
+      // console.log("Database updated successfully");
 
       setDeselectedClients(updatedDeselected);
       setSelectedClients(updatedSelected);
@@ -803,17 +810,17 @@ export default function RecipientPreviewModal({
         });
       }
 
-      console.log('Filtered and searched clients:', searchedClients.length);
+      // console.log('Filtered and searched clients:', searchedClients.length);
 
       // Finally apply pagination to the search results
       const start = (clientListPage - 1) * CLIENT_LIST_PER_PAGE;
       const paginated = searchedClients.slice(start, start + CLIENT_LIST_PER_PAGE);
-      console.log('Paginated clients:', paginated.length, 'from', start, 'to', start + CLIENT_LIST_PER_PAGE);
+      // console.log('Paginated clients:', paginated.length, 'from', start, 'to', start + CLIENT_LIST_PER_PAGE);
       return paginated;
     }
 
     if (activeTab === "deselected") {
-      console.log('Deselected tab, searching through all other clients');
+      // console.log('Deselected tab, searching through all other clients');
       
       // Get ALL other clients (not just current page)
       const allOtherClients = deselectedPreviewClients || [];
@@ -847,7 +854,7 @@ export default function RecipientPreviewModal({
       return searchedClients.slice(startIndex, endIndex);
     }
 
-    console.log('No tab matched, returning empty array');
+    // console.log('No tab matched, returning empty array');
     return [];
   };
 
@@ -1690,7 +1697,10 @@ export default function RecipientPreviewModal({
           <View className="flex-1 bg-black/60 items-center justify-center p-4">
             <Pressable
               className="bg-[#1a1a1a] border border-white/10 rounded-2xl max-w-md w-full p-6"
-              onPress={(e) => e.stopPropagation()}
+              onPress={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+              }}
             >
               <View className="flex-row items-start gap-4 mb-4">
                 <View

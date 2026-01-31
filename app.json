@@ -1,16 +1,16 @@
 {
   "expo": {
-    "name": "trackingvalid",
-    "slug": "shearwork",
+    "name": "Corva",
+    "slug": "corva",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "trackingvalid",
+    "scheme": "corva",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.shearwork.shearwork",
+      "bundleIdentifier": "com.corva.corva",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -59,9 +59,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "b95d616c-d9d4-4235-ae5d-6f82b1bc0f3d"
+        "projectId": "370c9312-3c85-49dc-9c77-3afc4ddbbdd0"
       }
     },
-    "owner": "shearwork"
+    "owner": "corva.ca"
   }
 }

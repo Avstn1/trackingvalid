@@ -4,33 +4,24 @@ import AuthLoadingSplash from '@/components/AuthLoadingSpash';
 import CreditsModal from '@/components/Header/CreditsModal';
 import FAQModal from '@/components/Header/FAQModal';
 import NewFeaturesModal from '@/components/Header/FeatureUpdatesModal';
+import HamburgerMenuModal from '@/components/Header/HamburgerMenuModal';
 import NotificationsDropdown from '@/components/Header/NotificationsDropdown';
 import { supabase } from '@/utils/supabaseClient';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Bell, CalendarRange, Coins, HelpCircle, Megaphone, Menu, X } from 'lucide-react-native';
-import React, { useEffect, useState } from 'react';
+import { CalendarRange, Menu } from 'lucide-react-native';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Dimensions,
-  Modal,
-  Pressable,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
-import Animated, {
-  runOnJS,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DayPicker from './DayPicker';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-const SIDEBAR_HEIGHT = SCREEN_HEIGHT * 0.5;
 
 const COLORS = {
   background: '#181818',
@@ -44,6 +35,7 @@ const COLORS = {
   green: '#8bcf68ff',
   greenLight: '#beb348ff',
   yellow: '#FFEB3B',
+  red: '#ef4444',
 };
 
 const MONTHS = [
@@ -62,6 +54,16 @@ const MONTHS = [
 ];
 
 type Timeframe = 'year' | 'Q1' | 'Q2' | 'Q3' | 'Q4';
+
+interface Notification {
+  id: string;
+  header: string;
+  message: string;
+  is_read: boolean;
+  created_at: string;
+  reference?: string;
+  reference_type?: string;
+}
 
 interface CustomHeaderProps {
   pageName: string;
@@ -105,29 +107,32 @@ export function CustomHeader({
   const [tempDate, setTempDate] = useState(
     selectedDate || new Date(currentYear, currentMonthIndex, 1),
   );
-  const [tempDashboardView, setTempDashboardView] =
-    useState(dashboardView);
+  const [tempDashboardView, setTempDashboardView] = useState(dashboardView);
   const [tempTimeframe, setTempTimeframe] = useState(timeframe);
 
   const [componentsReady, setComponentsReady] = useState(false);
 
+  // Modal states
   const [showSidebar, setShowSidebar] = useState(false);
-  const [isClosing, setIsClosing] = useState(false);
-
   const [showCreditsModal, setShowCreditsModal] = useState(false);
   const [showNotificationsModal, setShowNotificationsModal] = useState(false);
   const [showFeaturesModal, setShowFeaturesModal] = useState(false);
   const [showFAQModal, setShowFAQModal] = useState(false);
 
-  const translateY = useSharedValue(SIDEBAR_HEIGHT);
-  const opacity = useSharedValue(0);
+  // Notifications state
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notificationsPage, setNotificationsPage] = useState(1);
+  const [hasMoreNotifications, setHasMoreNotifications] = useState(true);
+
+  // Feature updates state
+  const [hasNewFeatures, setHasNewFeatures] = useState(false);
+  const hasAutoOpenedFeaturesRef = React.useRef(false);
 
   // Check if this page should show the date picker
-  const showsDatePicker = ['Dashboard', 'Finances', 'Reports'].includes(
-    pageName,
-  );
+  const showsDatePicker = ['Dashboard', 'Finances', 'Reports'].includes(pageName);
   const isDashboard = pageName === 'Dashboard';
 
+  // Fetch user and profile
   useEffect(() => {
     const fetchUserAndProfile = async () => {
       try {
@@ -165,42 +170,235 @@ export function CustomHeader({
     });
   }, []);
 
-  // Check for new feature updates
-  useEffect(() => {
-    const checkForNewUpdates = async () => {
-      if (!profile?.user_id) return;
+  // Fetch notifications
+  const fetchNotifications = useCallback(async (page: number = 1) => {
+    if (!profile?.user_id) return;
 
-      try {
-        const { data: updates, error } = await supabase
-          .from('feature_updates')
-          .select('released_at')
-          .in('platform', ['mobile', 'both'])
-          .eq('is_published', true)
-          .order('released_at', { ascending: false })
-          .limit(1);
+    try {
+      const limit = 50;
+      const from = (page - 1) * limit;
+      const to = from + limit - 1;
 
-        if (error || !updates || updates.length === 0) return;
+      const { data, error, count } = await supabase
+        .from('notifications')
+        .select('*', { count: 'exact' })
+        .eq('user_id', profile.user_id)
+        .order('timestamp', { ascending: false })
+        .range(from, to);
 
-        const latestUpdateDate = new Date(updates[0].released_at);
-        const lastReadDate = profile.last_read_feature_updates 
-          ? new Date(profile.last_read_feature_updates) 
-          : null;
-
-        // Auto-open if there are new updates
-        if (!lastReadDate || latestUpdateDate > lastReadDate) {
-          setTimeout(() => {
-            setShowFeaturesModal(true);
-          }, 1000); // Delay to let app settle
-        }
-      } catch (error) {
-        console.error('Error checking for new updates:', error);
+      if (error) {
+        console.error('Failed to fetch notifications:', error);
+        return;
       }
-    };
 
-    if (componentsReady && profile) {
-      checkForNewUpdates();
+      const mapped = (data || []).map(item => ({
+        id: item.id,
+        header: item.header,
+        message: item.message,
+        is_read: item.read === true,
+        created_at: item.timestamp,
+        reference: item.reference,
+        reference_type: item.reference_type,
+      }));
+
+      if (page === 1) {
+        setNotifications(mapped);
+      } else {
+        setNotifications(prev => [...prev, ...mapped]);
+      }
+
+      setHasMoreNotifications(data && data.length === limit);
+    } catch (err) {
+      console.error('Error fetching notifications:', err);
     }
-  }, [componentsReady, profile]);
+  }, [profile?.user_id]);
+
+  // Check for new features
+  const checkForNewFeatures = useCallback(async () => {
+    if (!profile?.user_id) return;
+
+    try {
+      const { data: updates, error } = await supabase
+        .from('feature_updates')
+        .select('released_at')
+        .in('platform', ['mobile', 'both'])
+        .eq('is_published', true)
+        .order('released_at', { ascending: false })
+        .limit(1);
+
+      if (error || !updates || updates.length === 0) {
+        setHasNewFeatures(false);
+        return;
+      }
+
+      const latestUpdateDate = new Date(updates[0].released_at);
+      const lastReadDate = profile.last_read_feature_updates
+        ? new Date(profile.last_read_feature_updates)
+        : null;
+
+      setHasNewFeatures(!lastReadDate || latestUpdateDate > lastReadDate);
+    } catch (error) {
+      console.error('Error checking for new features:', error);
+      setHasNewFeatures(false);
+    }
+  }, [profile]);
+
+  // Initial fetch
+  useEffect(() => {
+    if (componentsReady && profile) {
+      fetchNotifications(1);
+      checkForNewFeatures();
+    }
+  }, [componentsReady, profile, fetchNotifications, checkForNewFeatures]);
+
+  // Real-time notifications subscription
+  useEffect(() => {
+    if (!profile?.user_id) return;
+
+    // console.log('🔔 Setting up notifications real-time subscription for user:', profile.user_id);
+
+    const channel = supabase
+      .channel(`notifications-${profile.user_id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${profile.user_id}`,
+        },
+        (payload) => {
+          // console.log('📬 INSERT event received:', payload);
+          const newN = payload.new as any;
+
+          const formatted: Notification = {
+            id: newN.id,
+            header: newN.header,
+            message: newN.message,
+            is_read: newN.read === true,
+            created_at: newN.timestamp,
+            reference: newN.reference,
+            reference_type: newN.reference_type,
+          };
+
+          setNotifications((prev) => {
+            // console.log('📬 Adding notification to state. Total:', prev.length + 1);
+            return [formatted, ...prev];
+          });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${profile.user_id}`,
+        },
+        (payload) => {
+          // console.log('✏️ UPDATE event received:', payload);
+          // console.log('✏️ Old values:', payload.old);
+          // console.log('✏️ New values:', payload.new);
+          const updated = payload.new as any;
+          setNotifications((prev) => {
+            const newNotifs = prev.map((n) =>
+              n.id === updated.id
+                ? { ...n, is_read: updated.read === true }
+                : n
+            );
+            // console.log('✏️ Updated notification in state:', updated.id);
+            return newNotifs;
+          });
+        }
+      )
+      .subscribe((status, err) => {
+        // console.log('🔔 Notifications subscription status:', status);
+        if (err) {
+          console.error('🔔 Notifications subscription error:', err);
+        }
+      });
+
+    return () => {
+      // console.log('🔕 Notifications real-time subscription cleaned up');
+      supabase.removeChannel(channel);
+    };
+  }, [profile?.user_id]);
+
+  // Real-time feature updates subscription
+  useEffect(() => {
+    if (!profile?.user_id) return;
+
+    const channel = supabase
+      .channel('feature-updates-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'feature_updates',
+        },
+        (payload) => {
+          // console.log('🎉 New feature update received:', payload.new);
+          const newFeature = payload.new as any;
+          
+          // Check if it's relevant for mobile
+          if (!['mobile', 'both'].includes(newFeature.platform)) {
+            // console.log('⏭️ Feature update skipped - not for mobile platform:', newFeature.platform);
+            return;
+          }
+          if (!newFeature.is_published) {
+            // console.log('⏭️ Feature update skipped - not published');
+            return;
+          }
+
+          const lastReadDate = profile.last_read_feature_updates
+            ? new Date(profile.last_read_feature_updates)
+            : null;
+          const featureDate = new Date(newFeature.released_at);
+
+          // console.log('📅 Comparing dates - Last read:', lastReadDate, 'Feature released:', featureDate);
+
+          if (!lastReadDate || featureDate > lastReadDate) {
+            // console.log('✨ Setting hasNewFeatures to TRUE');
+            setHasNewFeatures(true);
+          } else {
+            // console.log('⏭️ Feature update skipped - already read');
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'feature_updates',
+        },
+        (payload) => {
+          // console.log('✏️ Feature update modified:', payload.new);
+          
+          // Re-check if new features exist
+          checkForNewFeatures();
+        }
+      )
+      .subscribe();
+
+    // console.log('🎯 Feature updates real-time subscription started');
+
+    return () => {
+      // console.log('🎯 Feature updates real-time subscription cleaned up');
+      supabase.removeChannel(channel);
+    };
+  }, [profile, checkForNewFeatures]);
+
+  // Auto-open features modal on new updates (only once per app load)
+  useEffect(() => {
+    if (componentsReady && profile && hasNewFeatures && !hasAutoOpenedFeaturesRef.current) {
+      setTimeout(() => {
+        setShowFeaturesModal(true);
+        hasAutoOpenedFeaturesRef.current = true;
+      }, 1000);
+    }
+  }, [componentsReady, profile, hasNewFeatures]);
 
   // Update local state when props change
   useEffect(() => {
@@ -218,63 +416,19 @@ export function CustomHeader({
     setTempTimeframe(timeframe);
   }, [timeframe]);
 
-  // Sidebar animation
-  useEffect(() => {
-    if (showSidebar) {
-      translateY.value = withTiming(0, { duration: 280 });
-      opacity.value = withTiming(1, { duration: 280 });
+  // Load more notifications
+  const handleLoadMoreNotifications = useCallback(() => {
+    if (hasMoreNotifications) {
+      const nextPage = notificationsPage + 1;
+      setNotificationsPage(nextPage);
+      fetchNotifications(nextPage);
     }
-  }, [showSidebar]);
+  }, [hasMoreNotifications, notificationsPage, fetchNotifications]);
 
-  const closeSidebar = () => {
-    if (isClosing) return;
-    setIsClosing(true);
-    translateY.value = withTiming(SIDEBAR_HEIGHT, { duration: 250 });
-    opacity.value = withTiming(0, { duration: 250 });
-    setTimeout(() => {
-      setShowSidebar(false);
-      setIsClosing(false);
-    }, 250);
-  };
-
-  const openSidebar = () => setShowSidebar(true);
-
-  // Pan gesture for swipe to close
-  const panGesture = Gesture.Pan()
-    .onUpdate((event) => {
-      if (event.translationY > 0) {
-        translateY.value = event.translationY;
-        const progress = Math.min(event.translationY / 300, 1);
-        opacity.value = 1 - progress;
-      }
-    })
-    .onEnd((event) => {
-      if (event.translationY > 100 || event.velocityY > 500) {
-        runOnJS(closeSidebar)();
-      } else {
-        translateY.value = withTiming(0, { duration: 200 });
-        opacity.value = withTiming(1, { duration: 200 });
-      }
-    });
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: translateY.value }],
-  }));
-
-  const backdropStyle = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-  }));
-
-  // Handle back button from modals
-  const handleCreditsBack = () => {
-    setShowCreditsModal(false);
-    setTimeout(() => setShowSidebar(true), 100);
-  };
-
-  const handleNotificationsBack = () => {
-    setShowNotificationsModal(false);
-    setTimeout(() => setShowSidebar(true), 100);
-  };
+  // Handle notification updates
+  const handleNotificationUpdate = useCallback((updatedNotifications: Notification[]) => {
+    setNotifications(updatedNotifications);
+  }, []);
 
   // Date picker handlers
   const handleDateChange = (_event: any, date?: Date) => {
@@ -294,7 +448,6 @@ export function CustomHeader({
 
   const handleDateConfirm = () => {
     if (isDashboard) {
-      // Dashboard mode
       if (onDashboardViewChange) {
         onDashboardViewChange(tempDashboardView);
       }
@@ -307,7 +460,6 @@ export function CustomHeader({
       setLocalSelectedDate(tempDate);
       setShowDatePicker(false);
     } else {
-      // Finances/Reports mode
       setLocalSelectedDate(tempDate);
       const month = MONTHS[tempDate.getMonth()];
       const year = tempDate.getFullYear();
@@ -336,6 +488,9 @@ export function CustomHeader({
   const getDateLabel = () => {
     return `${MONTHS[localSelectedDate.getMonth()]} ${localSelectedDate.getFullYear()}`;
   };
+
+  const unreadNotificationsCount = notifications.filter((n) => !n.is_read).length;
+  const showHamburgerBadge = unreadNotificationsCount > 0 || hasNewFeatures;
 
   if (loading) {
     return (
@@ -421,183 +576,33 @@ export function CustomHeader({
             </TouchableOpacity>
           )}
           
-          <TouchableOpacity onPress={openSidebar}>
+          <TouchableOpacity 
+            onPress={() => setShowSidebar(true)}
+            className="relative"
+          >
             <Menu size={24} color={COLORS.text} />
+            {showHamburgerBadge && (
+              <View
+                className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full"
+                style={{ backgroundColor: COLORS.red }}
+              />
+            )}
           </TouchableOpacity>
         </View>
       </View>
 
-      {/* Sidebar Menu Modal */}
-      <Modal
+      {/* Hamburger Menu Modal */}
+      <HamburgerMenuModal
         visible={showSidebar}
-        transparent={true}
-        animationType="none"
-        onRequestClose={closeSidebar}
-        statusBarTranslucent
-      >
-        <GestureHandlerRootView style={{ flex: 1 }}>
-          <Animated.View style={[{ flex: 1 }, backdropStyle]}>
-            <Pressable
-              className="flex-1"
-              style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)' }}
-              onPress={closeSidebar}
-            >
-              <GestureDetector gesture={panGesture}>
-                <Animated.View
-                  style={[
-                    animatedStyle,
-                    {
-                      position: 'absolute',
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      height: SIDEBAR_HEIGHT,
-                      backgroundColor: COLORS.surfaceSolid,
-                      borderTopLeftRadius: 24,
-                      borderTopRightRadius: 24,
-                      borderTopWidth: 1,
-                      borderLeftWidth: 1,
-                      borderRightWidth: 1,
-                      borderColor: COLORS.glassBorder,
-                      shadowColor: '#000',
-                      shadowOffset: { width: 0, height: -4 },
-                      shadowOpacity: 0.4,
-                      shadowRadius: 12,
-                      elevation: 10,
-                      overflow: 'hidden',
-                    },
-                  ]}
-                >
-                  <Pressable onPress={(e) => e.stopPropagation()}>
-                    {/* Drag Handle */}
-                    <View className="items-center pt-3 pb-2">
-                      <View
-                        style={{
-                          width: 40,
-                          height: 4,
-                          backgroundColor: COLORS.textMuted,
-                          borderRadius: 2,
-                        }}
-                      />
-                    </View>
-
-                    {/* Sidebar Header */}
-                    <View
-                      className="flex-row items-center justify-between px-5 pb-4 pt-2"
-                      style={{
-                        borderBottomWidth: 1,
-                        borderBottomColor: COLORS.glassBorder,
-                      }}
-                    >
-                      <Text className="text-xl font-bold" style={{ color: COLORS.text }}>
-                        Menu
-                      </Text>
-                      <TouchableOpacity onPress={closeSidebar} className="p-1">
-                        <X size={24} color={COLORS.textMuted} />
-                      </TouchableOpacity>
-                    </View>
-
-                    {/* Menu Items */}
-                    <View className="mt-4">
-                      {/* Feature Updates - First */}
-                      <TouchableOpacity
-                        onPress={() => {
-                          closeSidebar();
-                          setTimeout(() => setShowFeaturesModal(true), 300);
-                        }}
-                        className="flex-row items-center px-5 py-4"
-                        style={{
-                          borderBottomWidth: 1,
-                          borderBottomColor: COLORS.glassBorder,
-                        }}
-                      >
-                        <View
-                          className="p-2 rounded-full mr-4"
-                          style={{ backgroundColor: COLORS.surface }}
-                        >
-                          <Megaphone size={20} color={COLORS.green} />
-                        </View>
-                        <Text className="text-base font-medium" style={{ color: COLORS.text }}>
-                          Feature Updates
-                        </Text>
-                      </TouchableOpacity>
-
-                      {/* Credits Manager */}
-                      <TouchableOpacity
-                        onPress={() => {
-                          closeSidebar();
-                          setTimeout(() => setShowCreditsModal(true), 300);
-                        }}
-                        className="flex-row items-center px-5 py-4"
-                        style={{
-                          borderBottomWidth: 1,
-                          borderBottomColor: COLORS.glassBorder,
-                        }}
-                      >
-                        <View
-                          className="p-2 rounded-full mr-4"
-                          style={{ backgroundColor: COLORS.surface }}
-                        >
-                          <Coins size={20} color={COLORS.green} />
-                        </View>
-                        <Text className="text-base font-medium" style={{ color: COLORS.text }}>
-                          Credits Manager
-                        </Text>
-                      </TouchableOpacity>
-
-                      {/* Notifications */}
-                      <TouchableOpacity
-                        onPress={() => {
-                          closeSidebar();
-                          setTimeout(() => setShowNotificationsModal(true), 300);
-                        }}
-                        className="flex-row items-center px-5 py-4"
-                        style={{
-                          borderBottomWidth: 1,
-                          borderBottomColor: COLORS.glassBorder,
-                        }}
-                      >
-                        <View
-                          className="p-2 rounded-full mr-4"
-                          style={{ backgroundColor: COLORS.surface }}
-                        >
-                          <Bell size={20} color={COLORS.green} />
-                        </View>
-                        <Text className="text-base font-medium" style={{ color: COLORS.text }}>
-                          Notifications
-                        </Text>
-                      </TouchableOpacity>
-
-                      {/* FAQ Modal */}
-                      <TouchableOpacity
-                        onPress={() => {
-                          closeSidebar();
-                          setTimeout(() => setShowFAQModal(true), 300);
-                        }}
-                        className="flex-row items-center px-5 py-4"
-                        style={{
-                          borderBottomWidth: 1,
-                          borderBottomColor: COLORS.glassBorder,
-                        }}
-                      >
-                        <View
-                          className="p-2 rounded-full mr-4"
-                          style={{ backgroundColor: COLORS.surface }}
-                        >
-                          <HelpCircle size={20} color={COLORS.green} />
-                        </View>
-                        <Text className="text-base font-medium" style={{ color: COLORS.text }}>
-                          Frequently Asked Questions
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-                  </Pressable>
-                </Animated.View>
-              </GestureDetector>
-            </Pressable>
-          </Animated.View>
-        </GestureHandlerRootView>
-      </Modal>
+        onClose={() => setShowSidebar(false)}
+        onCreditsPress={() => setShowCreditsModal(true)}
+        onNotificationsPress={() => setShowNotificationsModal(true)}
+        onFeaturesPress={() => setShowFeaturesModal(true)}
+        onFAQPress={() => setShowFAQModal(true)}
+        userId={profile?.user_id}
+        hasNewFeatures={hasNewFeatures}
+        unreadNotificationsCount={unreadNotificationsCount}
+      />
 
       {showsDatePicker && (
         <DayPicker
@@ -617,7 +622,10 @@ export function CustomHeader({
       <CreditsModal
         isOpen={showCreditsModal}
         onClose={() => setShowCreditsModal(false)}
-        onBack={handleCreditsBack}
+        onBack={() => {
+          setShowCreditsModal(false);
+          setTimeout(() => setShowSidebar(true), 100);
+        }}
       />
 
       <NewFeaturesModal
@@ -631,14 +639,21 @@ export function CustomHeader({
         onClose={() => setShowFAQModal(false)}
       />
 
-      {/* NotificationsDropdown with external trigger - bell hidden but modal works */}
+      {/* NotificationsDropdown - rendered off-screen but accessible */}
       {profile?.user_id && (
         <View style={{ position: 'absolute', left: -9999, top: -9999 }} pointerEvents="box-none">
           <NotificationsDropdown 
             userId={profile.user_id}
             externalTrigger={showNotificationsModal}
             onExternalTriggerHandled={() => setShowNotificationsModal(false)}
-            onBack={handleNotificationsBack}
+            onBack={() => {
+              setShowNotificationsModal(false);
+              setTimeout(() => setShowSidebar(true), 100);
+            }}
+            initialNotifications={notifications}
+            onNotificationsUpdate={handleNotificationUpdate}
+            hasMoreNotifications={hasMoreNotifications}
+            onLoadMore={handleLoadMoreNotifications}
           />
         </View>
       )}

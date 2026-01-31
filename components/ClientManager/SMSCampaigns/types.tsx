@@ -14,6 +14,7 @@ export interface SMSMessage {
   validationStatus?: 'ACCEPTED' | 'DENIED' | 'DRAFT' | null;
   validationReason?: string;
   isEditing?: boolean;
+  isFinished?: boolean;
   purpose: 'campaign' | 'mass' | 'auto-nudge';
 }
 

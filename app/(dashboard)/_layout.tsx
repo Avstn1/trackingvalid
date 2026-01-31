@@ -1,7 +1,8 @@
 import { HapticTab } from '@/components/haptic-tab';
+import { supabase } from '@/utils/supabaseClient';
 import { Ionicons } from '@expo/vector-icons';
-import { Tabs } from 'expo-router';
-import React from 'react';
+import { Tabs, useRouter } from 'expo-router';
+import React, { useEffect } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 
 const TAB_BAR_STYLES = StyleSheet.create({
@@ -45,6 +46,34 @@ const TAB_BAR_STYLES = StyleSheet.create({
 });
 
 export default function DashboardLayout() {
+  const router = useRouter();
+
+  useEffect(() => {
+    // Check initial session
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        router.replace('/login');
+      }
+    };
+
+    checkSession();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth event:', event);
+      
+      if (event === 'SIGNED_OUT' || !session) {
+        router.replace('/login');
+      }
+    });
+
+    // Cleanup subscription on unmount
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
   return (
     <View className="flex-1 bg-[#181818]">
       <Tabs

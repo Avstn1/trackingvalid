@@ -99,7 +99,11 @@ export function MessageContent({
             phone: profile?.phone || '',
           }
         }),
+        redirect: 'follow',
       });
+
+      console.log('Final status:', response.status);
+      console.log('Final URL:', response.url);
 
       const data = await response.json();
 

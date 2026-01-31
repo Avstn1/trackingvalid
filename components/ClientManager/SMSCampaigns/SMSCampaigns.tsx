@@ -390,6 +390,7 @@ export default function SMSCampaigns() {
       clientLimit: 50,
       enabled: true,
       isSaved: false,
+      isFinished: false,
       isValidated: false,
       validationStatus: 'DRAFT',
       validationReason: undefined,
@@ -411,7 +412,7 @@ export default function SMSCampaigns() {
 
     // Open delete confirmation modal
     setPendingDeleteMessageId(id);
-    setDeleteType(msg.isSaved ? 'soft' : 'hard');
+    setDeleteType(msg.isFinished ? 'soft' : 'hard');
     setShowDeleteModal(true);
   };
 

@@ -17,9 +17,9 @@ import {
 } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { ActivityIndicator, Modal, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import Collapsible from 'react-native-collapsible';
 import Animated, { FadeInDown, FadeOutUp } from 'react-native-reanimated';
 import Toast from 'react-native-toast-message';
+import { CollapsibleSection } from './CollapsibleSection';
 import { MessageContent } from './MessageContent';
 import { MessageSchedule } from './MessageSchedule';
 import { CampaignProgress, SMSMessage } from './types';
@@ -90,10 +90,10 @@ export function MessageCard({
 }: MessageCardProps) {
   const [showDeactivateModal, setShowDeactivateModal] = useState(false);
 
-  const [openSection, setOpenSection] = useState<'content' | 'schedule'>('content');
+  const [openSection, setOpenSection] = useState<'content' | 'schedule' | null>('content');
 
   const toggleSection = (section: 'content' | 'schedule') => {
-    setOpenSection(section); // always sets exactly one open
+    setOpenSection(openSection === section ? null : section);
   };
 
   const getSchedulePreview = () => {
@@ -404,7 +404,7 @@ export function MessageCard({
               </View>
               {openSection === 'content' ? <ChevronUp color="#bdbdbd" size={16} /> : <ChevronDown color="#bdbdbd" size={16} />}
             </TouchableOpacity>
-            <Collapsible collapsed={openSection !== 'content'} enablePointerEvents>
+            <CollapsibleSection collapsed={openSection !== 'content'}>
               <View className="p-2.5 border-t border-white/10">
                 <MessageContent
                   profile={profile}
@@ -419,7 +419,7 @@ export function MessageCard({
                   isPartialLock={isPartialLock}
                 />
               </View>
-            </Collapsible>
+            </CollapsibleSection>
           </View>
 
           {/* Schedule Section */}
@@ -436,7 +436,7 @@ export function MessageCard({
               </View>
               {openSection === 'schedule' ? <ChevronUp color="#bdbdbd" size={16} /> : <ChevronDown color="#bdbdbd" size={16} />}
             </TouchableOpacity>
-            <Collapsible collapsed={openSection !== 'schedule'} enablePointerEvents>
+            <CollapsibleSection collapsed={openSection !== 'schedule'}>
               <View className="p-2.5 border-t border-white/10">
                 <MessageSchedule
                   maxClients={maxClients}
@@ -454,7 +454,7 @@ export function MessageCard({
                   isPartialLock={isPartialLock}
                 />
               </View>
-            </Collapsible>
+            </CollapsibleSection>
           </View>
         </View>
       </View>

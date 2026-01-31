@@ -1,5 +1,8 @@
 import { supabase } from '@/utils/supabaseClient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import MaskedView from '@react-native-masked-view/masked-view';
+import * as Device from 'expo-device';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { Eye, EyeOff } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
@@ -56,26 +59,53 @@ function AuthLoadingSplash() {
           alignItems: 'center',
         }}
       >
-        <Image 
-          source={require('@/assets/images/shearworklogo.png')} 
-          style={{ 
-            width: 100, 
-            height: 100,
-            marginBottom: 20,
-          }}
-          resizeMode="contain"
-        />
-        <Text
-          style={{
-            fontSize: 32,
-            fontWeight: 'bold',
-            color: COLORS.text,
-            letterSpacing: -0.5,
-            marginBottom: 20,
-          }}
-        >
-          Corva
-        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
+          <Image
+            source={require('@/assets/images/corvalogoTransparent.png')}
+            style={{
+              width: 48,
+              height: 48,
+              marginRight: -3, 
+            }}
+            resizeMode="contain"
+          />
+
+          <MaskedView
+            maskElement={
+              <Text
+                style={{
+                  fontSize: 36,
+                  fontWeight: 'bold',
+                  letterSpacing: -0.5,
+                  marginTop: 3,
+                  backgroundColor: 'transparent',
+                }}
+              >
+                orva
+              </Text>
+            }
+          >
+            <LinearGradient
+              colors={['#34D556', '#28C63E', '#34D556']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+            >
+              {/* This text only exists to size the gradient */}
+              <Text
+                style={{
+                  fontSize: 36,
+                  fontWeight: 'bold',
+                  letterSpacing: -0.5,
+                  marginTop: 3,
+                  opacity: 0,
+                }}
+              >
+                orva
+              </Text>
+            </LinearGradient>
+          </MaskedView>
+        </View>
+
         <ActivityIndicator size="large" color={COLORS.green} />
       </Animated.View>
     </View>
@@ -117,6 +147,28 @@ export default function LoginPage() {
 
         if (error) {
           console.log(error)
+        }
+
+        // Get the actual session UUID using the RPC function
+        const { data: sessionId, error: sessionError } = await supabase
+          .rpc('get_current_session_id')
+
+        console.log('Session ID from RPC:', sessionId)
+
+        await supabase.from('user_devices').upsert({
+          user_id: session.user.id,
+          device_type: 'mobile',
+          device_id: Device.osBuildId || 'unknown',
+          device_name: Device.modelName || 'Unknown Device',
+          session_id: sessionId || session.access_token, // Use session UUID from RPC
+          last_login: new Date().toISOString(),
+          last_active: new Date().toISOString(),
+        }, {
+          onConflict: 'user_id,device_id'
+        });
+
+        if (sessionError) {
+          console.log(sessionError)
         }
 
         const subStatus: string = profile.stripe_subscription_status
@@ -189,6 +241,32 @@ export default function LoginPage() {
         });
       }
 
+      // Track device login
+      try {
+        // Get the actual session UUID using the RPC function
+        const { data: sessionId, error: sessionError } = await supabase
+          .rpc('get_current_session_id')
+
+        if (sessionError) {
+          console.error('Error getting session ID:', sessionError)
+        }
+
+        await supabase.from('user_devices').upsert({
+          user_id: data.user.id,
+          device_type: 'mobile',
+          device_id: Device.osBuildId || 'unknown',
+          device_name: Device.modelName || 'Unknown Device',
+          session_id: sessionId || data.session.access_token,
+          last_login: new Date().toISOString(),
+          last_active: new Date().toISOString(),
+        }, {
+          onConflict: 'user_id,device_id'
+        });
+      } catch (trackingError) {
+        console.error('Error tracking device:', trackingError)
+        // Don't block login if device tracking fails
+      }
+
       // Small delay to ensure session is persisted
       await new Promise(resolve => setTimeout(resolve, 100));
 
@@ -229,21 +307,53 @@ export default function LoginPage() {
         >
           {/* Logo and App Name */}
           <View className="items-center mb-8">
-            <Image
-              source={require('@/assets/images/shearworklogo.png')}
-              style={{ 
-                width: 64, 
-                height: 64,
-                marginBottom: 16,
-              }}
-              resizeMode="contain"
-            />
-            <Text 
-              className="text-4xl font-bold tracking-tight"
-              style={{ color: COLORS.text }}
-            >
-              Corva
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
+              <Image
+                source={require('@/assets/images/corvalogoTransparent.png')}
+                style={{
+                  width: 48,
+                  height: 48,
+                  marginRight: -3, 
+                }}
+                resizeMode="contain"
+              />
+    
+              <MaskedView
+                maskElement={
+                  <Text
+                    style={{
+                      fontSize: 36,
+                      fontWeight: 'bold',
+                      letterSpacing: -0.5,
+                      marginTop: 3,
+                      backgroundColor: 'transparent',
+                    }}
+                  >
+                    orva
+                  </Text>
+                }
+              >
+                <LinearGradient
+                  colors={['#34D556', '#28C63E', '#34D556']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                >
+                  {/* This text only exists to size the gradient */}
+                  <Text
+                    style={{
+                      fontSize: 36,
+                      fontWeight: 'bold',
+                      letterSpacing: -0.5,
+                      marginTop: 3,
+                      opacity: 0,
+                    }}
+                  >
+                    orva
+                  </Text>
+                </LinearGradient>
+              </MaskedView>
+            </View>
+
             <View 
               className="h-1 w-16 rounded-full mt-2"
               style={{ 

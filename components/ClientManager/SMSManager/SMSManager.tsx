@@ -45,7 +45,6 @@ export default function SMSManager() {
   const flatListRef = useRef<FlatList>(null);
 
   const loadMessages = useCallback(async () => {
-    console.log('📥 Loading messages...');
     setIsLoading(true);
     try {
       const {
@@ -77,8 +76,6 @@ export default function SMSManager() {
 
       const data = await response.json();
       
-      console.log('Load messages response:', data);
-
       if (!data || typeof data !== 'object') {
         throw new Error('Invalid response format');
       }
@@ -371,8 +368,6 @@ export default function SMSManager() {
         validationStatus: mode === 'draft' ? 'DRAFT' : 'ACCEPTED',
       };
 
-      console.log('Saving message:', JSON.stringify(messageToSave, null, 2));
-
       const response = await fetch(
         `${process.env.EXPO_PUBLIC_API_URL}api/client-messaging/save-sms-schedule`,
         {
@@ -393,8 +388,6 @@ export default function SMSManager() {
 
       const data = await response.json();
       
-      console.log('Save response:', data);
-
       if (!data || typeof data !== 'object') {
         throw new Error('Invalid response format');
       }
@@ -480,8 +473,6 @@ export default function SMSManager() {
 
       const data = await response.json();
       
-      console.log('Validation response:', data);
-
       // Defensive checks
       if (!data || typeof data !== 'object') {
         throw new Error('Invalid response format');

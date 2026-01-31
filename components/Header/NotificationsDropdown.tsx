@@ -1,7 +1,7 @@
 import ReportViewerModal from '@/components/Reports/ReportViewerModal'
 import { supabase } from '@/utils/supabaseClient'
 import { useRouter } from 'expo-router'
-import { Bell } from 'lucide-react-native'
+import { ArrowLeft, Bell } from 'lucide-react-native'
 import React, { useCallback, useEffect, useState } from 'react'
 import {
   Modal,
@@ -83,10 +83,28 @@ interface Report {
 
 interface NotificationsDropdownProps {
   userId: string
+  inSidebar?: boolean
+  externalTrigger?: boolean
+  onExternalTriggerHandled?: () => void
+  onBack?: () => void
+  initialNotifications?: Notification[]
+  onNotificationsUpdate?: (notifications: Notification[]) => void
+  hasMoreNotifications?: boolean
+  onLoadMore?: () => void
 }
 
-export default function NotificationsDropdown({ userId }: NotificationsDropdownProps) {
-  const [notifications, setNotifications] = useState<Notification[]>([])
+export default function NotificationsDropdown({ 
+  userId, 
+  inSidebar = false, 
+  externalTrigger = false, 
+  onExternalTriggerHandled, 
+  onBack,
+  initialNotifications = [],
+  onNotificationsUpdate,
+  hasMoreNotifications = false,
+  onLoadMore
+}: NotificationsDropdownProps) {
+  const [notifications, setNotifications] = useState<Notification[]>(initialNotifications)
   const [open, setOpen] = useState(false)
   const [isClosing, setIsClosing] = useState(false)
   const [selectedReport, setSelectedReport] = useState<Report | null>(null)
@@ -96,87 +114,33 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
   const translateY = useSharedValue(0)
   const opacity = useSharedValue(0)
 
-  const fetchNotifications = useCallback(async () => {
-    if (!userId) return
-
-    try {
-      const { data, error } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', userId)
-        .order('timestamp', { ascending: false })
-        .limit(15)
-
-      if (error) console.error('Failed to fetch notifications:', error)
-
-      const mapped = (data || []).map(item => ({
-        id: item.id,
-        header: item.header,
-        message: item.message,
-        is_read: item.read === true,
-        created_at: item.timestamp,
-        reference: item.reference,
-        reference_type: item.reference_type
-      }))
-
-      setNotifications(mapped)
-    } catch (err) {
-      console.error(err)
-    }
-  }, [userId])
-
+  // Sync with parent notifications
   useEffect(() => {
-    if (userId) fetchNotifications()
-  }, [userId, fetchNotifications])
+    setNotifications(initialNotifications)
+  }, [initialNotifications])
 
+  // Handle external trigger
   useEffect(() => {
-    if (!userId) return
-
-    const channel = supabase
-      .channel('notifications-realtime')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${userId}`,
-        },
-        (payload) => {
-          const newN = payload.new as any
-
-          const formatted: Notification = {
-            id: newN.id,
-            header: newN.header,
-            message: newN.message,
-            is_read: newN.read === true,
-            created_at: newN.timestamp,
-            reference: newN.reference,
-            reference_type: newN.reference_type
-          }
-
-          setNotifications((prev) => [formatted, ...prev])
-        }
-      )
-      .subscribe()
-
-    return () => {
-      supabase.removeChannel(channel)
+    if (externalTrigger && !open) {
+      setOpen(true)
+      if (onExternalTriggerHandled) {
+        onExternalTriggerHandled()
+      }
     }
-  }, [userId])
+  }, [externalTrigger, open, onExternalTriggerHandled])
 
   // Animate modal open
   useEffect(() => {
-    if (open) {
+    if (open && !inSidebar) {
       translateY.value = 1000
       opacity.value = 0
       translateY.value = withTiming(0, { duration: 250 })
       opacity.value = withTiming(1, { duration: 250 })
     }
-  }, [open, translateY, opacity])
+  }, [open, translateY, opacity, inSidebar])
 
   const closeModal = useCallback(() => {
-    if (isClosing) return
+    if (isClosing || inSidebar) return
     setIsClosing(true)
     translateY.value = withTiming(1000, { duration: 250 })
     opacity.value = withTiming(0, { duration: 250 })
@@ -185,18 +149,18 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
       setIsClosing(false)
       translateY.value = 0
     }, 250)
-  }, [translateY, opacity, isClosing])
+  }, [translateY, opacity, isClosing, inSidebar])
 
   const panGesture = Gesture.Pan()
     .onUpdate((event) => {
-      if (event.translationY > 0) {
+      if (event.translationY > 0 && !inSidebar) {
         translateY.value = event.translationY
         const progress = Math.min(event.translationY / 300, 1)
         opacity.value = 1 - progress
       }
     })
     .onEnd((event) => {
-      if (event.translationY > 100 || event.velocityY > 500) {
+      if (!inSidebar && (event.translationY > 100 || event.velocityY > 500)) {
         runOnJS(closeModal)()
       } else {
         translateY.value = withTiming(0, { duration: 200 })
@@ -215,12 +179,20 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
   const handleClickNotification = async (n: Notification) => {
     if (!n.is_read) {
       await supabase.from('notifications').update({ read: true }).eq('id', n.id)
-      setNotifications((prev) => 
-        prev.map((notif) => notif.id === n.id ? { ...notif, is_read: true } : notif)
+      const updatedNotifications = notifications.map((notif) => 
+        notif.id === n.id ? { ...notif, is_read: true } : notif
       )
+      setNotifications(updatedNotifications)
+      
+      // Update parent
+      if (onNotificationsUpdate) {
+        onNotificationsUpdate(updatedNotifications)
+      }
     }
 
-    setOpen(false)
+    if (!inSidebar) {
+      setOpen(false)
+    }
 
     const reportTypes = ['weekly', 'monthly', 'weekly_comparison']
     if (n.reference && n.reference_type && reportTypes.includes(n.reference_type)) {
@@ -291,11 +263,84 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
 
   const handleMarkAllRead = async () => {
     await supabase.from('notifications').update({ read: true }).eq('user_id', userId)
-    setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })))
+    const updatedNotifications = notifications.map((n) => ({ ...n, is_read: true }))
+    setNotifications(updatedNotifications)
+    
+    // Update parent
+    if (onNotificationsUpdate) {
+      onNotificationsUpdate(updatedNotifications)
+    }
   }
 
   const unreadCount = notifications.filter((n) => !n.is_read).length
 
+  // If in sidebar, render inline list without modal
+  if (inSidebar) {
+    return (
+      <>
+        <View className="mt-2">
+          {notifications.length === 0 ? (
+            <View className="py-4 items-center">
+              <Text className="text-xs" style={{ color: COLORS.textMuted }}>
+                No notifications
+              </Text>
+            </View>
+          ) : (
+            <ScrollView 
+              showsVerticalScrollIndicator={false}
+              style={{ maxHeight: 200 }}
+              contentContainerStyle={{ paddingBottom: 8 }}
+            >
+              {notifications.slice(0, 5).map((n) => (
+                <TouchableOpacity
+                  key={n.id}
+                  onPress={() => handleClickNotification(n)}
+                  activeOpacity={0.7}
+                  className="px-3 py-2.5 rounded-lg mb-2"
+                  style={{
+                    backgroundColor: !n.is_read ? COLORS.greenLight : COLORS.surface,
+                    borderWidth: 1,
+                    borderColor: !n.is_read ? COLORS.green : COLORS.glassBorder,
+                  }}
+                >
+                  <Text 
+                    className="text-xs mb-1"
+                    style={{ 
+                      color: COLORS.text,
+                      fontWeight: !n.is_read ? '600' : '400'
+                    }}
+                  >
+                    {n.header}
+                  </Text>
+                  <Text 
+                    className="text-[10px] leading-4"
+                    style={{ color: COLORS.textMuted }}
+                    numberOfLines={2}
+                  >
+                    {n.message}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+              {notifications.length > 5 && (
+                <Text className="text-[10px] text-center mt-1" style={{ color: COLORS.textMuted }}>
+                  +{notifications.length - 5} more
+                </Text>
+              )}
+            </ScrollView>
+          )}
+        </View>
+
+        {/* Report Viewer Modal */}
+        <ReportViewerModal
+          report={selectedReport}
+          visible={reportModalVisible}
+          onClose={handleCloseReportModal}
+        />
+      </>
+    )
+  }
+
+  // Original modal behavior when not in sidebar
   return (
     <>
       <View className="relative">
@@ -360,11 +405,16 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
 
                       {/* Header */}
                       <View 
-                        className="flex-row justify-between items-center px-6 py-4"
+                        className="flex-row items-center px-6 py-4"
                         style={{ borderBottomWidth: 1, borderBottomColor: COLORS.glassBorder }}
                       >
+                        {onBack && (
+                          <TouchableOpacity onPress={onBack} className="p-1 mr-2">
+                            <ArrowLeft size={24} color={COLORS.textMuted} />
+                          </TouchableOpacity>
+                        )}
                         <Text 
-                          className="font-semibold text-base tracking-wide"
+                          className="font-semibold text-base tracking-wide flex-1"
                           style={{ color: COLORS.green }}
                         >
                           Notifications
@@ -432,6 +482,21 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
                               </Text>
                             </TouchableOpacity>
                           ))}
+                          
+                          {/* Load More Button */}
+                          {hasMoreNotifications && (
+                            <TouchableOpacity
+                              onPress={onLoadMore}
+                              className="py-3 items-center"
+                            >
+                              <Text 
+                                className="text-sm font-semibold"
+                                style={{ color: COLORS.green }}
+                              >
+                                See more
+                              </Text>
+                            </TouchableOpacity>
+                          )}
                         </ScrollView>
                       )}
                     </Pressable>

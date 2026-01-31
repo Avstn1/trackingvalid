@@ -1,3 +1,5 @@
+import MaskedView from '@react-native-masked-view/masked-view';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef } from 'react';
 import { Animated, Image, Text, View } from 'react-native';
 
@@ -65,25 +67,53 @@ export default function CustomSplash({ onFinish }: CustomSplashProps) {
           alignItems: 'center',
         }}
       >
-        <Image 
-          source={require('@/assets/images/shearworklogo.png')} 
-          style={{ 
-            width: 120, 
-            height: 120,
-            marginBottom: 20,
-          }}
-          resizeMode="contain"
-        />
-        <Text
-          style={{
-            fontSize: 36,
-            fontWeight: 'bold',
-            color: COLORS.text,
-            letterSpacing: -0.5,
-          }}
-        >
-          ShearWork
-        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
+          <Image
+            source={require('@/assets/images/corvalogoTransparent.png')}
+            style={{
+              width: 48,
+              height: 48,
+              marginRight: -3, 
+            }}
+            resizeMode="contain"
+          />
+
+          <MaskedView
+            maskElement={
+              <Text
+                style={{
+                  fontSize: 36,
+                  fontWeight: 'bold',
+                  letterSpacing: -0.5,
+                  marginTop: 3,
+                  backgroundColor: 'transparent',
+                }}
+              >
+                orva
+              </Text>
+            }
+          >
+            <LinearGradient
+              colors={['#34D556', '#28C63E', '#34D556']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+            >
+              {/* This text only exists to size the gradient */}
+              <Text
+                style={{
+                  fontSize: 36,
+                  fontWeight: 'bold',
+                  letterSpacing: -0.5,
+                  marginTop: 3,
+                  opacity: 0,
+                }}
+              >
+                orva
+              </Text>
+            </LinearGradient>
+          </MaskedView>
+        </View>
+
         <Animated.View
           style={{
             height: 4,

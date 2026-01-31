@@ -1,13 +1,16 @@
 // app/components/Header/CustomHeader.tsx
 
 import AuthLoadingSplash from '@/components/AuthLoadingSpash';
-import DailyTipsDropdown from '@/components/Header/DailyTipsDropdown';
+import CreditsModal from '@/components/Header/CreditsModal';
+import FAQModal from '@/components/Header/FAQModal';
+import NewFeaturesModal from '@/components/Header/FeatureUpdatesModal';
+import HamburgerMenuModal from '@/components/Header/HamburgerMenuModal';
 import NotificationsDropdown from '@/components/Header/NotificationsDropdown';
 import { supabase } from '@/utils/supabaseClient';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { LinearGradient } from 'expo-linear-gradient';
-import { CalendarRange } from 'lucide-react-native';
-import React, { useEffect, useState } from 'react';
+import { CalendarRange, Menu } from 'lucide-react-native';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Dimensions,
@@ -18,7 +21,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DayPicker from './DayPicker';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const COLORS = {
   background: '#181818',
@@ -32,6 +35,7 @@ const COLORS = {
   green: '#8bcf68ff',
   greenLight: '#beb348ff',
   yellow: '#FFEB3B',
+  red: '#ef4444',
 };
 
 const MONTHS = [
@@ -50,6 +54,16 @@ const MONTHS = [
 ];
 
 type Timeframe = 'year' | 'Q1' | 'Q2' | 'Q3' | 'Q4';
+
+interface Notification {
+  id: string;
+  header: string;
+  message: string;
+  is_read: boolean;
+  created_at: string;
+  reference?: string;
+  reference_type?: string;
+}
 
 interface CustomHeaderProps {
   pageName: string;
@@ -93,18 +107,32 @@ export function CustomHeader({
   const [tempDate, setTempDate] = useState(
     selectedDate || new Date(currentYear, currentMonthIndex, 1),
   );
-  const [tempDashboardView, setTempDashboardView] =
-    useState(dashboardView);
+  const [tempDashboardView, setTempDashboardView] = useState(dashboardView);
   const [tempTimeframe, setTempTimeframe] = useState(timeframe);
 
   const [componentsReady, setComponentsReady] = useState(false);
 
+  // Modal states
+  const [showSidebar, setShowSidebar] = useState(false);
+  const [showCreditsModal, setShowCreditsModal] = useState(false);
+  const [showNotificationsModal, setShowNotificationsModal] = useState(false);
+  const [showFeaturesModal, setShowFeaturesModal] = useState(false);
+  const [showFAQModal, setShowFAQModal] = useState(false);
+
+  // Notifications state
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notificationsPage, setNotificationsPage] = useState(1);
+  const [hasMoreNotifications, setHasMoreNotifications] = useState(true);
+
+  // Feature updates state
+  const [hasNewFeatures, setHasNewFeatures] = useState(false);
+  const hasAutoOpenedFeaturesRef = React.useRef(false);
+
   // Check if this page should show the date picker
-  const showsDatePicker = ['Dashboard', 'Finances', 'Reports'].includes(
-    pageName,
-  );
+  const showsDatePicker = ['Dashboard', 'Finances', 'Reports'].includes(pageName);
   const isDashboard = pageName === 'Dashboard';
 
+  // Fetch user and profile
   useEffect(() => {
     const fetchUserAndProfile = async () => {
       try {
@@ -142,6 +170,236 @@ export function CustomHeader({
     });
   }, []);
 
+  // Fetch notifications
+  const fetchNotifications = useCallback(async (page: number = 1) => {
+    if (!profile?.user_id) return;
+
+    try {
+      const limit = 50;
+      const from = (page - 1) * limit;
+      const to = from + limit - 1;
+
+      const { data, error, count } = await supabase
+        .from('notifications')
+        .select('*', { count: 'exact' })
+        .eq('user_id', profile.user_id)
+        .order('timestamp', { ascending: false })
+        .range(from, to);
+
+      if (error) {
+        console.error('Failed to fetch notifications:', error);
+        return;
+      }
+
+      const mapped = (data || []).map(item => ({
+        id: item.id,
+        header: item.header,
+        message: item.message,
+        is_read: item.read === true,
+        created_at: item.timestamp,
+        reference: item.reference,
+        reference_type: item.reference_type,
+      }));
+
+      if (page === 1) {
+        setNotifications(mapped);
+      } else {
+        setNotifications(prev => [...prev, ...mapped]);
+      }
+
+      setHasMoreNotifications(data && data.length === limit);
+    } catch (err) {
+      console.error('Error fetching notifications:', err);
+    }
+  }, [profile?.user_id]);
+
+  // Check for new features
+  const checkForNewFeatures = useCallback(async () => {
+    if (!profile?.user_id) return;
+
+    try {
+      const { data: updates, error } = await supabase
+        .from('feature_updates')
+        .select('released_at')
+        .in('platform', ['mobile', 'both'])
+        .eq('is_published', true)
+        .order('released_at', { ascending: false })
+        .limit(1);
+
+      if (error || !updates || updates.length === 0) {
+        setHasNewFeatures(false);
+        return;
+      }
+
+      const latestUpdateDate = new Date(updates[0].released_at);
+      const lastReadDate = profile.last_read_feature_updates
+        ? new Date(profile.last_read_feature_updates)
+        : null;
+
+      setHasNewFeatures(!lastReadDate || latestUpdateDate > lastReadDate);
+    } catch (error) {
+      console.error('Error checking for new features:', error);
+      setHasNewFeatures(false);
+    }
+  }, [profile]);
+
+  // Initial fetch
+  useEffect(() => {
+    if (componentsReady && profile) {
+      fetchNotifications(1);
+      checkForNewFeatures();
+    }
+  }, [componentsReady, profile, fetchNotifications, checkForNewFeatures]);
+
+  // Real-time notifications subscription
+  useEffect(() => {
+    if (!profile?.user_id) return;
+
+    // console.log('🔔 Setting up notifications real-time subscription for user:', profile.user_id);
+
+    const channel = supabase
+      .channel(`notifications-${profile.user_id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${profile.user_id}`,
+        },
+        (payload) => {
+          // console.log('📬 INSERT event received:', payload);
+          const newN = payload.new as any;
+
+          const formatted: Notification = {
+            id: newN.id,
+            header: newN.header,
+            message: newN.message,
+            is_read: newN.read === true,
+            created_at: newN.timestamp,
+            reference: newN.reference,
+            reference_type: newN.reference_type,
+          };
+
+          setNotifications((prev) => {
+            // console.log('📬 Adding notification to state. Total:', prev.length + 1);
+            return [formatted, ...prev];
+          });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${profile.user_id}`,
+        },
+        (payload) => {
+          // console.log('✏️ UPDATE event received:', payload);
+          // console.log('✏️ Old values:', payload.old);
+          // console.log('✏️ New values:', payload.new);
+          const updated = payload.new as any;
+          setNotifications((prev) => {
+            const newNotifs = prev.map((n) =>
+              n.id === updated.id
+                ? { ...n, is_read: updated.read === true }
+                : n
+            );
+            // console.log('✏️ Updated notification in state:', updated.id);
+            return newNotifs;
+          });
+        }
+      )
+      .subscribe((status, err) => {
+        // console.log('🔔 Notifications subscription status:', status);
+        if (err) {
+          console.error('🔔 Notifications subscription error:', err);
+        }
+      });
+
+    return () => {
+      // console.log('🔕 Notifications real-time subscription cleaned up');
+      supabase.removeChannel(channel);
+    };
+  }, [profile?.user_id]);
+
+  // Real-time feature updates subscription
+  useEffect(() => {
+    if (!profile?.user_id) return;
+
+    const channel = supabase
+      .channel('feature-updates-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'feature_updates',
+        },
+        (payload) => {
+          // console.log('🎉 New feature update received:', payload.new);
+          const newFeature = payload.new as any;
+          
+          // Check if it's relevant for mobile
+          if (!['mobile', 'both'].includes(newFeature.platform)) {
+            // console.log('⏭️ Feature update skipped - not for mobile platform:', newFeature.platform);
+            return;
+          }
+          if (!newFeature.is_published) {
+            // console.log('⏭️ Feature update skipped - not published');
+            return;
+          }
+
+          const lastReadDate = profile.last_read_feature_updates
+            ? new Date(profile.last_read_feature_updates)
+            : null;
+          const featureDate = new Date(newFeature.released_at);
+
+          // console.log('📅 Comparing dates - Last read:', lastReadDate, 'Feature released:', featureDate);
+
+          if (!lastReadDate || featureDate > lastReadDate) {
+            // console.log('✨ Setting hasNewFeatures to TRUE');
+            setHasNewFeatures(true);
+          } else {
+            // console.log('⏭️ Feature update skipped - already read');
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'feature_updates',
+        },
+        (payload) => {
+          // console.log('✏️ Feature update modified:', payload.new);
+          
+          // Re-check if new features exist
+          checkForNewFeatures();
+        }
+      )
+      .subscribe();
+
+    // console.log('🎯 Feature updates real-time subscription started');
+
+    return () => {
+      // console.log('🎯 Feature updates real-time subscription cleaned up');
+      supabase.removeChannel(channel);
+    };
+  }, [profile, checkForNewFeatures]);
+
+  // Auto-open features modal on new updates (only once per app load)
+  useEffect(() => {
+    if (componentsReady && profile && hasNewFeatures && !hasAutoOpenedFeaturesRef.current) {
+      setTimeout(() => {
+        setShowFeaturesModal(true);
+        hasAutoOpenedFeaturesRef.current = true;
+      }, 1000);
+    }
+  }, [componentsReady, profile, hasNewFeatures]);
+
   // Update local state when props change
   useEffect(() => {
     if (selectedDate) {
@@ -158,13 +416,31 @@ export function CustomHeader({
     setTempTimeframe(timeframe);
   }, [timeframe]);
 
+  // Load more notifications
+  const handleLoadMoreNotifications = useCallback(() => {
+    if (hasMoreNotifications) {
+      const nextPage = notificationsPage + 1;
+      setNotificationsPage(nextPage);
+      fetchNotifications(nextPage);
+    }
+  }, [hasMoreNotifications, notificationsPage, fetchNotifications]);
+
+  // Handle notification updates
+  const handleNotificationUpdate = useCallback((updatedNotifications: Notification[]) => {
+    setNotifications(updatedNotifications);
+  }, []);
+
   // Date picker handlers
   const handleDateChange = (_event: any, date?: Date) => {
     if (date) {
       const normalizedDate = new Date(
         date.getFullYear(),
         date.getMonth(),
-        1,
+        date.getDate(),
+        12,
+        0,
+        0,
+        0
       );
       setTempDate(normalizedDate);
     }
@@ -172,7 +448,6 @@ export function CustomHeader({
 
   const handleDateConfirm = () => {
     if (isDashboard) {
-      // Dashboard mode
       if (onDashboardViewChange) {
         onDashboardViewChange(tempDashboardView);
       }
@@ -185,7 +460,6 @@ export function CustomHeader({
       setLocalSelectedDate(tempDate);
       setShowDatePicker(false);
     } else {
-      // Finances/Reports mode
       setLocalSelectedDate(tempDate);
       const month = MONTHS[tempDate.getMonth()];
       const year = tempDate.getFullYear();
@@ -214,6 +488,9 @@ export function CustomHeader({
   const getDateLabel = () => {
     return `${MONTHS[localSelectedDate.getMonth()]} ${localSelectedDate.getFullYear()}`;
   };
+
+  const unreadNotificationsCount = notifications.filter((n) => !n.is_read).length;
+  const showHamburgerBadge = unreadNotificationsCount > 0 || hasNewFeatures;
 
   if (loading) {
     return (
@@ -279,42 +556,53 @@ export function CustomHeader({
         </MaskedView>
 
         <View className="flex-row items-center gap-3">
-          {showsDatePicker ? (
-            <>
-              <TouchableOpacity
-                onPress={handleOpenDatePicker}
-                className="flex-row items-center gap-2 px-3 py-3 rounded-full"
-                style={{
-                  backgroundColor: COLORS.surfaceSolid,
-                  borderWidth: 1,
-                  borderColor: COLORS.glassBorder,
-                }}
+          {showsDatePicker && (
+            <TouchableOpacity
+              onPress={handleOpenDatePicker}
+              className="flex-row items-center gap-2 px-3 py-3 rounded-full"
+              style={{
+                backgroundColor: COLORS.surfaceSolid,
+                borderWidth: 1,
+                borderColor: COLORS.glassBorder,
+              }}
+            >
+              <CalendarRange size={16} color={COLORS.green} />
+              <Text
+                className="font-semibold text-xs"
+                style={{ color: COLORS.text }}
               >
-                <CalendarRange size={16} color={COLORS.green} />
-                <Text
-                  className="font-semibold text-xs"
-                  style={{ color: COLORS.text }}
-                >
-                  {getDateLabel()}
-                </Text>
-              </TouchableOpacity>
-              <DailyTipsDropdown
-                barberId={profile.user_id}
-                onRefresh={onRefresh}
-              />
-              <NotificationsDropdown userId={profile.user_id} />
-            </>
-          ) : (
-            <>
-              <DailyTipsDropdown
-                barberId={profile.user_id}
-                onRefresh={onRefresh}
-              />
-              <NotificationsDropdown userId={profile.user_id} />
-            </>
+                {getDateLabel()}
+              </Text>
+            </TouchableOpacity>
           )}
+          
+          <TouchableOpacity 
+            onPress={() => setShowSidebar(true)}
+            className="relative"
+          >
+            <Menu size={24} color={COLORS.text} />
+            {showHamburgerBadge && (
+              <View
+                className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full"
+                style={{ backgroundColor: COLORS.red }}
+              />
+            )}
+          </TouchableOpacity>
         </View>
       </View>
+
+      {/* Hamburger Menu Modal */}
+      <HamburgerMenuModal
+        visible={showSidebar}
+        onClose={() => setShowSidebar(false)}
+        onCreditsPress={() => setShowCreditsModal(true)}
+        onNotificationsPress={() => setShowNotificationsModal(true)}
+        onFeaturesPress={() => setShowFeaturesModal(true)}
+        onFAQPress={() => setShowFAQModal(true)}
+        userId={profile?.user_id}
+        hasNewFeatures={hasNewFeatures}
+        unreadNotificationsCount={unreadNotificationsCount}
+      />
 
       {showsDatePicker && (
         <DayPicker
@@ -329,6 +617,45 @@ export function CustomHeader({
           tempDate={tempDate}
           onDateChange={handleDateChange}
         />
+      )}
+
+      <CreditsModal
+        isOpen={showCreditsModal}
+        onClose={() => setShowCreditsModal(false)}
+        onBack={() => {
+          setShowCreditsModal(false);
+          setTimeout(() => setShowSidebar(true), 100);
+        }}
+      />
+
+      <NewFeaturesModal
+        isOpen={showFeaturesModal}
+        onClose={() => setShowFeaturesModal(false)}
+        userId={profile?.user_id}
+      />
+
+      <FAQModal 
+        isOpen={showFAQModal} 
+        onClose={() => setShowFAQModal(false)}
+      />
+
+      {/* NotificationsDropdown - rendered off-screen but accessible */}
+      {profile?.user_id && (
+        <View style={{ position: 'absolute', left: -9999, top: -9999 }} pointerEvents="box-none">
+          <NotificationsDropdown 
+            userId={profile.user_id}
+            externalTrigger={showNotificationsModal}
+            onExternalTriggerHandled={() => setShowNotificationsModal(false)}
+            onBack={() => {
+              setShowNotificationsModal(false);
+              setTimeout(() => setShowSidebar(true), 100);
+            }}
+            initialNotifications={notifications}
+            onNotificationsUpdate={handleNotificationUpdate}
+            hasMoreNotifications={hasMoreNotifications}
+            onLoadMore={handleLoadMoreNotifications}
+          />
+        </View>
       )}
     </View>
   );

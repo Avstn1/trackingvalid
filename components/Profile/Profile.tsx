@@ -335,7 +335,7 @@ export default function ProfileSecurityLogout() {
       }
 
       console.log("E164 Phone:", e164Phone);
-      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}api/otp/generate-sms-otp`, {
+      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/otp/generate-sms-otp`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -380,7 +380,7 @@ export default function ProfileSecurityLogout() {
 
       const e164Phone = getE164PhoneNumber(editedPhone);
 
-      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}api/otp/verify-sms-otp`, {
+      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/otp/verify-sms-otp`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',

@@ -102,7 +102,7 @@ export default function PricingScreen() {
 
       // Initialize payment sheet
       const { error: initError } = await initPaymentSheet({
-        merchantDisplayName: 'ShearWork',
+        merchantDisplayName: 'Corva',
         paymentIntentClientSecret: data.paymentIntent,
         customerId: data.customer,
         customerEphemeralKeySecret: data.ephemeralKey,
@@ -189,7 +189,7 @@ export default function PricingScreen() {
               {/* Monthly Plan */}
               <View className="bg-white/5 rounded-2xl p-4 border border-white/10 mb-4">
                 <Text className="text-lg font-semibold text-white mb-2">
-                  ShearWork Pro (Monthly)
+                  Corva Pro (Monthly)
                 </Text>
 
                 {loadingPrices || !monthly ? (
@@ -263,7 +263,7 @@ export default function PricingScreen() {
               {/* Yearly Plan */}
               <View className="bg-white/5 rounded-2xl p-4 border border-[#f5e29a]/40">
                 <Text className="text-lg font-semibold text-white mb-2">
-                  ShearWork Pro (Yearly)
+                  Corva Pro (Yearly)
                 </Text>
 
                 {loadingPrices || !yearly ? (

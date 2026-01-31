@@ -1,4 +1,6 @@
 import { supabase } from '@/utils/supabaseClient';
+import MaskedView from '@react-native-masked-view/masked-view';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { Eye, EyeOff } from 'lucide-react-native';
 import React, { useState } from 'react';
@@ -114,25 +116,53 @@ export default function SignUpPage() {
         >
           {/* Logo and App Name */}
           <View className="items-center mb-8">
-            <Image
-              source={require('@/assets/images/shearworklogo.png')}
-              style={{
-                width: 64,
-                height: 64,
-                marginBottom: 16,
-                shadowColor: COLORS.green,
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.3,
-                shadowRadius: 12,
-              }}
-              resizeMode="contain"
-            />
-            <Text
-              className="text-4xl font-bold tracking-tight"
-              style={{ color: COLORS.text }}
-            >
-              ShearWork
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
+              <Image
+                source={require('@/assets/images/corvalogoTransparent.png')}
+                style={{
+                  width: 48,
+                  height: 48,
+                  marginRight: -3, 
+                }}
+                resizeMode="contain"
+              />
+    
+              <MaskedView
+                maskElement={
+                  <Text
+                    style={{
+                      fontSize: 36,
+                      fontWeight: 'bold',
+                      letterSpacing: -0.5,
+                      marginTop: 3,
+                      backgroundColor: 'transparent',
+                    }}
+                  >
+                    orva
+                  </Text>
+                }
+              >
+                <LinearGradient
+                  colors={['#34D556', '#28C63E', '#34D556']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                >
+                  {/* This text only exists to size the gradient */}
+                  <Text
+                    style={{
+                      fontSize: 36,
+                      fontWeight: 'bold',
+                      letterSpacing: -0.5,
+                      marginTop: 3,
+                      opacity: 0,
+                    }}
+                  >
+                    orva
+                  </Text>
+                </LinearGradient>
+              </MaskedView>
+            </View>
+
             <View
               className="h-1 w-16 rounded-full mt-2"
               style={{

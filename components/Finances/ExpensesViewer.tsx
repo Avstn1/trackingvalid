@@ -453,6 +453,10 @@ export default function ExpensesViewer({
             <View className="gap-3 pb-4">
               {expenses.map((exp) => {
                 const status = getExpenseStatus(exp, month, parseInt(year));
+                const hasBeenAdded = status.lastAdded !== null;
+                const isOneTime = exp.frequency === 'once';
+                const canEdit = isOneTime ? !hasBeenAdded : true;
+                const isFieldLocked = !isOneTime && hasBeenAdded;
                 
                 return (
                   <View
@@ -482,16 +486,18 @@ export default function ExpensesViewer({
                         />
                         <TextInput
                           value={editAmount}
-                          onChangeText={setEditAmount}
+                          onChangeText={isFieldLocked ? undefined : setEditAmount}
                           placeholder="Amount"
                           placeholderTextColor={COLORS.textMuted}
                           keyboardType="decimal-pad"
+                          editable={!isFieldLocked}
                           className="px-3 py-2 rounded-lg"
                           style={{
                             backgroundColor: COLORS.cardBg,
                             color: COLORS.text,
                             borderWidth: 1,
                             borderColor: COLORS.glassBorder,
+                            opacity: isFieldLocked ? 0.5 : 1,
                           }}
                         />
 
@@ -500,12 +506,14 @@ export default function ExpensesViewer({
                           {(['once', 'weekly', 'monthly', 'yearly'] as const).map((freq) => (
                             <TouchableOpacity
                               key={freq}
-                              onPress={() => setEditFrequency(freq)}
+                              onPress={isFieldLocked ? undefined : () => setEditFrequency(freq)}
+                              disabled={isFieldLocked}
                               className="px-3 py-2 rounded-lg"
                               style={{
                                 backgroundColor: editFrequency === freq ? COLORS.greenGlow : COLORS.cardBg,
                                 borderWidth: 1,
                                 borderColor: editFrequency === freq ? COLORS.green : COLORS.glassBorder,
+                                opacity: isFieldLocked ? 0.5 : 1,
                               }}
                             >
                               <Text
@@ -524,12 +532,14 @@ export default function ExpensesViewer({
                             {DAYS.map((day) => (
                               <TouchableOpacity
                                 key={day}
-                                onPress={() => handleDayToggle(day)}
+                                onPress={isFieldLocked ? undefined : () => handleDayToggle(day)}
+                                disabled={isFieldLocked}
                                 className="px-2 py-1 rounded-lg"
                                 style={{
                                   backgroundColor: editSelectedDays.includes(day) ? COLORS.greenGlow : COLORS.cardBg,
                                   borderWidth: 1,
                                   borderColor: editSelectedDays.includes(day) ? COLORS.green : COLORS.glassBorder,
+                                  opacity: isFieldLocked ? 0.5 : 1,
                                 }}
                               >
                                 <Text
@@ -549,16 +559,18 @@ export default function ExpensesViewer({
                             <Text className="text-xs mb-2" style={{ color: COLORS.textMuted }}>Day of Month</Text>
                             <TextInput
                               value={editMonthlyDay}
-                              onChangeText={setEditMonthlyDay}
+                              onChangeText={isFieldLocked ? undefined : setEditMonthlyDay}
                               placeholder="1-31"
                               placeholderTextColor={COLORS.textMuted}
                               keyboardType="number-pad"
+                              editable={!isFieldLocked}
                               className="px-3 py-2 rounded-lg w-24"
                               style={{
                                 backgroundColor: COLORS.cardBg,
                                 color: COLORS.text,
                                 borderWidth: 1,
                                 borderColor: COLORS.glassBorder,
+                                opacity: isFieldLocked ? 0.5 : 1,
                               }}
                             />
                           </View>
@@ -574,12 +586,14 @@ export default function ExpensesViewer({
                                   {MONTHS.map((m, idx) => (
                                     <TouchableOpacity
                                       key={idx}
-                                      onPress={() => setEditYearlyMonth(idx)}
+                                      onPress={isFieldLocked ? undefined : () => setEditYearlyMonth(idx)}
+                                      disabled={isFieldLocked}
                                       className="px-3 py-2 rounded-lg"
                                       style={{
                                         backgroundColor: editYearlyMonth === idx ? COLORS.greenGlow : COLORS.cardBg,
                                         borderWidth: 1,
                                         borderColor: editYearlyMonth === idx ? COLORS.green : COLORS.glassBorder,
+                                        opacity: isFieldLocked ? 0.5 : 1,
                                       }}
                                     >
                                       <Text
@@ -597,16 +611,18 @@ export default function ExpensesViewer({
                               <Text className="text-xs mb-2" style={{ color: COLORS.textMuted }}>Day</Text>
                               <TextInput
                                 value={editYearlyDay}
-                                onChangeText={setEditYearlyDay}
+                                onChangeText={isFieldLocked ? undefined : setEditYearlyDay}
                                 placeholder="1-31"
                                 placeholderTextColor={COLORS.textMuted}
                                 keyboardType="number-pad"
+                                editable={!isFieldLocked}
                                 className="px-3 py-2 rounded-lg w-24"
                                 style={{
                                   backgroundColor: COLORS.cardBg,
                                   color: COLORS.text,
                                   borderWidth: 1,
                                   borderColor: COLORS.glassBorder,
+                                  opacity: isFieldLocked ? 0.5 : 1,
                                 }}
                               />
                             </View>
@@ -617,15 +633,17 @@ export default function ExpensesViewer({
                         <View>
                           <Text className="text-xs mb-2" style={{ color: COLORS.textMuted }}>Start Date</Text>
                           <TouchableOpacity
-                            onPress={() => {
+                            onPress={isFieldLocked ? undefined : () => {
                               setTempStartDate(editStartDate);
                               setShowStartPicker(true);
                             }}
+                            disabled={isFieldLocked}
                             className="flex-row items-center gap-2 px-3 py-2 rounded-lg"
                             style={{
                               backgroundColor: COLORS.cardBg,
                               borderWidth: 1,
                               borderColor: COLORS.glassBorder,
+                              opacity: isFieldLocked ? 0.5 : 1,
                             }}
                           >
                             <Calendar size={14} color={COLORS.green} />
@@ -701,13 +719,15 @@ export default function ExpensesViewer({
                             </Text>
                           </View>
                           <View className="flex-row gap-2">
-                            <TouchableOpacity
-                              onPress={() => startEdit(exp)}
-                              className="p-2 rounded-lg"
-                              style={{ backgroundColor: COLORS.amberGlow }}
-                            >
-                              <Edit2 size={16} color={COLORS.amber} />
-                            </TouchableOpacity>
+                            {canEdit && (
+                              <TouchableOpacity
+                                onPress={() => startEdit(exp)}
+                                className="p-2 rounded-lg"
+                                style={{ backgroundColor: COLORS.amberGlow }}
+                              >
+                                <Edit2 size={16} color={COLORS.amber} />
+                              </TouchableOpacity>
+                            )}
                             <TouchableOpacity
                               onPress={() => handleDelete(exp.id)}
                               className="p-2 rounded-lg"

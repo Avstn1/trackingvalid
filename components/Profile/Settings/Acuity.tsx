@@ -1,4 +1,5 @@
 // components/Settings/AcuityTab.tsx
+import { getFadeInDown, useReducedMotionPreference } from '@/utils/motion';
 import { supabase } from '@/utils/supabaseClient';
 import React, { useEffect, useState } from 'react';
 import {
@@ -10,6 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import Animated from 'react-native-reanimated';
 import ConnectAcuityButton from './ConnectAcuityButton';
 
 // Color Palette
@@ -32,6 +34,7 @@ const MONTHS = [
 ];
 
 export default function AcuityTab() {
+  const reduceMotion = useReducedMotionPreference();
   const [profile, setProfile] = useState<any>(null);
   const [calendars, setCalendars] = useState<any[]>([]);
   const [selectedCalendar, setSelectedCalendar] = useState('');
@@ -69,7 +72,7 @@ export default function AcuityTab() {
       setSelectedCalendar(profileData?.calendar || '');
 
       const { data: { session } } = await supabase.auth.getSession();
-      const accessToken = session?.access_token;
+      const accessToken = session?.access_token ?? '';
 
       if (!accessToken) {
         console.warn('No access token found in Supabase session');
@@ -157,7 +160,7 @@ export default function AcuityTab() {
             setSyncingAppointments(true);
 
             const { data: { session } } = await supabase.auth.getSession();
-            const accessToken = session?.access_token;
+            const accessToken = session?.access_token ?? '';
 
             try {
               for (const month of MONTHS) {
@@ -214,7 +217,11 @@ export default function AcuityTab() {
   }
 
   return (
-    <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+    <Animated.ScrollView
+      entering={getFadeInDown(reduceMotion)}
+      className="flex-1"
+      showsVerticalScrollIndicator={false}
+    >
       <View>
         <Text className="text-xl font-bold mb-6" style={{ color: COLORS.text }}>
           Acuity Integration
@@ -231,9 +238,9 @@ export default function AcuityTab() {
 
         {/* Calendar Selection Row */}
         <View className="mb-4">
-          <Text className="text-sm font-semibold mb-2" style={{ color: COLORS.textMuted }}>
-            Calendar
-          </Text>
+        <Text className="text-base font-semibold mb-2" style={{ color: COLORS.textMuted }}>
+          Calendar
+        </Text>
           
           {calendarError || !isConnected ? (
             <View 
@@ -244,7 +251,7 @@ export default function AcuityTab() {
                 borderColor: COLORS.glassBorder,
               }}
             >
-              <Text className="text-sm" style={{ color: COLORS.textMuted }}>
+              <Text className="text-base" style={{ color: COLORS.textMuted }}>
                 Acuity calendar not available. Make sure that your acuity account is connected.
               </Text>
             </View>
@@ -275,9 +282,9 @@ export default function AcuityTab() {
 
         {/* Year Selection Row */}
         <View className="mb-6">
-          <Text className="text-sm font-semibold mb-2" style={{ color: COLORS.textMuted }}>
-            Year
-          </Text>
+        <Text className="text-base font-semibold mb-2" style={{ color: COLORS.textMuted }}>
+          Year
+        </Text>
           
           <TouchableOpacity
             onPress={() => setShowYearModal(true)}
@@ -314,7 +321,7 @@ export default function AcuityTab() {
               <ActivityIndicator color={COLORS.green} />
             ) : (
               <Text 
-                className="text-center font-semibold"
+                className="text-center text-base font-semibold"
                 style={{ color: COLORS.green }}
               >
                 Sync All Appointments and Clients for {year}
@@ -503,6 +510,6 @@ export default function AcuityTab() {
           </View>
         </View>
       </Modal>
-    </ScrollView>
+    </Animated.ScrollView>
   );
 }

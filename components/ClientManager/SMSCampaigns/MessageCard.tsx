@@ -1,3 +1,4 @@
+import { parseYMDToLocalDate } from '@/utils/date';
 import { supabase } from '@/utils/supabaseClient';
 import {
   AlertCircle,
@@ -7,13 +8,17 @@ import {
   ChevronDown,
   ChevronUp,
   Edit,
+  FileText,
   Lock,
   MessageSquare,
   Pencil,
   Send,
+  Shield,
+  Sparkles,
   Trash2,
   Users,
-  X
+  X,
+  Zap
 } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { ActivityIndicator, Modal, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -25,7 +30,6 @@ import { MessageSchedule } from './MessageSchedule';
 import { CampaignProgress, SMSMessage } from './types';
 
 interface MessageCardProps {
-  setLimitMode: any;
   maxClients: number;
   profile: any;
   setAlgorithmType: (type: 'campaign' | 'mass') => void;
@@ -39,7 +43,6 @@ interface MessageCardProps {
   tempTitle: string;
   previewCount?: number;
   loadingPreview: boolean;
-  testMessagesUsed: number;
   campaignProgress?: CampaignProgress;
   session: any;
   onLoadPreview: (limit: number) => void;
@@ -50,7 +53,6 @@ interface MessageCardProps {
   onSave: (msgId: string, mode: 'draft' | 'activate') => void;
   onValidate: (msgId: string) => void;
   onRequestTest: (msgId: string) => void;
-  onTestComplete: () => void;
   onStartEditingTitle: (id: string, currentTitle: string) => void;
   onSaveTitle: (id: string) => void;
   onCancelEditTitle: () => void;
@@ -58,7 +60,6 @@ interface MessageCardProps {
 }
 
 export function MessageCard({
-  setLimitMode,
   maxClients,
   profile,
   setAlgorithmType,
@@ -66,7 +67,6 @@ export function MessageCard({
   message: msg,
   index,
   isSaving,
-  testMessagesUsed,
   savingMode,
   validatingId,
   editingTitleId,
@@ -89,6 +89,7 @@ export function MessageCard({
   onTempTitleChange,
 }: MessageCardProps) {
   const [showDeactivateModal, setShowDeactivateModal] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const [openSection, setOpenSection] = useState<'content' | 'schedule' | null>('content');
 
@@ -102,7 +103,7 @@ export function MessageCard({
     const timeStr = `${displayHour}:${minute.toString().padStart(2, '0')} ${msg.period || 'AM'}`;
     
     if (msg.scheduleDate) {
-      const date = new Date(msg.scheduleDate + 'T00:00:00');
+      const date = parseYMDToLocalDate(msg.scheduleDate);
       const dateStr = date.toLocaleDateString('en-US', { 
         month: 'short', 
         day: 'numeric', 
@@ -112,6 +113,148 @@ export function MessageCard({
     }
     
     return `Send at ${timeStr}`;
+  };
+
+  const validateScheduledTime = (): boolean => {
+    if (!msg.scheduleDate) return false;
+
+    let hour24 = msg.hour;
+    if (msg.period === 'PM' && msg.hour !== 12) {
+      hour24 = msg.hour + 12;
+    } else if (msg.period === 'AM' && msg.hour === 12) {
+      hour24 = 0;
+    }
+
+    const scheduledDateTime = new Date(
+      `${msg.scheduleDate}T${hour24.toString().padStart(2, '0')}:${msg.minute
+        .toString()
+        .padStart(2, '0')}:00-05:00`
+    );
+    const nowInToronto = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Toronto' }));
+
+    const nowWithBuffer = new Date(nowInToronto);
+    nowWithBuffer.setMinutes(nowWithBuffer.getMinutes() + 5);
+    const minutes = nowWithBuffer.getMinutes();
+    const roundedMinutes = Math.ceil(minutes / 15) * 15;
+    nowWithBuffer.setMinutes(roundedMinutes);
+    nowWithBuffer.setSeconds(0, 0);
+
+    const maxAllowedTime = new Date(nowInToronto);
+    maxAllowedTime.setDate(maxAllowedTime.getDate() + 7);
+
+    if (scheduledDateTime < nowWithBuffer) {
+      Toast.show({
+        type: 'error',
+        text1: 'Please select a time at least 5 minutes from now (rounded to 15-minute intervals)',
+      });
+      return false;
+    }
+
+    if (scheduledDateTime > maxAllowedTime) {
+      Toast.show({
+        type: 'error',
+        text1: 'Please select a time within 7 days from now',
+      });
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleActivate = () => {
+    if (!validateScheduledTime()) {
+      return;
+    }
+    onSave(msg.id, 'activate');
+  };
+
+  const handleGenerateTemplate = async () => {
+    setIsGenerating(true);
+    try {
+      const response = await fetch(
+        `${process.env.EXPO_PUBLIC_API_URL}/api/client-messaging/generate-sms-template`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-client-access-token': session?.access_token,
+          },
+          body: JSON.stringify({
+            prompt: 'Generate a professional barbershop marketing SMS message',
+            profile: {
+              full_name: profile?.full_name || '',
+              email: profile?.email || '',
+              phone: profile?.phone || '',
+            },
+          }),
+          redirect: 'follow',
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to generate template');
+      }
+
+      onUpdate(msg.id, { message: data.message });
+      Toast.show({
+        type: 'success',
+        text1: 'Template generated successfully!',
+      });
+    } catch (error: any) {
+      console.error('Template generation error:', error);
+      Toast.show({
+        type: 'error',
+        text1: error.message || 'Failed to generate template',
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleRequestTest = () => {
+    if (!msg.isSaved) {
+      Toast.show({
+        type: 'error',
+        text1: 'Please save the message as a draft before testing',
+      });
+      return;
+    }
+
+    if (!msg.isValidated) {
+      Toast.show({
+        type: 'error',
+        text1: 'Message must be validated before testing',
+      });
+      return;
+    }
+
+    if (msg.validationStatus !== 'DRAFT') {
+      Toast.show({
+        type: 'error',
+        text1: 'Only draft messages can be tested',
+      });
+      return;
+    }
+
+    if (!msg.message.trim()) {
+      Toast.show({
+        type: 'error',
+        text1: 'Please enter a message first',
+      });
+      return;
+    }
+
+    if (msg.message.length < 100) {
+      Toast.show({
+        type: 'error',
+        text1: 'Message must be at least 100 characters',
+      });
+      return;
+    }
+
+    onRequestTest(msg.id);
   };
 
   const handleDeactivate = async () => {
@@ -138,7 +281,9 @@ export function MessageCard({
             hour: msg.hour,
             minute: msg.minute,
             period: msg.period,
-            scheduledFor: new Date(msg.scheduleDate + 'T00:00:00').toISOString(),
+            scheduledFor: msg.scheduleDate
+              ? parseYMDToLocalDate(msg.scheduleDate).toISOString()
+              : new Date().toISOString(),
             validationStatus: 'DRAFT',
             isValidated: msg.isValidated,
             purpose: msg.purpose || 'campaign',
@@ -186,7 +331,7 @@ export function MessageCard({
       {isFullLock && (
         <View className="flex-row items-center gap-1.5 px-3 py-2 bg-red-300/15 border-b border-red-300/25">
           <Lock color="#fca5a5" size={16} />
-          <Text className="text-red-300 text-[11px] font-semibold flex-1">
+          <Text className="text-red-300 text-xs font-semibold flex-1">
             Campaign in progress - Locked until messaging completes
           </Text>
         </View>
@@ -195,7 +340,7 @@ export function MessageCard({
       {isPartialLock && !isFullLock && (
         <View className="flex-row items-center gap-1.5 px-3 py-2 bg-lime-300/15 border-b border-lime-300/25">
           <CheckCircle color="#bef264" size={16} />
-          <Text className="text-lime-300 text-[11px] font-semibold flex-1">
+          <Text className="text-lime-300 text-xs font-semibold flex-1">
             Campaign Completed - You can delete or create a new campaign
           </Text>
         </View>
@@ -234,40 +379,40 @@ export function MessageCard({
                     editable={msg.isEditing}
                     maxLength={30}
                     autoFocus
-                    className="flex-1 bg-white/5 border border-white/10 rounded px-2 py-1 text-white text-sm"
+                    className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-base"
                   />
                   <TouchableOpacity
                     onPress={() => onSaveTitle(msg.id)}
                     disabled={!msg.isEditing}
-                    className="p-1"
+                    className="p-2"
                   >
-                    <Check size={14} color="#bef264" />
+                    <Check size={16} color="#bef264" />
                   </TouchableOpacity>
                   <TouchableOpacity
                     onPress={onCancelEditTitle}
-                    className="p-1"
+                    className="p-2"
                   >
-                    <X size={14} color="#fca5a5" />
+                    <X size={16} color="#fca5a5" />
                   </TouchableOpacity>
                 </View>
               ) : (
                 <View className="flex-row items-center gap-1.5">
-                  <Text className="text-white text-sm font-semibold flex-1" numberOfLines={1}>
+                  <Text className="text-white text-base font-semibold flex-1" numberOfLines={1}>
                     {msg.title}
                   </Text>
                   {msg.isEditing && !isFullLock && (
                     <TouchableOpacity
                       onPress={() => onStartEditingTitle(msg.id, msg.title)}
-                      className="p-0.5"
+                      className="p-1.5"
                     >
-                      <Pencil size={12} color="#bdbdbd" />
+                      <Pencil size={14} color="#bdbdbd" />
                     </TouchableOpacity>
                   )}
                 </View>
               )}
               <View className="flex-row items-center gap-1">
                 <Calendar color="#bdbdbd" size={12} />
-                <Text className="text-[#bdbdbd] text-[10px]" numberOfLines={1}>
+                <Text className="text-[#bdbdbd] text-[11px]" numberOfLines={1}>
                   {getSchedulePreview()}
                   {msg.validationStatus !== 'ACCEPTED' || !msg.enabled ? ' | Inactive' : ''}
                 </Text>
@@ -289,7 +434,7 @@ export function MessageCard({
                 ) : (
                   <>
                     <Users color="#bdbdbd" size={12} />
-                    <Text className="text-[11px] text-[#bdbdbd] font-semibold">Preview</Text>
+                    <Text className="text-xs text-[#bdbdbd] font-semibold">Preview</Text>
                   </>
                 )}
               </TouchableOpacity>
@@ -302,7 +447,7 @@ export function MessageCard({
                 onPress={() => onEnableEdit(msg.id)}
               >
                 <Edit color="#bdbdbd" size={12} />
-                <Text className="text-[11px] text-[#bdbdbd] font-semibold">Edit</Text>
+                <Text className="text-xs text-[#bdbdbd] font-semibold">Edit</Text>
               </TouchableOpacity>
             )}
 
@@ -325,7 +470,7 @@ export function MessageCard({
                   }
                 }}
               >
-                <Text className={`text-[10px] font-semibold ${
+                <Text className={`text-[11px] font-semibold ${
                   msg.validationStatus === 'ACCEPTED' && msg.enabled
                     ? 'text-lime-300'
                     : 'text-gray-400'
@@ -342,7 +487,7 @@ export function MessageCard({
                   ? 'bg-lime-300/15 border-lime-300/30' 
                   : 'bg-amber-400/15 border-amber-400/30'
               }`}>
-                <Text className={`text-[10px] font-semibold ${
+                <Text className={`text-[11px] font-semibold ${
                   msg.isSaved ? 'text-lime-300' : 'text-amber-400'
                 }`}>
                   {msg.isSaved ? 'Saved' : 'Draft'}
@@ -355,7 +500,7 @@ export function MessageCard({
                   ? 'bg-sky-300/15 border-sky-300/30' 
                   : 'bg-gray-500/10 border-gray-500/20'
               }`}>
-                <Text className={`text-[10px] font-semibold ${
+                <Text className={`text-[11px] font-semibold ${
                   msg.isValidated ? 'text-sky-300' : 'text-gray-400'
                 }`}>
                   {msg.isValidated ? 'Verified' : 'Unverified'}
@@ -367,14 +512,14 @@ export function MessageCard({
             {isFullLock && (
               <View className="flex-row items-center gap-0.5 px-2 py-0.5 rounded-full bg-red-300/15 border border-red-300/30">
                 <Lock color="#fca5a5" size={12} />
-                <Text className="text-red-300 text-[10px] font-semibold">Sending</Text>
+                <Text className="text-red-300 text-[11px] font-semibold">Sending</Text>
               </View>
             )}
 
             {isPartialLock && !isFullLock && (
               <View className="flex-row items-center gap-0.5 px-2 py-0.5 rounded-full bg-lime-300/15 border border-lime-300/30">
                 <CheckCircle color="#bef264" size={12} />
-                <Text className="text-lime-300 text-[10px] font-semibold">Complete</Text>
+                <Text className="text-lime-300 text-[11px] font-semibold">Complete</Text>
               </View>
             )}
 
@@ -407,16 +552,9 @@ export function MessageCard({
             <CollapsibleSection collapsed={openSection !== 'content'}>
               <View className="p-2.5 border-t border-white/10">
                 <MessageContent
-                  profile={profile}
                   message={msg}
-                  validatingId={validatingId}
-                  testMessagesUsed={testMessagesUsed}
-                  session={session}
                   onUpdate={onUpdate}
-                  onValidate={onValidate}
-                  onRequestTest={onRequestTest}
                   isFullLock={isFullLock}
-                  isPartialLock={isPartialLock}
                 />
               </View>
             </CollapsibleSection>
@@ -443,13 +581,8 @@ export function MessageCard({
                   setAlgorithmType={setAlgorithmType}
                   availableCredits={availableCredits}
                   message={msg}
-                  isSaving={isSaving}
-                  savingMode={savingMode}
                   previewCount={previewCount}
-                  session={session}
                   onUpdate={onUpdate}
-                  onSave={onSave}
-                  onCancelEdit={onCancelEdit}
                   isFullLock={isFullLock}
                   isPartialLock={isPartialLock}
                 />
@@ -457,6 +590,121 @@ export function MessageCard({
             </CollapsibleSection>
           </View>
         </View>
+
+        {/* Action Buttons */}
+        {msg.isEditing && (
+          <View className="gap-2.5 pt-1">
+            <View className="flex-row gap-2">
+              <TouchableOpacity
+                className={`flex-1 items-center justify-center py-2.5 rounded-[12px] border bg-purple-500/20 border-purple-500/30 ${
+                  (isGenerating || isFullLock) && 'opacity-50'
+                }`}
+                onPress={handleGenerateTemplate}
+                disabled={isGenerating || isFullLock}
+              >
+                {isGenerating ? (
+                  <ActivityIndicator size="small" color="#d8b4fe" />
+                ) : (
+                  <Sparkles color="#d8b4fe" size={22} />
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                className={`flex-1 items-center justify-center py-2.5 rounded-[12px] border bg-white/5 border-white/15 ${
+                  (msg.message.length < 100 || validatingId === msg.id || isFullLock) && 'opacity-50'
+                }`}
+                onPress={() => onValidate(msg.id)}
+                disabled={msg.message.length < 100 || validatingId === msg.id || isFullLock}
+              >
+                {validatingId === msg.id ? (
+                  <ActivityIndicator size="small" color="#ffffff" />
+                ) : (
+                  <Shield color="#ffffff" size={22} />
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                className={`flex-1 items-center justify-center py-2.5 rounded-[12px] border bg-sky-300/20 border-sky-300/30 ${
+                  (!msg.isSaved ||
+                    !msg.isValidated ||
+                    msg.validationStatus !== 'DRAFT' ||
+                    !msg.message.trim() ||
+                    msg.message.length < 100 ||
+                    isFullLock) && 'opacity-50'
+                }`}
+                onPress={handleRequestTest}
+                disabled={
+                  !msg.isSaved ||
+                  !msg.isValidated ||
+                  msg.validationStatus !== 'DRAFT' ||
+                  !msg.message.trim() ||
+                  msg.message.length < 100 ||
+                  isFullLock
+                }
+              >
+                <Send color="#7dd3fc" size={22} />
+              </TouchableOpacity>
+            </View>
+
+            <View className="flex-row gap-2">
+              <TouchableOpacity
+                onPress={() => onSave(msg.id, 'draft')}
+                disabled={isSaving || msg.message.length < 100 || isFullLock}
+                className={`flex-1 flex-row items-center justify-center gap-2 px-3 py-3 rounded-xl ${
+                  isSaving || msg.message.length < 100 || isFullLock
+                    ? 'bg-gray-600/50'
+                    : 'bg-amber-300/20 border border-amber-300/30'
+                }`}
+              >
+                {isSaving && savingMode === 'draft' ? (
+                  <ActivityIndicator size="small" color="#fbbf24" />
+                ) : (
+                  <FileText size={18} color="#fbbf24" />
+                )}
+                <Text className={`text-sm font-bold ${
+                  isSaving || msg.message.length < 100 || isFullLock ? 'text-gray-400' : 'text-amber-300'
+                }`}>
+                  Save Draft
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleActivate}
+                disabled={isSaving || msg.message.length < 100 || !msg.isValidated || isFullLock}
+                className={`flex-1 flex-row items-center justify-center gap-2 px-3 py-3 rounded-xl ${
+                  isSaving || msg.message.length < 100 || !msg.isValidated || isFullLock
+                    ? 'bg-gray-600/50'
+                    : 'bg-lime-300/20 border border-lime-300/30'
+                }`}
+              >
+                {isSaving && savingMode === 'activate' ? (
+                  <ActivityIndicator size="small" color="#bef264" />
+                ) : (
+                  <Zap size={18} color="#bef264" />
+                )}
+                <Text className={`text-sm font-bold ${
+                  isSaving || msg.message.length < 100 || !msg.isValidated || isFullLock
+                    ? 'text-gray-400'
+                    : 'text-lime-300'
+                }`}>
+                  Activate
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {msg.isSaved && (
+              <TouchableOpacity
+                onPress={() => onCancelEdit(msg.id)}
+                disabled={isSaving || isFullLock}
+                className={`px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 ${
+                  (isSaving || isFullLock) && 'opacity-50'
+                }`}
+              >
+                <Text className="text-sm font-bold text-[#bdbdbd] text-center">Cancel</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
       </View>
 
       {/* Deactivate Confirmation Modal */}
@@ -526,7 +774,7 @@ export function MessageCard({
       {msg.validationStatus === 'ACCEPTED' && msg.enabled && !isAnyLock && (
         <View className="flex-row items-center gap-1.5 px-3 py-2 bg-sky-300/15 border-t border-sky-300/25">
           <Send color="#7dd3fc" size={12} />
-          <Text className="text-sky-300 text-[11px]">
+          <Text className="text-sky-300 text-xs">
             <Text className="font-medium">Next send: </Text>
             <Text className="text-sky-200">
               {getSchedulePreview()}

@@ -1,3 +1,4 @@
+import { parseYMDToLocalDate } from '@/utils/date';
 import { supabase } from '@/utils/supabaseClient';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -129,8 +130,17 @@ export default function DailyRevenueCard({ userId, selectedDate }: DailyRevenueC
   const formatCurrency = (amount: number) =>
     `$${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
+  const isPrevDay = prevDataDate
+    ? (() => {
+        const selected = parseYMDToLocalDate(selectedDateStr);
+        const prev = parseYMDToLocalDate(prevDataDate);
+        const diff = selected.getTime() - prev.getTime();
+        return diff === 24 * 60 * 60 * 1000;
+      })()
+    : false;
+
   const change =
-    revenue !== null && prevRevenue !== null && prevRevenue !== 0
+    revenue !== null && prevRevenue !== null && prevRevenue !== 0 && isPrevDay
       ? parseFloat(((revenue - prevRevenue) / prevRevenue * 100).toFixed(2))
       : null;
 
@@ -182,7 +192,7 @@ export default function DailyRevenueCard({ userId, selectedDate }: DailyRevenueC
             <View className="flex-row items-center justify-between mb-3">
               <MaskedView
                 maskElement={
-                  <Text className="text-sm font-bold tracking-wide">
+                  <Text className="text-base font-bold tracking-wide">
                     💰 DAILY REVENUE
                   </Text>
                 }
@@ -192,7 +202,7 @@ export default function DailyRevenueCard({ userId, selectedDate }: DailyRevenueC
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                 >
-                  <Text className="text-sm font-bold tracking-wide opacity-0">
+                  <Text className="text-base font-bold tracking-wide opacity-0">
                     💰 DAILY REVENUE
                   </Text>
                 </LinearGradient>
@@ -205,22 +215,22 @@ export default function DailyRevenueCard({ userId, selectedDate }: DailyRevenueC
                   borderRadius: 12,
                 }}
               >
-                <Text className="text-xs font-bold" style={{ color: COLORS.text }}>
+                <Text className="text-sm font-bold" style={{ color: COLORS.text }}>
                   {label}
                 </Text>
               </View>
             </View>
 
             {/* Revenue amount */}
-            <View className="min-h-[30px] justify-center mb-3">
+            <View className="min-h-[60px] justify-center mb-3">
               {loading ? (
                 <ActivityIndicator color={COLORS.green} size="large" />
               ) : (
                 <Text
-                  className="text-4xl font-bold"
-                  style={{ color: COLORS.text }}
+                  className="font-extrabold tracking-tight"
+                  style={{ color: COLORS.text, fontSize: 36, lineHeight: 40 }}
                   numberOfLines={1}
-                  adjustsFontSizeToFit
+                  ellipsizeMode="tail"
                 >
                   {revenue !== null ? formatCurrency(revenue) : 'No data'}
                 </Text>

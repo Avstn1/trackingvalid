@@ -1,9 +1,11 @@
 import { HapticTab } from '@/components/haptic-tab';
 import { supabase } from '@/utils/supabaseClient';
+import { MOTION, useReducedMotionPreference } from '@/utils/motion';
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs, useRouter } from 'expo-router';
 import React, { useEffect } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
+import Animated, { interpolate, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
 const TAB_BAR_STYLES = StyleSheet.create({
   tabBar: {
@@ -43,7 +45,73 @@ const TAB_BAR_STYLES = StyleSheet.create({
     shadowOpacity: 0.6,
     shadowRadius: 12,
   },
+  tabIndicator: {
+    height: 3,
+    borderRadius: 999,
+    marginTop: 4,
+    alignSelf: 'center',
+    backgroundColor: '#8bcf68ff',
+  },
 });
+
+type AnimatedTabIconProps = {
+  focused: boolean;
+  color: string;
+  size: number;
+  activeName: keyof typeof Ionicons.glyphMap;
+  inactiveName: keyof typeof Ionicons.glyphMap;
+};
+
+function AnimatedTabIcon({ focused, color, size, activeName, inactiveName }: AnimatedTabIconProps) {
+  const reduceMotion = useReducedMotionPreference();
+  const progress = useSharedValue(focused ? 1 : 0);
+
+  useEffect(() => {
+    if (reduceMotion) {
+      progress.value = focused ? 1 : 0;
+    } else {
+      progress.value = withTiming(focused ? 1 : 0, {
+        duration: MOTION.durationFast,
+        easing: MOTION.easingStandard,
+      });
+    }
+  }, [focused, reduceMotion, progress]);
+
+  const iconStyle = useAnimatedStyle(() => {
+    if (reduceMotion) {
+      return {
+        transform: [{ translateY: 0 }, { scale: 1 }],
+        opacity: 1,
+      };
+    }
+
+    return {
+      transform: [
+        { translateY: interpolate(progress.value, [0, 1], [2, -2]) },
+        { scale: interpolate(progress.value, [0, 1], [1, 1.08]) },
+      ],
+      opacity: interpolate(progress.value, [0, 1], [0.6, 1]),
+    };
+  }, [reduceMotion]);
+
+  const indicatorStyle = useAnimatedStyle(() => ({
+    width: interpolate(progress.value, [0, 1], [6, 18]),
+    opacity: interpolate(progress.value, [0, 1], [0, 1]),
+  }));
+
+  return (
+    <Animated.View style={iconStyle}>
+      <View style={focused ? TAB_BAR_STYLES.activeTabGlow : undefined}>
+        <Ionicons
+          name={focused ? activeName : inactiveName}
+          size={size}
+          color={color}
+        />
+      </View>
+      <Animated.View style={[TAB_BAR_STYLES.tabIndicator, indicatorStyle]} />
+    </Animated.View>
+  );
+}
 
 export default function DashboardLayout() {
   const router = useRouter();
@@ -85,7 +153,7 @@ export default function DashboardLayout() {
           tabBarInactiveTintColor: 'rgba(247, 247, 247, 0.3)',
           tabBarActiveTintColor: '#8bcf68ff',
           
-          tabBarButton: HapticTab,
+          tabBarButton: (props) => <HapticTab {...props} />,
           tabBarIconStyle: TAB_BAR_STYLES.tabBarIcon,
           tabBarLabelStyle: TAB_BAR_STYLES.tabBarLabel,
           
@@ -98,13 +166,13 @@ export default function DashboardLayout() {
             title: '',
             headerShown: false,
             tabBarIcon: ({ color, focused }) => (
-              <View style={focused && TAB_BAR_STYLES.activeTabGlow}>
-                <Ionicons 
-                  name={focused ? "document-text" : "document-text-outline"} 
-                  size={24} 
-                  color={color} 
-                />
-              </View>
+              <AnimatedTabIcon
+                focused={focused}
+                color={color}
+                size={24}
+                activeName="document-text"
+                inactiveName="document-text-outline"
+              />
             ),
           }}
         />
@@ -115,13 +183,13 @@ export default function DashboardLayout() {
             title: '',
             headerShown: false,
             tabBarIcon: ({ color, focused }) => (
-              <View style={focused && TAB_BAR_STYLES.activeTabGlow}>
-                <Ionicons 
-                  name={focused ? "wallet" : "wallet-outline"} 
-                  size={24} 
-                  color={color} 
-                />
-              </View>
+              <AnimatedTabIcon
+                focused={focused}
+                color={color}
+                size={24}
+                activeName="wallet"
+                inactiveName="wallet-outline"
+              />
             ),
           }}
         />
@@ -132,13 +200,13 @@ export default function DashboardLayout() {
             title: '',
             headerShown: false,
             tabBarIcon: ({ color, focused }) => (
-              <View style={focused && TAB_BAR_STYLES.activeTabGlow}>
-                <Ionicons 
-                  name={focused ? "apps" : "apps-outline"} 
-                  size={26} 
-                  color={color} 
-                />
-              </View>
+              <AnimatedTabIcon
+                focused={focused}
+                color={color}
+                size={26}
+                activeName="apps"
+                inactiveName="apps-outline"
+              />
             ),
           }}
         />
@@ -149,13 +217,13 @@ export default function DashboardLayout() {
             title: '',
             headerShown: false,
             tabBarIcon: ({ color, focused }) => (
-              <View style={focused && TAB_BAR_STYLES.activeTabGlow}>
-                <Ionicons 
-                  name={focused ? "people-circle" : "people-circle-outline"} 
-                  size={24} 
-                  color={color} 
-                />
-              </View>
+              <AnimatedTabIcon
+                focused={focused}
+                color={color}
+                size={24}
+                activeName="people-circle"
+                inactiveName="people-circle-outline"
+              />
             ),
           }}
         />
@@ -166,13 +234,13 @@ export default function DashboardLayout() {
             title: 'Settings',
             headerShown: false,
             tabBarIcon: ({ color, focused }) => (
-              <View style={focused && TAB_BAR_STYLES.activeTabGlow}>
-                <Ionicons 
-                  name={focused ? "settings" : "settings-outline"} 
-                  size={24} 
-                  color={color} 
-                />
-              </View>
+              <AnimatedTabIcon
+                focused={focused}
+                color={color}
+                size={24}
+                activeName="settings"
+                inactiveName="settings-outline"
+              />
             ),
           }}
         />

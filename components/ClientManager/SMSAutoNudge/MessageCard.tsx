@@ -5,10 +5,14 @@ import {
   ChevronDown,
   ChevronUp,
   Edit,
+  FileText,
   Lock,
   MessageSquare,
   Send,
-  Users
+  Shield,
+  Sparkles,
+  Users,
+  Zap
 } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
@@ -35,7 +39,6 @@ interface AutoNudgeCampaignProgress {
 
 interface MessageCardProps {
   profile: any;
-  availableCredits?: number;
   message: SMSMessage;
   index: number;
   isSaving: boolean;
@@ -44,7 +47,6 @@ interface MessageCardProps {
   editingTitleId: string | null;
   tempTitle: string;
   phoneNumbers: PhoneNumber[];
-  testMessagesUsed: number;
   isLocked?: boolean;
   autoNudgeCampaignProgress?: AutoNudgeCampaignProgress;
   session: any;
@@ -63,11 +65,9 @@ interface MessageCardProps {
 
 export function MessageCard({
   profile,
-  availableCredits,
   message: msg,
   index,
   isSaving,
-  testMessagesUsed,
   savingMode,
   validatingId,
   editingTitleId,
@@ -93,6 +93,7 @@ export function MessageCard({
   const [recipientsStats, setRecipientsStats] = useState<{ total: number; successful: number; failed: number } | null>(null);
   const [loadingRecipients, setLoadingRecipients] = useState(false);
   const [lastSentDate, setLastSentDate] = useState<string | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const [showMessageContent, setShowMessageContent] = useState(false);
   const [showRecipients, setShowRecipients] = useState(false);
@@ -225,13 +226,99 @@ export function MessageCard({
     });
   };
 
+  const handleGenerateTemplate = async () => {
+    setIsGenerating(true);
+    try {
+      const response = await fetch(
+        `${process.env.EXPO_PUBLIC_API_URL}/api/client-messaging/generate-sms-template`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-client-access-token': session?.access_token,
+          },
+          body: JSON.stringify({
+            prompt: 'Generate a professional barbershop marketing SMS message',
+            profile: {
+              full_name: profile?.full_name || '',
+              email: profile?.email || '',
+              phone: profile?.phone || '',
+            },
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to generate template');
+      }
+
+      onUpdate(msg.id, { message: data.message });
+      Toast.show({
+        type: 'success',
+        text1: 'Template generated successfully!',
+      });
+    } catch (error: any) {
+      console.error('Template generation error:', error);
+      Toast.show({
+        type: 'error',
+        text1: error.message || 'Failed to generate template',
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleRequestTest = () => {
+    if (!msg.isSaved) {
+      Toast.show({
+        type: 'error',
+        text1: 'Please save the message as a draft before testing',
+      });
+      return;
+    }
+
+    if (!msg.isValidated) {
+      Toast.show({
+        type: 'error',
+        text1: 'Message must be validated before testing',
+      });
+      return;
+    }
+
+    if (msg.validationStatus !== 'DRAFT') {
+      Toast.show({
+        type: 'error',
+        text1: 'Only draft messages can be tested',
+      });
+      return;
+    }
+
+    if (!msg.message.trim()) {
+      Toast.show({
+        type: 'error',
+        text1: 'Please enter a message first',
+      });
+      return;
+    }
+
+    if (msg.message.length < 100) {
+      Toast.show({
+        type: 'error',
+        text1: 'Message must be at least 100 characters',
+      });
+      return;
+    }
+
+    onRequestTest(msg.id);
+  };
+
   const isFullLock = autoNudgeCampaignProgress?.is_running || false;
   const isPartialLock = (autoNudgeCampaignProgress?.is_finished && !autoNudgeCampaignProgress?.is_running) || false;
   const isAnyLock = isFullLock || isPartialLock || isLocked;
 
   const canEdit = !isFullLock && msg.isSaved && !msg.isEditing;
-  const canEditMessage = !isFullLock;
-
   const borderColorClass = isFullLock 
     ? 'border-red-300/30' 
     : isPartialLock 
@@ -244,7 +331,7 @@ export function MessageCard({
       {isFullLock && (
         <View className="flex-row items-center gap-1.5 px-3 py-2 bg-red-300/15 border-b border-red-300/25">
           <Lock color="#fca5a5" size={16} />
-          <Text className="text-red-300 text-[11px] font-semibold flex-1">
+          <Text className="text-red-300 text-xs font-semibold flex-1">
             Campaign in progress - Locked until messaging completes
           </Text>
         </View>
@@ -253,7 +340,7 @@ export function MessageCard({
       {isPartialLock && !isFullLock && (
         <View className="flex-row items-center gap-1.5 px-3 py-2 bg-amber-400/15 border-b border-amber-400/25">
           <Lock color="#fbbf24" size={16} />
-          <Text className="text-amber-400 text-[11px] font-semibold flex-1">
+          <Text className="text-amber-400 text-xs font-semibold flex-1">
             Sent this month - Can edit, unlocks {getUnlockDate()}
           </Text>
         </View>
@@ -262,7 +349,7 @@ export function MessageCard({
       {isLocked && !isFullLock && !isPartialLock && (
         <View className="flex-row items-center gap-1.5 px-3 py-2 bg-amber-400/15 border-b border-amber-400/25">
           <Lock color="#fbbf24" size={16} />
-          <Text className="text-amber-400 text-[11px] font-semibold flex-1">
+          <Text className="text-amber-400 text-xs font-semibold flex-1">
             Sent - Unlocks {getUnlockDate()}
           </Text>
         </View>
@@ -286,16 +373,16 @@ export function MessageCard({
               ) : isFullLock || isPartialLock ? (
                 <Lock color={isFullLock ? "#fca5a5" : "#fbbf24"} size={20} />
               ) : (
-                <Text className="text-sky-300 text-sm font-bold">{index + 1}</Text>
+                <Text className="text-sky-300 text-base font-bold">{index + 1}</Text>
               )}
             </View>
             <View className="flex-1 gap-0.5">
-              <Text className="text-white text-sm font-semibold" numberOfLines={1}>
+              <Text className="text-white text-base font-semibold" numberOfLines={1}>
                 {msg.title}
               </Text>
               <View className="flex-row items-center gap-1">
                 <Calendar color="#bdbdbd" size={12} />
-                <Text className="text-[#bdbdbd] text-[10px]" numberOfLines={1}>
+                <Text className="text-[#bdbdbd] text-[11px]" numberOfLines={1}>
                   {getSchedulePreview()}
                   {msg.validationStatus !== 'ACCEPTED' || !msg.enabled ? ' | Inactive' : ''}
                 </Text>
@@ -316,7 +403,7 @@ export function MessageCard({
                 ) : (
                   <>
                     <Users color="#bdbdbd" size={12} />
-                    <Text className="text-[11px] text-[#bdbdbd] font-semibold">Last SMS Recipients</Text>
+                    <Text className="text-xs text-[#bdbdbd] font-semibold">Last SMS Recipients</Text>
                   </>
                 )}
               </TouchableOpacity>
@@ -328,7 +415,7 @@ export function MessageCard({
                 onPress={() => onEnableEdit?.(msg.id)}
               >
                 <Edit color="#bdbdbd" size={12} />
-                <Text className="text-[11px] text-[#bdbdbd] font-semibold">Edit</Text>
+                <Text className="text-xs text-[#bdbdbd] font-semibold">Edit</Text>
               </TouchableOpacity>
             )}
 
@@ -350,7 +437,7 @@ export function MessageCard({
                   }
                 }}
               >
-                <Text className={`text-[10px] font-semibold ${
+                <Text className={`text-[11px] font-semibold ${
                   msg.validationStatus === 'ACCEPTED' && msg.enabled
                     ? 'text-lime-300'
                     : 'text-gray-400'
@@ -366,7 +453,7 @@ export function MessageCard({
                   ? 'bg-lime-300/15 border-lime-300/30' 
                   : 'bg-amber-400/15 border-amber-400/30'
               }`}>
-                <Text className={`text-[10px] font-semibold ${
+                <Text className={`text-[11px] font-semibold ${
                   msg.isSaved ? 'text-lime-300' : 'text-amber-400'
                 }`}>
                   {msg.isSaved ? 'Saved' : 'Draft'}
@@ -378,7 +465,7 @@ export function MessageCard({
                   ? 'bg-sky-300/15 border-sky-300/30' 
                   : 'bg-gray-500/10 border-gray-500/20'
               }`}>
-                <Text className={`text-[10px] font-semibold ${
+                <Text className={`text-[11px] font-semibold ${
                   msg.isValidated ? 'text-sky-300' : 'text-gray-400'
                 }`}>
                   {msg.isValidated ? 'Verified' : 'Unverified'}
@@ -389,14 +476,14 @@ export function MessageCard({
             {isFullLock && (
               <View className="flex-row items-center gap-0.5 px-2 py-0.5 rounded-full bg-red-300/15 border border-red-300/30">
                 <Lock color="#fca5a5" size={12} />
-                <Text className="text-red-300 text-[10px] font-semibold">Sending</Text>
+                <Text className="text-red-300 text-[11px] font-semibold">Sending</Text>
               </View>
             )}
 
             {isPartialLock && !isFullLock && (
               <View className="flex-row items-center gap-0.5 px-2 py-0.5 rounded-full bg-amber-400/15 border border-amber-400/30">
                 <Lock color="#fbbf24" size={12} />
-                <Text className="text-amber-400 text-[10px] font-semibold">Partial Lock</Text>
+                <Text className="text-amber-400 text-[11px] font-semibold">Partial Lock</Text>
               </View>
             )}
           </View>
@@ -407,19 +494,19 @@ export function MessageCard({
           <View className="p-2.5 bg-white/5 border border-white/15 rounded-[10px] gap-1.5">
             <View className="flex-row items-center gap-1.5">
               <CheckCircle color="#bef264" size={16} />
-              <Text className="text-white text-xs font-semibold flex-1">
+              <Text className="text-white text-sm font-semibold flex-1">
                 Last sent: {formatLastSentDate(lastSentDate)}
               </Text>
             </View>
             {recipientsStats && (
               <View className="flex-row gap-2.5">
-                <Text className="text-lime-300 text-[11px]">
-                  {recipientsStats.successful} sent
-                </Text>
-                {recipientsStats.failed > 0 && (
-                  <Text className="text-red-300 text-[11px]">
-                    {recipientsStats.failed} failed
+                  <Text className="text-lime-300 text-xs">
+                    {recipientsStats.successful} sent
                   </Text>
+                {recipientsStats.failed > 0 && (
+                    <Text className="text-red-300 text-xs">
+                      {recipientsStats.failed} failed
+                    </Text>
                 )}
               </View>
             )}
@@ -448,15 +535,8 @@ export function MessageCard({
               <View className="p-2.5 border-t border-white/10">
                 <MessageContent
                   message={msg}
-                  validatingId={validatingId}
-                  testMessagesUsed={testMessagesUsed}
-                  profile={profile}
-                  session={session}
                   onUpdate={onUpdate}
-                  onValidate={onValidate}
-                  onRequestTest={onRequestTest}
                   isFullLock={isFullLock}
-                  isPartialLock={isPartialLock}
                 />
               </View>
             </Collapsible>
@@ -485,24 +565,135 @@ export function MessageCard({
                 <MessageClientList
                   message={msg}
                   phoneNumbers={phoneNumbers}
-                  isSaving={isSaving}
-                  savingMode={savingMode}
-                  onSave={onSave}
-                  onCancelEdit={onCancelEdit}
-                  isFullLock={isFullLock}
-                  isPartialLock={isPartialLock}
                 />
               </View>
             </Collapsible>
           </View>
         </View>
+
+        {/* Action Buttons */}
+        {msg.isEditing && (
+          <View className="gap-2.5 pt-1">
+            <View className="flex-row gap-2">
+              <TouchableOpacity
+                className={`flex-1 items-center justify-center py-2.5 rounded-[12px] border bg-purple-500/20 border-purple-500/30 ${
+                  (isGenerating || isFullLock) && 'opacity-50'
+                }`}
+                onPress={handleGenerateTemplate}
+                disabled={isGenerating || isFullLock}
+              >
+                {isGenerating ? (
+                  <ActivityIndicator size="small" color="#d8b4fe" />
+                ) : (
+                  <Sparkles color="#d8b4fe" size={22} />
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                className={`flex-1 items-center justify-center py-2.5 rounded-[12px] border bg-white/5 border-white/15 ${
+                  (msg.message.length < 100 || validatingId === msg.id || isFullLock) && 'opacity-50'
+                }`}
+                onPress={() => onValidate(msg.id)}
+                disabled={msg.message.length < 100 || validatingId === msg.id || isFullLock}
+              >
+                {validatingId === msg.id ? (
+                  <ActivityIndicator size="small" color="#ffffff" />
+                ) : (
+                  <Shield color="#ffffff" size={22} />
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                className={`flex-1 items-center justify-center py-2.5 rounded-[12px] border bg-sky-300/20 border-sky-300/30 ${
+                  (!msg.isSaved ||
+                    !msg.isValidated ||
+                    msg.validationStatus !== 'DRAFT' ||
+                    !msg.message.trim() ||
+                    msg.message.length < 100 ||
+                    isFullLock) && 'opacity-50'
+                }`}
+                onPress={handleRequestTest}
+                disabled={
+                  !msg.isSaved ||
+                  !msg.isValidated ||
+                  msg.validationStatus !== 'DRAFT' ||
+                  !msg.message.trim() ||
+                  msg.message.length < 100 ||
+                  isFullLock
+                }
+              >
+                <Send color="#7dd3fc" size={22} />
+              </TouchableOpacity>
+            </View>
+
+            <View className="flex-row gap-2">
+              <TouchableOpacity
+                className={`flex-1 flex-row items-center justify-center gap-2 px-3 py-3 rounded-xl ${
+                  (isSaving || msg.message.length < 100 || isFullLock) && 'opacity-50'
+                } border bg-amber-400/20 border-amber-400/30`}
+                onPress={() => onSave(msg.id, 'draft')}
+                disabled={isSaving || msg.message.length < 100 || isFullLock}
+              >
+                {isSaving && savingMode === 'draft' ? (
+                  <ActivityIndicator size="small" color="#fbbf24" />
+                ) : (
+                  <FileText color="#fbbf24" size={18} />
+                )}
+                <Text className="text-amber-400 text-sm font-bold">Save Draft</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                className={`flex-1 flex-row items-center justify-center gap-2 px-3 py-3 rounded-xl border ${
+                  (isSaving ||
+                    msg.message.length < 100 ||
+                    !msg.isValidated ||
+                    isPartialLock ||
+                    isFullLock)
+                    ? 'bg-gray-500/50 border-gray-500/50 opacity-50'
+                    : 'bg-sky-300 border-sky-300'
+                }`}
+                onPress={() => {
+                  if (!isPartialLock) {
+                    onSave(msg.id, 'activate');
+                  }
+                }}
+                disabled={
+                  isSaving ||
+                  msg.message.length < 100 ||
+                  !msg.isValidated ||
+                  isPartialLock ||
+                  isFullLock
+                }
+              >
+                {isSaving && savingMode === 'activate' ? (
+                  <ActivityIndicator size="small" color="#000000" />
+                ) : (
+                  <Zap color="#000000" size={18} />
+                )}
+                <Text className="text-black text-sm font-bold">Activate</Text>
+              </TouchableOpacity>
+            </View>
+
+            {msg.isSaved && (
+              <TouchableOpacity
+                className={`flex-row items-center justify-center gap-1.5 py-2.5 rounded-[10px] bg-white/5 border border-white/15 ${
+                  (isSaving || isFullLock) && 'opacity-50'
+                }`}
+                onPress={() => onCancelEdit(msg.id)}
+                disabled={isSaving || isFullLock}
+              >
+                <Text className="text-[#bdbdbd] text-sm font-bold">Cancel</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
       </View>
 
       {/* Next Send Banner */}
       {msg.validationStatus === 'ACCEPTED' && msg.enabled && !isAnyLock && (
         <View className="flex-row items-center gap-1.5 px-3 py-2 bg-sky-300/15 border-t border-sky-300/25">
           <Send color="#7dd3fc" size={12} />
-          <Text className="text-sky-300 text-[11px]">
+          <Text className="text-sky-300 text-xs">
             <Text className="font-medium">Next send: </Text>
             <Text className="text-sky-200">
               {getNextSendDate()} at {msg.hour}:{msg.minute.toString().padStart(2, '0')} {msg.period}

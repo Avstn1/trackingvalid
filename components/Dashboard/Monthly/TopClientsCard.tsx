@@ -98,7 +98,7 @@ export default function TopClientsCard({ userId, selectedMonth, selectedYear }: 
         }}
       />
 
-      <Text className="text-base font-semibold mb-3" style={{ color: COLORS_PALETTE.green }}>
+      <Text className="text-lg font-semibold mb-3" style={{ color: COLORS_PALETTE.green }}>
         🏆 Top Clients
       </Text>
 
@@ -121,10 +121,10 @@ export default function TopClientsCard({ userId, selectedMonth, selectedYear }: 
             className="flex-row pb-2 mb-2"
             style={{ borderBottomWidth: 1, borderBottomColor: COLORS_PALETTE.glassBorder }}
           >
-            <Text className="font-semibold text-xs w-6" style={{ color: COLORS_PALETTE.text }}>#</Text>
-            <Text className="font-semibold text-xs flex-1" style={{ color: COLORS_PALETTE.text }}>Client</Text>
-            <Text className="font-semibold text-xs flex-1 text-right" style={{ color: COLORS_PALETTE.text }}>Total</Text>
-            <Text className="font-semibold text-xs flex-1 text-right" style={{ color: COLORS_PALETTE.text }}>Visits</Text>
+            <Text className="font-semibold text-sm w-6" style={{ color: COLORS_PALETTE.text }}>#</Text>
+            <Text className="font-semibold text-sm flex-1" style={{ color: COLORS_PALETTE.text }}>Client</Text>
+            <Text className="font-semibold text-sm flex-1 text-right" style={{ color: COLORS_PALETTE.text }}>Total</Text>
+            <Text className="font-semibold text-sm flex-1 text-right" style={{ color: COLORS_PALETTE.text }}>Visits</Text>
           </View>
 
           {clients.slice(0, 5).map((client, idx) => (
@@ -137,14 +137,14 @@ export default function TopClientsCard({ userId, selectedMonth, selectedYear }: 
                 backgroundColor: idx % 2 === 0 ? 'rgba(255, 255, 255, 0.02)' : 'transparent',
               }}
             >
-              <Text className="text-sm w-6" style={{ color: COLORS_PALETTE.text }}>{idx + 1}</Text>
-              <Text className="font-semibold text-sm flex-1" numberOfLines={1} style={{ color: COLORS_PALETTE.text }}>
+              <Text className="text-[15px] w-6" style={{ color: COLORS_PALETTE.text }}>{idx + 1}</Text>
+              <Text className="font-semibold text-[15px] flex-1" numberOfLines={1} style={{ color: COLORS_PALETTE.text }}>
                 {client.client_name ?? 'N/A'}
               </Text>
-              <Text className="font-semibold text-sm flex-1 text-right" style={{ color: COLORS_PALETTE.green }}>
+              <Text className="font-semibold text-[15px] flex-1 text-right" style={{ color: COLORS_PALETTE.green }}>
                 ${client.total_paid?.toFixed(2) ?? '-'}
               </Text>
-              <Text className="font-semibold text-sm flex-1 text-right" style={{ color: COLORS_PALETTE.yellow }}>
+              <Text className="font-semibold text-[15px] flex-1 text-right" style={{ color: COLORS_PALETTE.yellow }}>
                 {client.num_visits ?? '-'}
               </Text>
             </View>

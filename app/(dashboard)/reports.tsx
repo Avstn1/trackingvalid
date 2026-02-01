@@ -5,12 +5,14 @@ import MonthlyReports from '@/components/Reports/MonthlyReports';
 import WeeklyComparisonReports from '@/components/Reports/WeeklyComparisonReports';
 import WeeklyReports from '@/components/Reports/WeeklyReports';
 import { supabase } from '@/utils/supabaseClient';
+import { useFocusAnimation, useReducedMotionPreference } from '@/utils/motion';
 import React, { useEffect, useState } from 'react';
 import {
   Dimensions,
   Text,
   View
 } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -52,6 +54,8 @@ export default function ReportsPage() {
   const [selectedMonth, setSelectedMonth] = useState(MONTHS[currentMonthIndex]);
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const [refreshKey, setRefreshKey] = useState(0);
+  const reduceMotion = useReducedMotionPreference();
+  const focusStyle = useFocusAnimation(reduceMotion);
 
   const [componentsReady, setComponentsReady] = useState(false);
 
@@ -103,12 +107,13 @@ export default function ReportsPage() {
 
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: COLORS.background }}>
-      <CustomHeader pageName="Reports" onDateChange={handleDateChange} />
+      <Animated.View style={[{ flex: 1 }, focusStyle]}>
+        <CustomHeader pageName="Reports" onDateChange={handleDateChange} />
 
-      {/* Main Content - No ScrollView */}
-      <View className="flex-1 px-4 pb-4">
-        {/* Reports Grid - Uses full remaining space */}
-        <View className="flex-1 gap-3">
+        {/* Main Content - No ScrollView */}
+        <View className="flex-1 px-4 pb-4">
+          {/* Reports Grid - Uses full remaining space */}
+          <View className="flex-1 gap-3">
           
           <View className="mb-3">
           </View>
@@ -214,8 +219,9 @@ export default function ReportsPage() {
               />
             </View>
           </View>
+          </View>
         </View>
-      </View>
+      </Animated.View>
     </SafeAreaView>
   );
 }

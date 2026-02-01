@@ -1,4 +1,5 @@
 // components/ExpenseComponents/ExpensesViewer.tsx
+import { formatDateToYMD, parseYMDToLocalDate } from '@/utils/date';
 import { supabase } from '@/utils/supabaseClient';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Calendar, Edit2, Trash2 } from 'lucide-react-native';
@@ -106,10 +107,18 @@ export default function ExpensesViewer({
   const PAGE_SIZE = 10;
   const [totalCount, setTotalCount] = useState(0);
 
+  const normalizePickerDate = (date?: Date | null): Date => {
+    if (!date) return new Date();
+    const time = date.getTime();
+    if (Number.isNaN(time) || time <= 0 || date.getFullYear() < 1971) {
+      return new Date();
+    }
+    return date;
+  };
+
   // Helper to parse date strings as local dates
   const parseLocalDate = (dateString: string): Date => {
-    const [year, month, day] = dateString.split('-').map(Number);
-    return new Date(year, month - 1, day);
+    return normalizePickerDate(parseYMDToLocalDate(dateString));
   };
 
   // Helper to get expense status for selected month
@@ -340,8 +349,8 @@ export default function ExpensesViewer({
     setEditLabel(exp.label);
     setEditAmount(exp.amount.toFixed(2));
     setEditFrequency(exp.frequency);
-    setEditStartDate(new Date(exp.start_date));
-    setEditEndDate(exp.end_date ? new Date(exp.end_date) : null);
+    setEditStartDate(normalizePickerDate(parseLocalDate(exp.start_date)));
+    setEditEndDate(exp.end_date ? normalizePickerDate(parseLocalDate(exp.end_date)) : null);
     setEditSelectedDays(exp.weekly_days || []);
     setEditMonthlyDay(exp.monthly_day?.toString() || '1');
     setEditYearlyMonth(exp.yearly_month || 0);
@@ -359,14 +368,18 @@ export default function ExpensesViewer({
   };
 
   const handleStartDateChange = (event: any, selectedDate?: Date) => {
-    if (selectedDate) {
-      setTempStartDate(selectedDate);
+    const fallbackTimestamp = event?.nativeEvent?.timestamp;
+    const nextDate = selectedDate || (fallbackTimestamp ? new Date(fallbackTimestamp) : undefined);
+    if (nextDate) {
+      setTempStartDate(normalizePickerDate(nextDate));
     }
   };
 
   const handleEndDateChange = (event: any, selectedDate?: Date) => {
-    if (selectedDate) {
-      setTempEndDate(selectedDate);
+    const fallbackTimestamp = event?.nativeEvent?.timestamp;
+    const nextDate = selectedDate || (fallbackTimestamp ? new Date(fallbackTimestamp) : undefined);
+    if (nextDate) {
+      setTempEndDate(normalizePickerDate(nextDate));
     }
   };
 
@@ -398,8 +411,8 @@ export default function ExpensesViewer({
           label: editLabel.trim(),
           amount: parseFloat(editAmount),
           frequency: editFrequency,
-          start_date: editStartDate.toISOString().split('T')[0],
-          end_date: editEndDate ? editEndDate.toISOString().split('T')[0] : null,
+          start_date: formatDateToYMD(normalizePickerDate(editStartDate)),
+          end_date: editEndDate ? formatDateToYMD(normalizePickerDate(editEndDate)) : null,
           weekly_days: editFrequency === 'weekly' ? editSelectedDays : null,
           monthly_day: editFrequency === 'monthly' ? parseInt(editMonthlyDay) : null,
           yearly_month: editFrequency === 'yearly' ? editYearlyMonth : null,
@@ -634,7 +647,7 @@ export default function ExpensesViewer({
                           <Text className="text-xs mb-2" style={{ color: COLORS.textMuted }}>Start Date</Text>
                           <TouchableOpacity
                             onPress={isFieldLocked ? undefined : () => {
-                              setTempStartDate(editStartDate);
+                              setTempStartDate(normalizePickerDate(editStartDate));
                               setShowStartPicker(true);
                             }}
                             disabled={isFieldLocked}
@@ -648,7 +661,7 @@ export default function ExpensesViewer({
                           >
                             <Calendar size={14} color={COLORS.green} />
                             <Text className="text-sm" style={{ color: COLORS.text }}>
-                              {editStartDate.toLocaleDateString()}
+                              {normalizePickerDate(editStartDate).toLocaleDateString()}
                             </Text>
                           </TouchableOpacity>
                         </View>
@@ -658,7 +671,7 @@ export default function ExpensesViewer({
                           <Text className="text-xs mb-2" style={{ color: COLORS.textMuted }}>End Date (Optional)</Text>
                           <TouchableOpacity
                             onPress={() => {
-                              setTempEndDate(editEndDate || new Date());
+                              setTempEndDate(normalizePickerDate(editEndDate || new Date()));
                               setShowEndPicker(true);
                             }}
                             className="flex-row items-center gap-2 px-3 py-2 rounded-lg"
@@ -670,7 +683,7 @@ export default function ExpensesViewer({
                           >
                             <Calendar size={14} color={COLORS.green} />
                             <Text className="text-sm" style={{ color: COLORS.text }}>
-                              {editEndDate ? editEndDate.toLocaleDateString() : 'Not set'}
+                              {editEndDate ? normalizePickerDate(editEndDate).toLocaleDateString() : 'Not set'}
                             </Text>
                           </TouchableOpacity>
                         </View>
@@ -851,7 +864,7 @@ export default function ExpensesViewer({
               }}
             >
               <DateTimePicker
-                value={tempStartDate}
+                value={normalizePickerDate(tempStartDate)}
                 mode="date"
                 display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                 onChange={handleStartDateChange}
@@ -921,7 +934,7 @@ export default function ExpensesViewer({
               }}
             >
               <DateTimePicker
-                value={tempEndDate}
+                value={normalizePickerDate(tempEndDate)}
                 mode="date"
                 display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                 onChange={handleEndDateChange}

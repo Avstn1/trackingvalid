@@ -189,16 +189,16 @@ export default function YearlyTopClientsCard({
         padding: 16,
       }}
     >
-      <Text className="text-base font-bold mb-2" style={{ color: COLORS.text }}>
+      <Text className="text-lg font-bold mb-2" style={{ color: COLORS.text }}>
         👑 Top Clients ({titleSuffix})
       </Text>
 
       {/* Table Header */}
       <View className="flex-row pb-2 mb-1" style={{ borderBottomWidth: 1, borderBottomColor: 'rgba(255, 255, 255, 0.2)' }}>
-        <Text className="font-semibold text-xs w-6" style={{ color: COLORS.text }}>#</Text>
-        <Text className="font-semibold text-xs flex-1 pr-2" style={{ color: COLORS.text }}>Client</Text>
-        <Text className="font-semibold text-xs w-20 text-right pr-2" style={{ color: COLORS.text }}>Total</Text>
-        <Text className="font-semibold text-xs w-14 text-right" style={{ color: COLORS.text }}>Visits</Text>
+        <Text className="font-semibold text-sm w-6" style={{ color: COLORS.text }}>#</Text>
+        <Text className="font-semibold text-sm flex-1 pr-2" style={{ color: COLORS.text }}>Client</Text>
+        <Text className="font-semibold text-sm w-20 text-right pr-2" style={{ color: COLORS.text }}>Total</Text>
+        <Text className="font-semibold text-sm w-14 text-right" style={{ color: COLORS.text }}>Visits</Text>
       </View>
 
       {/* Table Rows */}
@@ -213,14 +213,14 @@ export default function YearlyTopClientsCard({
               backgroundColor: idx % 2 === 0 ? 'rgba(255, 255, 255, 0.03)' : 'transparent',
             }}
           >
-            <Text className="text-sm w-6" style={{ color: COLORS.text }}>{idx + 1}</Text>
-            <Text className="font-semibold text-sm flex-1 pr-2" style={{ color: COLORS.text }} numberOfLines={1}>
+            <Text className="text-[15px] w-6" style={{ color: COLORS.text }}>{idx + 1}</Text>
+            <Text className="font-semibold text-[15px] flex-1 pr-2" style={{ color: COLORS.text }} numberOfLines={1}>
               {client.client_name ?? 'N/A'}
             </Text>
-            <Text className="font-semibold text-sm w-20 text-right pr-2" style={{ color: COLORS.green }}>
+            <Text className="font-semibold text-[15px] w-20 text-right pr-2" style={{ color: COLORS.green }}>
               ${client.total_paid?.toFixed(2) ?? '-'}
             </Text>
-            <Text className="font-semibold text-sm w-14 text-right" style={{ color: COLORS.yellow }}>
+            <Text className="font-semibold text-[15px] w-14 text-right" style={{ color: COLORS.yellow }}>
               {client.num_visits ?? '-'}
             </Text>
           </View>

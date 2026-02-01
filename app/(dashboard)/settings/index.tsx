@@ -1,9 +1,11 @@
 // app/(dashboard)/settings/index.tsx
 
+import { getFadeInDown, useFocusAnimation, useReducedMotionPreference } from '@/utils/motion';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const COLORS = {
@@ -45,6 +47,8 @@ const settingsItems = [
 
 export default function SettingsMenuScreen() {
   const router = useRouter();
+  const reduceMotion = useReducedMotionPreference();
+  const focusStyle = useFocusAnimation(reduceMotion);
 
   const handleBackToDashboard = () => {
     // Switch to the Dashboard tab
@@ -63,13 +67,13 @@ export default function SettingsMenuScreen() {
           className="flex-row items-center gap-1"
         >
           <Ionicons name="chevron-back" size={20} color={COLORS.green} />
-          <Text className="text-sm" style={{ color: COLORS.green }}>
+          <Text className="text-base" style={{ color: COLORS.green }}>
             Dashboard
           </Text>
         </TouchableOpacity>
 
         <View className="flex-1 items-center">
-          <Text className="text-lg font-bold" style={{ color: COLORS.text }}>
+          <Text className="text-xl font-bold" style={{ color: COLORS.text }}>
             Settings
           </Text>
         </View>
@@ -78,46 +82,51 @@ export default function SettingsMenuScreen() {
         <View style={{ width: 60 }} />
       </View>
 
-      <ScrollView
+      <Animated.ScrollView
         className="flex-1"
         contentContainerStyle={{ padding: 16 }}
         showsVerticalScrollIndicator={false}
+        style={focusStyle}
       >
-        {settingsItems.map(item => (
-          <TouchableOpacity
+        {settingsItems.map((item, index) => (
+          <Animated.View
             key={item.route}
-            onPress={() => router.push(item.route as any)}
-            className="mb-3 flex-row items-center justify-between px-4 py-3 rounded-2xl"
-            style={{
-              backgroundColor: COLORS.surface,
-              borderWidth: 1,
-              borderColor: COLORS.glassBorder,
-            }}
+            entering={getFadeInDown(reduceMotion, index * 40)}
           >
-            <View className="flex-1 mr-3">
-              <Text
-                className="text-sm font-semibold"
-                style={{ color: COLORS.text }}
-              >
-                {item.label}
-              </Text>
-              {item.description ? (
+            <TouchableOpacity
+              onPress={() => router.push(item.route as any)}
+              className="mb-3 flex-row items-center justify-between px-4 py-3 rounded-2xl"
+              style={{
+                backgroundColor: COLORS.surface,
+                borderWidth: 1,
+                borderColor: COLORS.glassBorder,
+              }}
+            >
+              <View className="flex-1 mr-3">
                 <Text
-                  className="text-[11px] mt-1"
-                  style={{ color: COLORS.textMuted }}
+                  className="text-base font-semibold"
+                  style={{ color: COLORS.text }}
                 >
-                  {item.description}
+                  {item.label}
                 </Text>
-              ) : null}
-            </View>
-            <Ionicons
-              name="chevron-forward"
-              size={18}
-              color={COLORS.textMuted}
-            />
-          </TouchableOpacity>
+                {item.description ? (
+                  <Text
+                    className="text-sm mt-1"
+                    style={{ color: COLORS.textMuted }}
+                  >
+                    {item.description}
+                  </Text>
+                ) : null}
+              </View>
+              <Ionicons
+                name="chevron-forward"
+                size={18}
+                color={COLORS.textMuted}
+              />
+            </TouchableOpacity>
+          </Animated.View>
         ))}
-      </ScrollView>
+      </Animated.ScrollView>
     </SafeAreaView>
   );
 }

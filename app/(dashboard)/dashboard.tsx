@@ -2,6 +2,7 @@
 import AuthLoadingSplash from '@/components/AuthLoadingSpash';
 import Onboarding from '@/components/Onboarding/Onboarding';
 import { supabase } from "@/utils/supabaseClient";
+import { useFocusAnimation, useReducedMotionPreference } from '@/utils/motion';
 import * as Device from 'expo-device';
 import React, { useEffect, useRef, useState } from "react";
 import {
@@ -13,6 +14,7 @@ import {
   Text,
   View
 } from "react-native";
+import Animated from 'react-native-reanimated';
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import MonthlyDashboard from '@/components/Dashboard/Dashboards/MonthlyDashboard';
@@ -65,7 +67,7 @@ export default function DashboardPage() {
   const [selectedYear, setSelectedYear] = useState<number>(getLocalMonthYear().year);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
-  const [dashboardView, setDashboardView] = useState<"monthly" | "yearly" | "profit">("monthly");
+  const [dashboardView, setDashboardView] = useState<"monthly" | "yearly">("monthly");
   const [selectedDay, setSelectedDay] = useState<number>(new Date().getDate());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -74,6 +76,8 @@ export default function DashboardPage() {
   const [tempDashboardView, setTempDashboardView] = useState<"monthly" | "yearly">("monthly");
   const [tempTimeframe, setTempTimeframe] = useState<Timeframe>('year');
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const reduceMotion = useReducedMotionPreference();
+  const focusStyle = useFocusAnimation(reduceMotion);
 
   const hasSyncedInitially = useRef(false);
   const firstSyncAfterConnect = useRef(false);
@@ -205,7 +209,7 @@ export default function DashboardPage() {
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      const accessToken = session?.access_token;
+      const accessToken = session?.access_token ?? '';
 
       const res = await fetch( 
         `${process.env.EXPO_PUBLIC_API_URL}/api/pull?granularity=month&month=${encodeURIComponent(selectedMonth)}&year=${selectedYear}`,
@@ -232,7 +236,7 @@ export default function DashboardPage() {
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      const accessToken = session?.access_token;
+      const accessToken = session?.access_token ?? '';
 
       const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/acuity/sync-full`, {
         method: "POST",
@@ -332,36 +336,39 @@ export default function DashboardPage() {
           setSelectedYear(date.getFullYear());
         }}
       />
-      <ScrollView
-        className="flex-1 px-4"
-        refreshControl={
-          <RefreshControl refreshing={isRefreshing} onRefresh={syncAcuityData} tintColor={COLORS.orange} />
-        }
-      >
-        {/* HEADER */}
-        <View className="mb-3">
-        </View>
+      <Animated.View style={[{ flex: 1 }, focusStyle]}>
+        <ScrollView
+          className="flex-1 px-4"
+          contentContainerStyle={{ paddingBottom: 80 }}
+          refreshControl={
+            <RefreshControl refreshing={isRefreshing} onRefresh={syncAcuityData} tintColor={COLORS.orange} />
+          }
+        >
+          {/* HEADER */}
+          <View className="mb-3">
+          </View>
 
-        {/* CONTENT */}
-        {dashboardView === "monthly" && (
-          <MonthlyDashboard
-            userId={user.id}
-            selectedMonth={selectedMonth}
-            selectedYear={selectedYear}
-            selectedDay={selectedDay}
-            globalRefreshKey={refreshKey}
-          />
-        )}
+          {/* CONTENT */}
+          {dashboardView === "monthly" && (
+            <MonthlyDashboard
+              userId={user.id}
+              selectedMonth={selectedMonth}
+              selectedYear={selectedYear}
+              selectedDay={selectedDay}
+              globalRefreshKey={refreshKey}
+            />
+          )}
 
-        {dashboardView === "yearly" && (
-          <YearlyDashboard
-            userId={user.id}
-            selectedYear={selectedYear}
-            timeframe={timeframe}
-            globalRefreshKey={refreshKey}
-          />
-        )}
-      </ScrollView>
+          {dashboardView === "yearly" && (
+            <YearlyDashboard
+              userId={user.id}
+              selectedYear={selectedYear}
+              timeframe={timeframe}
+              globalRefreshKey={refreshKey}
+            />
+          )}
+        </ScrollView>
+      </Animated.View>
     </SafeAreaView>
   );
 }

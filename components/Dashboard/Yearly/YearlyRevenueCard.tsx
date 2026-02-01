@@ -204,7 +204,7 @@ export default function YearlyRevenueCard({
             <View className="flex-row items-center justify-between mb-3">
               <MaskedView
                 maskElement={
-                  <Text className="text-sm font-bold tracking-wide">
+                  <Text className="text-base font-bold tracking-wide">
                     💰 TOTAL REVENUE
                   </Text>
                 }
@@ -214,7 +214,7 @@ export default function YearlyRevenueCard({
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                 >
-                  <Text className="text-sm font-bold tracking-wide opacity-0">
+                  <Text className="text-base font-bold tracking-wide opacity-0">
                     💰 TOTAL REVENUE
                   </Text>
                 </LinearGradient>
@@ -227,7 +227,7 @@ export default function YearlyRevenueCard({
                   borderRadius: 12,
                 }}
               >
-                <Text className="text-xs font-bold" style={{ color: COLORS.text }}>
+                <Text className="text-sm font-bold" style={{ color: COLORS.text }}>
                   {titleSuffix}
                 </Text>
               </View>

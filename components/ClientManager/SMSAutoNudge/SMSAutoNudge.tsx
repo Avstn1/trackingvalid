@@ -1,3 +1,4 @@
+import { getFadeInDown, useReducedMotionPreference } from '@/utils/motion';
 import { supabase } from '@/utils/supabaseClient';
 import { useRouter } from 'expo-router';
 import {
@@ -10,7 +11,8 @@ import {
   Users
 } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import 'react-native-get-random-values';
 import Animated, { FadeInDown, FadeOutLeft } from 'react-native-reanimated';
 import Toast from 'react-native-toast-message';
@@ -77,6 +79,8 @@ export default function SMSAutoNudge() {
   const [availableCredits, setAvailableCredits] = useState<number>(0);
   const [testMessagesUsed, setTestMessagesUsed] = useState<number>(0);
   const [profile, setProfile] = useState<any>(null);
+  const insets = useSafeAreaInsets();
+  const reduceMotion = useReducedMotionPreference();
   
   const [pendingTestMessageId, setPendingTestMessageId] = useState<string | null>(null);
   const [pendingDeactivateMessageId, setPendingDeactivateMessageId] = useState<string | null>(null);
@@ -1053,7 +1057,16 @@ export default function SMSAutoNudge() {
   };
 
   return (
-    <ScrollView className="flex-1" contentContainerStyle={{ paddingVertical: 12, gap: 12 }}>
+    <Animated.ScrollView
+      entering={getFadeInDown(reduceMotion)}
+      className="flex-1"
+      contentContainerStyle={{
+        paddingTop: 12,
+        paddingBottom: Math.max(insets.bottom + 24, 24),
+        gap: 12,
+      }}
+      showsVerticalScrollIndicator={false}
+    >
       {/* Header */}
       <View className="bg-[#252525]/60 rounded-2xl border border-white/10 p-3 gap-3">
         <View className="gap-2.5">
@@ -1213,24 +1226,26 @@ export default function SMSAutoNudge() {
           messages.map((msg, index) => (
             <Animated.View
               key={msg.id}
-              entering={FadeInDown.delay(index * 100).duration(300)}
-              exiting={FadeOutLeft.duration(300)}
+              entering={
+                reduceMotion
+                  ? undefined
+                  : FadeInDown.delay(index * 40).duration(240)
+              }
+              exiting={reduceMotion ? undefined : FadeOutLeft.duration(200)}
             >
-              <MessageCard
-                isLocked={lockedMessages.has(msg.id)}
-                autoNudgeCampaignProgress={autoNudgeCampaignProgress[msg.id]} 
-                message={msg}
-                index={index}
-                isSaving={isSaving}
-                savingMode={savingMode}
-                validatingId={validatingId}
-                editingTitleId={editingTitleId}
-                tempTitle={tempTitle}
-                phoneNumbers={phoneNumbersByType[msg.visitingType || 'consistent'] || []}
-                testMessagesUsed={testMessagesUsed}
-                availableCredits={availableCredits}
-                profile={profile}
-                session={session}
+                <MessageCard
+                  isLocked={lockedMessages.has(msg.id)}
+                  autoNudgeCampaignProgress={autoNudgeCampaignProgress[msg.id]} 
+                  message={msg}
+                  index={index}
+                  isSaving={isSaving}
+                  savingMode={savingMode}
+                  validatingId={validatingId}
+                  editingTitleId={editingTitleId}
+                  tempTitle={tempTitle}
+                  phoneNumbers={phoneNumbersByType[msg.visitingType || 'consistent'] || []}
+                  profile={profile}
+                  session={session}
                 onUpdate={updateMessage}
                 onEnableEdit={enableEditMode}
                 onCancelEdit={cancelEdit}
@@ -1399,6 +1414,6 @@ export default function SMSAutoNudge() {
           }
         }}
       />
-    </ScrollView>
+    </Animated.ScrollView>
   );
 }

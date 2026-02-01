@@ -254,7 +254,7 @@ export default function TimeframeMarketingFunnelsChart({
           backgroundColor: COLORS_PALETTE.surface,
           borderWidth: 1,
           borderColor: COLORS_PALETTE.glassBorder,
-          height: SCREEN_HEIGHT * 0.35,
+          height: SCREEN_HEIGHT * 0.38,
           width: SCREEN_WIDTH * 0.935,
           padding: 16,
         }}
@@ -275,7 +275,7 @@ export default function TimeframeMarketingFunnelsChart({
           backgroundColor: COLORS_PALETTE.surface,
           borderWidth: 1,
           borderColor: COLORS_PALETTE.glassBorder,
-          height: SCREEN_HEIGHT * 0.35,
+          height: SCREEN_HEIGHT * 0.38,
           width: SCREEN_WIDTH * 0.935,
           padding: 16,
         }}
@@ -301,7 +301,7 @@ export default function TimeframeMarketingFunnelsChart({
           shadowOpacity: 0.15,
           shadowRadius: 8,
           elevation: 3,
-          height: SCREEN_HEIGHT * 0.35,
+          height: SCREEN_HEIGHT * 0.38,
           width: SCREEN_WIDTH * 0.935,
           padding: 16,
         }}
@@ -318,16 +318,16 @@ export default function TimeframeMarketingFunnelsChart({
         />
 
         <View className="flex-row items-center justify-between mb-3">
-          <Text className="text-base font-semibold" style={{ color: COLORS_PALETTE.green }}>
+          <Text className="text-lg font-semibold" style={{ color: COLORS_PALETTE.green }}>
             📣 Marketing Funnels
           </Text>
 
           <TouchableOpacity
             onPress={() => setIsModalOpen(true)}
-            className="px-3 py-1.5 rounded-lg"
+            className="px-3.5 py-2 rounded-lg"
             style={{ backgroundColor: '#748E63' }}
           >
-            <Text className="text-xs font-semibold" style={{ color: '#2a3612ff' }}>
+            <Text className="text-base font-semibold" style={{ color: '#2a3612ff' }}>
               Details
             </Text>
           </TouchableOpacity>
@@ -335,16 +335,16 @@ export default function TimeframeMarketingFunnelsChart({
 
         <View className="flex-row items-center justify-end gap-2 mb-2">
           <View className="flex-row items-center gap-1">
-            <View className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS.newClients }} />
-            <Text className="text-[9px]" style={{ color: COLORS_PALETTE.text }}>New</Text>
+            <View className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS.newClients }} />
+            <Text className="text-[11px]" style={{ color: COLORS_PALETTE.text }}>New</Text>
           </View>
           <View className="flex-row items-center gap-1">
-            <View className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS.newClientsRetained }} />
-            <Text className="text-[9px]" style={{ color: COLORS_PALETTE.text }}>Retained</Text>
+            <View className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS.newClientsRetained }} />
+            <Text className="text-[11px]" style={{ color: COLORS_PALETTE.text }}>Retained</Text>
           </View>
           <View className="flex-row items-center gap-1">
-            <View className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS.retention }} />
-            <Text className="text-[9px]" style={{ color: COLORS_PALETTE.text }}>%</Text>
+            <View className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS.retention }} />
+            <Text className="text-[11px]" style={{ color: COLORS_PALETTE.text }}>%</Text>
           </View>
         </View>
 
@@ -361,51 +361,51 @@ export default function TimeframeMarketingFunnelsChart({
             return (
               <View key={idx} style={{ flex: 1, marginBottom: isLast ? 0 : 8 }}>
                 <Text 
-                  className="text-[10px] font-semibold mb-0.5" 
+                  className="text-[12px] font-semibold mb-1" 
                   numberOfLines={1}
                   style={{ color: COLORS_PALETTE.text }}
                 >
                   {item.source}
                 </Text>
 
-                <View className="flex-row items-center mb-0.5">
+                <View className="flex-row items-center mb-1">
                   <View
-                    className="h-2 rounded"
+                    className="h-3 rounded"
                     style={{
                       backgroundColor: COLORS.newClients,
                       width: `${newWidth}%`,
                       minWidth: 10,
                     }}
                   />
-                  <Text className="text-[9px] ml-1.5" style={{ color: COLORS_PALETTE.text }}>
+                  <Text className="text-[11px] ml-2" style={{ color: COLORS_PALETTE.text }}>
                     {newClients}
                   </Text>
                 </View>
 
-                <View className="flex-row items-center mb-0.5">
+                <View className="flex-row items-center mb-1">
                   <View
-                    className="h-2 rounded"
+                    className="h-3 rounded"
                     style={{
                       backgroundColor: COLORS.newClientsRetained,
                       width: `${retainedWidth}%`,
                       minWidth: 10,
                     }}
                   />
-                  <Text className="text-[9px] ml-1.5" style={{ color: COLORS_PALETTE.text }}>
+                  <Text className="text-[11px] ml-2" style={{ color: COLORS_PALETTE.text }}>
                     {newClientsRetained}
                   </Text>
                 </View>
 
                 <View className="flex-row items-center">
                   <View
-                    className="h-1.5 rounded"
+                    className="h-2 rounded"
                     style={{
                       backgroundColor: COLORS.retention,
                       width: `${Math.min((item.retention || 0), 100)}%`,
                       minWidth: 10,
                     }}
                   />
-                  <Text className="text-[9px] ml-1.5" style={{ color: COLORS_PALETTE.textMuted }}>
+                  <Text className="text-[11px] ml-2" style={{ color: COLORS_PALETTE.textMuted }}>
                     {item.retention?.toFixed(0)}%
                   </Text>
                 </View>

@@ -1,4 +1,5 @@
 import { supabase } from '@/utils/supabaseClient';
+import { getFadeIn, getFadeInDown, useReducedMotionPreference } from '@/utils/motion';
 import { MessageSquare, Plus } from 'lucide-react-native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
@@ -8,10 +9,13 @@ import {
   FlatList,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  ScrollView,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import Animated from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MessageCard } from './MessageCard';
 import { SMSMessage } from './types';
 
@@ -39,6 +43,8 @@ export default function SMSManager() {
   const [validatingId, setValidatingId] = useState<string | null>(null);
   const [editingTitleId, setEditingTitleId] = useState<string | null>(null);
   const [tempTitle, setTempTitle] = useState<string>('');
+  const insets = useSafeAreaInsets();
+  const reduceMotion = useReducedMotionPreference();
   const [originalMessages, setOriginalMessages] = useState<Record<string, SMSMessage>>({});
   const [activeMessageIndex, setActiveMessageIndex] = useState(0);
   const [hasLoaded, setHasLoaded] = useState(false); // Use state instead of ref
@@ -518,9 +524,20 @@ export default function SMSManager() {
   }
 
   return (
-    <View className="flex-1">
-      {/* Compact Header */}
-      <View className="bg-white/5 border border-white/10 rounded-xl p-3 mx-4 mb-3">
+    <ScrollView
+      className="flex-1"
+      contentContainerStyle={{
+        paddingBottom: Math.max(insets.bottom + 24, 24),
+        paddingTop: 4,
+      }}
+      showsVerticalScrollIndicator={false}
+    >
+      <View className="flex-1">
+        {/* Compact Header */}
+        <Animated.View
+          className="bg-white/5 border border-white/10 rounded-xl p-3 mx-4 mb-3"
+          entering={getFadeInDown(reduceMotion)}
+        >
         <View className="flex-row items-center justify-between">
           <View className="flex-1 mr-2">
             <View className="flex-row items-center gap-1.5 mb-1">
@@ -557,115 +574,119 @@ export default function SMSManager() {
             {messages.length}/3
           </Text>
         </View>
-      </View>
+        </Animated.View>
 
       {/* Messages Horizontal Scroll */}
-      {messages.length === 0 ? (
-        <View className="flex-1 bg-white/5 border border-white/10 rounded-xl p-8 items-center justify-center mx-4">
-          <View className="w-16 h-16 bg-sky-300/10 rounded-full items-center justify-center mb-3">
-            <MessageSquare color="#7dd3fc" size={32} />
-          </View>
-          <Text className="text-lg font-semibold text-white mb-2">No messages yet</Text>
-          <Text className="text-[#bdbdbd] mb-4 text-center text-sm">
-            Create your first automated SMS message
-          </Text>
-          <TouchableOpacity
-            onPress={addMessage}
-            className="flex-row items-center gap-2 px-4 py-2.5 bg-sky-300 rounded-full"
+        {messages.length === 0 ? (
+          <Animated.View
+            entering={getFadeIn(reduceMotion, 40)}
+            className="flex-1 bg-white/5 border border-white/10 rounded-xl p-8 items-center justify-center mx-4"
           >
-            <Plus color="#000000" size={16} />
-            <Text className="text-black font-semibold text-sm">Create Message</Text>
-          </TouchableOpacity>
-        </View>
-      ) : (
-        <>
-          <View className="flex-1">
-            <FlatList
-              ref={flatListRef}
-              data={messages}
-              horizontal
-              pagingEnabled
-              showsHorizontalScrollIndicator={false}
-              onScroll={handleScroll}
-              scrollEventThrottle={16}
-              decelerationRate="fast"
-              snapToInterval={SCREEN_WIDTH - 32}
-              snapToAlignment="start"
-              keyExtractor={(item) => item.id}
-              renderItem={({ item, index }) => {
-                try {
-                  return (
-                    <View style={{ width: SCREEN_WIDTH - 32, paddingHorizontal: 16 }}>
-                      <MessageCard
-                        message={item}
-                        index={index}
-                        isSaving={isSaving}
-                        savingMode={savingMode}
-                        validatingId={validatingId}
-                        editingTitleId={editingTitleId}
-                        tempTitle={tempTitle}
-                        onUpdate={updateMessage}
-                        onRemove={removeMessage}
-                        onEnableEdit={enableEditMode}
-                        onCancelEdit={cancelEdit}
-                        onSave={handleSave}
-                        onValidate={handleValidate}
-                        onStartEditingTitle={(id: string, currentTitle: string) => {
-                          setEditingTitleId(id);
-                          setTempTitle(currentTitle);
-                        }}
-                        onSaveTitle={(id: string) => {
-                          if (tempTitle.trim()) {
-                            updateMessage(id, { title: tempTitle.trim() });
-                          }
-                          setEditingTitleId(null);
-                          setTempTitle('');
-                        }}
-                        onCancelEditTitle={() => {
-                          setEditingTitleId(null);
-                          setTempTitle('');
-                        }}
-                        onTempTitleChange={setTempTitle}
-                      />
-                    </View>
-                  );
-                } catch (renderError) {
-                  console.error('❌ Error rendering MessageCard:', renderError, item);
-                  return (
-                    <View style={{ width: SCREEN_WIDTH - 32, paddingHorizontal: 16 }}>
-                      <View className="bg-rose-500/20 border border-rose-500 rounded-xl p-4">
-                        <Text className="text-rose-300 text-center">
-                          Error loading message {index + 1}
-                        </Text>
+            <View className="w-16 h-16 bg-sky-300/10 rounded-full items-center justify-center mb-3">
+              <MessageSquare color="#7dd3fc" size={32} />
+            </View>
+            <Text className="text-lg font-semibold text-white mb-2">No messages yet</Text>
+            <Text className="text-[#bdbdbd] mb-4 text-center text-sm">
+              Create your first automated SMS message
+            </Text>
+            <TouchableOpacity
+              onPress={addMessage}
+              className="flex-row items-center gap-2 px-4 py-2.5 bg-sky-300 rounded-full"
+            >
+              <Plus color="#000000" size={16} />
+              <Text className="text-black font-semibold text-sm">Create Message</Text>
+            </TouchableOpacity>
+          </Animated.View>
+        ) : (
+          <Animated.View entering={getFadeInDown(reduceMotion, 80)}>
+            <View className="flex-1">
+              <FlatList
+                ref={flatListRef}
+                data={messages}
+                horizontal
+                pagingEnabled
+                showsHorizontalScrollIndicator={false}
+                onScroll={handleScroll}
+                scrollEventThrottle={16}
+                decelerationRate="fast"
+                snapToInterval={SCREEN_WIDTH - 32}
+                snapToAlignment="start"
+                keyExtractor={(item) => item.id}
+                renderItem={({ item, index }) => {
+                  try {
+                    return (
+                      <View style={{ width: SCREEN_WIDTH - 32, paddingHorizontal: 16 }}>
+                        <MessageCard
+                          message={item}
+                          index={index}
+                          isSaving={isSaving}
+                          savingMode={savingMode}
+                          validatingId={validatingId}
+                          editingTitleId={editingTitleId}
+                          tempTitle={tempTitle}
+                          onUpdate={updateMessage}
+                          onRemove={removeMessage}
+                          onEnableEdit={enableEditMode}
+                          onCancelEdit={cancelEdit}
+                          onSave={handleSave}
+                          onValidate={handleValidate}
+                          onStartEditingTitle={(id: string, currentTitle: string) => {
+                            setEditingTitleId(id);
+                            setTempTitle(currentTitle);
+                          }}
+                          onSaveTitle={(id: string) => {
+                            if (tempTitle.trim()) {
+                              updateMessage(id, { title: tempTitle.trim() });
+                            }
+                            setEditingTitleId(null);
+                            setTempTitle('');
+                          }}
+                          onCancelEditTitle={() => {
+                            setEditingTitleId(null);
+                            setTempTitle('');
+                          }}
+                          onTempTitleChange={setTempTitle}
+                        />
                       </View>
-                    </View>
-                  );
-                }
-              }}
-            />
-          </View>
-
-          {/* Page Indicator Dots */}
-          <View className="flex-row justify-center items-center py-3 gap-2 mb-2">
-            {messages.map((_, index) => (
-              <View
-                key={index}
-                className="h-2 rounded-full"
-                style={{
-                  width: index === activeMessageIndex ? 24 : 8,
-                  backgroundColor:
-                    index === activeMessageIndex ? COLORS.dotActive : COLORS.dotInactive,
-                  shadowColor: index === activeMessageIndex ? COLORS.dotActive : 'transparent',
-                  shadowOffset: { width: 0, height: 0 },
-                  shadowOpacity: index === activeMessageIndex ? 0.8 : 0,
-                  shadowRadius: 6,
-                  elevation: index === activeMessageIndex ? 4 : 0,
+                    );
+                  } catch (renderError) {
+                    console.error('❌ Error rendering MessageCard:', renderError, item);
+                    return (
+                      <View style={{ width: SCREEN_WIDTH - 32, paddingHorizontal: 16 }}>
+                        <View className="bg-rose-500/20 border border-rose-500 rounded-xl p-4">
+                          <Text className="text-rose-300 text-center">
+                            Error loading message {index + 1}
+                          </Text>
+                        </View>
+                      </View>
+                    );
+                  }
                 }}
               />
-            ))}
-          </View>
-        </>
-      )}
-    </View>
+            </View>
+
+            {/* Page Indicator Dots */}
+            <View className="flex-row justify-center items-center py-3 gap-2 mb-2">
+              {messages.map((_, index) => (
+                <View
+                  key={index}
+                  className="h-2 rounded-full"
+                  style={{
+                    width: index === activeMessageIndex ? 24 : 8,
+                    backgroundColor:
+                      index === activeMessageIndex ? COLORS.dotActive : COLORS.dotInactive,
+                    shadowColor: index === activeMessageIndex ? COLORS.dotActive : 'transparent',
+                    shadowOffset: { width: 0, height: 0 },
+                    shadowOpacity: index === activeMessageIndex ? 0.8 : 0,
+                    shadowRadius: 6,
+                    elevation: index === activeMessageIndex ? 4 : 0,
+                  }}
+                />
+              ))}
+            </View>
+          </Animated.View>
+        )}
+      </View>
+    </ScrollView>
   );
 }

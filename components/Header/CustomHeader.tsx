@@ -513,8 +513,8 @@ export function CustomHeader({
   return (
     <View
       style={{
-        paddingTop: insets.top - 45,
-        paddingBottom: 16,
+        paddingTop: Math.max(insets.top + 6, 16),
+        paddingBottom: 12,
         backgroundColor: COLORS.surface,
         borderBottomWidth: 1,
         borderBottomColor: COLORS.glassBorder,
@@ -566,9 +566,9 @@ export function CustomHeader({
                 borderColor: COLORS.glassBorder,
               }}
             >
-              <CalendarRange size={16} color={COLORS.green} />
+              <CalendarRange size={18} color={COLORS.green} />
               <Text
-                className="font-semibold text-xs"
+                className="font-semibold text-sm"
                 style={{ color: COLORS.text }}
               >
                 {getDateLabel()}

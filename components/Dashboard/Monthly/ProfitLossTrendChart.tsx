@@ -1,3 +1,4 @@
+import { parseYMDToLocalDate } from '@/utils/date';
 import { supabase } from '@/utils/supabaseClient';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Dimensions, Text, View } from 'react-native';
@@ -95,8 +96,8 @@ export default function ProfitLossTrendChart({
         const dataByDay: { [key: number]: { revenue: number; expenses: number } } = {};
         if (daily) {
           daily.forEach((d) => {
-            const dateObj = new Date(d.date + 'T00:00:00Z');
-            const dayNum = dateObj.getUTCDate();
+            const dateObj = parseYMDToLocalDate(d.date);
+            const dayNum = dateObj.getDate();
             dataByDay[dayNum] = {
               revenue: Number(d.final_revenue || 0),
               expenses: Number(d.expenses || 0),
@@ -104,13 +105,29 @@ export default function ProfitLossTrendChart({
           });
         }
 
+        const recordedDays = Object.keys(dataByDay)
+          .map((day) => parseInt(day, 10))
+          .sort((a, b) => a - b);
+
+        if (recordedDays.length === 0) {
+          setData({ labels: [], revenue: [], expenses: [], profit: [] });
+          return;
+        }
+
+        const startDay = recordedDays[0];
+
         // Build arrays for all days, filling missing days with 0
         const labels: string[] = [];
         const revenue: number[] = [];
         const expenses: number[] = [];
         const profit: number[] = [];
 
-        for (let day = 1; day <= daysToShow; day++) {
+        if (startDay > daysToShow) {
+          setData({ labels: [], revenue: [], expenses: [], profit: [] });
+          return;
+        }
+
+        for (let day = startDay; day <= daysToShow; day++) {
           labels.push(day.toString());
           const dayData = dataByDay[day];
           if (dayData) {
@@ -245,7 +262,7 @@ export default function ProfitLossTrendChart({
       />
 
       <Text 
-        className="text-base font-semibold mb-3"
+        className="text-lg font-semibold mb-3"
         style={{ color: COLORS_PALETTE.green }}
       >
         📈 Profit/Loss Trend (Daily)
@@ -272,8 +289,8 @@ export default function ProfitLossTrendChart({
           rulesColor={COLORS_PALETTE.glassBorder}
           yAxisColor={COLORS_PALETTE.glassBorder}
           xAxisColor={COLORS_PALETTE.glassBorder}
-          yAxisTextStyle={{ color: COLORS_PALETTE.textMuted, fontSize: 9 }}
-          xAxisLabelTextStyle={{ color: COLORS_PALETTE.textMuted, fontSize: 8 }}
+          yAxisTextStyle={{ color: COLORS_PALETTE.textMuted, fontSize: 10 }}
+          xAxisLabelTextStyle={{ color: COLORS_PALETTE.textMuted, fontSize: 9 }}
           maxValue={maxValue * 1.15}
           noOfSections={4}
           yAxisLabelWidth={yAxisWidth}

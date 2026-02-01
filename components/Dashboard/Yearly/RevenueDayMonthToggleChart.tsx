@@ -100,7 +100,7 @@ export default function RevenueDayMonthToggleChart({ userId, year, timeframe, re
       </View>
 
       {/* Chart */}
-      <View style={{ flex: 1 }}>
+      <View style={{ flex: 1, paddingTop: 40 }}>
         {view === 'weekday' ? (
           <RevenueByWeekdayChart 
             userId={userId} 

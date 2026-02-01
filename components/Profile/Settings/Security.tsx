@@ -1,9 +1,11 @@
 // components/Settings/SecuritySection.tsx
+import { getFadeInDown, useReducedMotionPreference } from '@/utils/motion';
 import { supabase } from '@/utils/supabaseClient';
 import * as Device from 'expo-device';
 import { Clock, MapPin, Monitor, Smartphone } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import Animated from 'react-native-reanimated';
 
 // Color Palette
 const COLORS = {
@@ -35,6 +37,7 @@ interface UserDevice {
 }
 
 export default function SecuritySection() {
+  const reduceMotion = useReducedMotionPreference();
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [updatingPassword, setUpdatingPassword] = useState(false);
@@ -181,7 +184,7 @@ export default function SecuritySection() {
   };
 
   return (
-    <View style={{ height: '100%' }}>
+    <Animated.View style={{ height: '100%' }} entering={getFadeInDown(reduceMotion)}>
       <Text className="text-xl font-bold mb-4" style={{ color: COLORS.text }}>
         Security
       </Text>
@@ -198,10 +201,10 @@ export default function SecuritySection() {
       >
         <View className="flex-row items-center justify-between mb-3">
           <View>
-            <Text className="font-semibold mb-1" style={{ color: COLORS.text, fontSize: 16 }}>
+            <Text className="font-semibold mb-1" style={{ color: COLORS.text, fontSize: 18 }}>
               Active Sessions
             </Text>
-            <Text style={{ color: COLORS.textMuted, fontSize: 11 }}>
+            <Text style={{ color: COLORS.textMuted, fontSize: 13 }}>
               Logged in devices
             </Text>
           </View>
@@ -216,7 +219,7 @@ export default function SecuritySection() {
                   borderColor: 'rgba(255, 140, 66, 0.2)',
                 }}
               >
-                <Text style={{ color: COLORS.orange, fontSize: 10, fontWeight: '600' }}>
+                <Text style={{ color: COLORS.orange, fontSize: 12, fontWeight: '600' }}>
                   Logout Others
                 </Text>
               </TouchableOpacity>
@@ -230,7 +233,7 @@ export default function SecuritySection() {
                 borderColor: 'rgba(255, 82, 82, 0.2)',
               }}
             >
-              <Text style={{ color: COLORS.red, fontSize: 10, fontWeight: '600' }}>
+              <Text style={{ color: COLORS.red, fontSize: 12, fontWeight: '600' }}>
                 Logout All
               </Text>
             </TouchableOpacity>
@@ -243,7 +246,7 @@ export default function SecuritySection() {
           </View>
         ) : devices.length === 0 ? (
           <View className="flex-1 items-center justify-center">
-            <Text style={{ color: COLORS.textMuted, fontSize: 12 }}>
+            <Text style={{ color: COLORS.textMuted, fontSize: 13 }}>
               No active sessions
             </Text>
           </View>
@@ -294,7 +297,7 @@ export default function SecuritySection() {
                       <Text
                         numberOfLines={1}
                         className="font-medium"
-                        style={{ color: COLORS.text, fontSize: 13 }}
+                        style={{ color: COLORS.text, fontSize: 15 }}
                       >
                         {device.device_name}
                       </Text>
@@ -303,7 +306,7 @@ export default function SecuritySection() {
                           className="px-1.5 py-0.5 rounded-full"
                           style={{ backgroundColor: 'rgba(139, 207, 104, 0.2)' }}
                         >
-                          <Text style={{ color: COLORS.green, fontSize: 9, fontWeight: '600' }}>
+                          <Text style={{ color: COLORS.green, fontSize: 11, fontWeight: '600' }}>
                             Current
                           </Text>
                         </View>
@@ -313,7 +316,7 @@ export default function SecuritySection() {
                     <View className="gap-1">
                       <View className="flex-row items-center gap-1.5">
                         <Clock size={11} color={COLORS.textMuted} />
-                        <Text style={{ color: COLORS.textMuted, fontSize: 11 }}>
+                        <Text style={{ color: COLORS.textMuted, fontSize: 13 }}>
                           {formatDate(device.last_active)}
                         </Text>
                       </View>
@@ -322,7 +325,7 @@ export default function SecuritySection() {
                           <MapPin size={11} color={COLORS.textMuted} />
                           <Text
                             numberOfLines={1}
-                            style={{ color: COLORS.textMuted, fontSize: 11 }}
+                            style={{ color: COLORS.textMuted, fontSize: 13 }}
                           >
                             {device.ip_address}
                           </Text>
@@ -347,15 +350,15 @@ export default function SecuritySection() {
           borderColor: COLORS.glassBorder,
         }}
       >
-        <Text className="font-semibold mb-1" style={{ color: COLORS.text, fontSize: 16 }}>
+        <Text className="font-semibold mb-1" style={{ color: COLORS.text, fontSize: 18 }}>
           Change Password
         </Text>
-        <Text className="mb-3" style={{ color: COLORS.textMuted, fontSize: 11 }}>
+        <Text className="mb-3" style={{ color: COLORS.textMuted, fontSize: 13 }}>
           Update your account password
         </Text>
 
         <View className="mb-2.5">
-          <Text className="text-xs mb-1" style={{ color: COLORS.textMuted }}>
+          <Text className="text-sm mb-1" style={{ color: COLORS.textMuted }}>
             Current Password
           </Text>
           <TextInput
@@ -370,13 +373,13 @@ export default function SecuritySection() {
               borderWidth: 1,
               borderColor: COLORS.glassBorder,
               color: COLORS.text,
-              fontSize: 13,
+              fontSize: 15,
             }}
           />
         </View>
 
         <View className="mb-2.5">
-          <Text className="text-xs mb-1" style={{ color: COLORS.textMuted }}>
+          <Text className="text-sm mb-1" style={{ color: COLORS.textMuted }}>
             New Password
           </Text>
           <TextInput
@@ -391,7 +394,7 @@ export default function SecuritySection() {
               borderWidth: 1,
               borderColor: COLORS.glassBorder,
               color: COLORS.text,
-              fontSize: 13,
+              fontSize: 15,
             }}
           />
         </View>
@@ -413,12 +416,12 @@ export default function SecuritySection() {
           {updatingPassword ? (
             <ActivityIndicator color={COLORS.text} />
           ) : (
-            <Text className="text-center font-bold" style={{ color: COLORS.text, fontSize: 13 }}>
+            <Text className="text-center font-bold" style={{ color: COLORS.text, fontSize: 15 }}>
               Update Password
             </Text>
           )}
         </TouchableOpacity>
       </View>
-    </View>
+    </Animated.View>
   );
 }

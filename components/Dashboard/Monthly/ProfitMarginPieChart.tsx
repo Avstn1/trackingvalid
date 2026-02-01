@@ -31,13 +31,13 @@ interface ProfitMarginPieChartProps {
 const CenterLabel = ({ totalAmount }: { totalAmount: number }) => (
   <View className="items-center justify-center">
     <Text 
-      className="text-lg font-bold"
+      className="text-2xl font-bold"
       style={{ color: COLORS_PALETTE.text }}
     >
       ${totalAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })}
     </Text>
     <Text 
-      className="text-xs"
+      className="text-sm"
       style={{ color: COLORS_PALETTE.textMuted }}
     >
       Total
@@ -150,7 +150,7 @@ export default function ProfitMarginPieChart({
     );
   }
 
-  const chartSize = Math.min(screenWidth * 0.5, 200);
+  const chartSize = Math.min(screenWidth * 0.55, 220);
   const revenue = data.find(item => item.label === 'Profit')?.value || 0;
   const expenses = data.find(item => item.label === 'Expenses')?.value || 0;
   const totalAmount = revenue + expenses; // This is the total revenue
@@ -192,7 +192,7 @@ export default function ProfitMarginPieChart({
       />
 
       <Text 
-        className="text-base font-semibold mb-3"
+        className="text-lg font-semibold mb-3"
         style={{ color: COLORS_PALETTE.green }}
       >
         🥧 Profit vs Expenses
@@ -203,18 +203,18 @@ export default function ProfitMarginPieChart({
         <View className="flex-1 items-center justify-center" style={{ paddingVertical: 10, paddingLeft: 40}}>
           <PieChart
             data={data}
-            radius={chartSize * 0.42}
-            innerRadius={chartSize * 0.24}
+            radius={chartSize * 0.44}
+            innerRadius={chartSize * 0.26}
             innerCircleColor={COLORS_PALETTE.background}
             focusOnPress
             onPress={(item: { index: number }) => {
               setSelectedIndex(selectedIndex === item.index ? null : item.index);
             }}
             textColor={COLORS_PALETTE.text}
-            textSize={10}
+            textSize={12}
             showText
             textBackgroundColor={COLORS_PALETTE.background}
-            textBackgroundRadius={4}
+            textBackgroundRadius={6}
             donut
             centerLabelComponent={() => <CenterLabel totalAmount={totalAmount} />}
             semiCircle={false}
@@ -256,7 +256,7 @@ export default function ProfitMarginPieChart({
                 {/* Info */}
                 <View className="flex-1">
                   <Text 
-                    className="text-xs font-medium" 
+                    className="text-sm font-medium" 
                     numberOfLines={1}
                     style={{ 
                       color: isSelected ? COLORS_PALETTE.green : COLORS_PALETTE.text,
@@ -266,7 +266,7 @@ export default function ProfitMarginPieChart({
                     {item.label}
                   </Text>
                   <Text 
-                    className="text-[10px] mt-0.5"
+                    className="text-xs mt-1"
                     style={{ color: COLORS_PALETTE.textMuted }}
                   >
                     {formatCurrency(item.value)} ({item.percentage}%)

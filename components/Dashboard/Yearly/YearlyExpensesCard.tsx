@@ -98,7 +98,7 @@ export default function YearlyExpensesCard({ userId, year, timeframe, refreshKey
 
   return (
     <View className="rounded-xl bg-zinc-900 border border-zinc-800 p-3 min-h-[100px]">
-      <Text className="text-red-300 text-sm font-semibold mb-2">
+      <Text className="text-red-300 text-base font-semibold mb-2">
         💸 Total Expenses ({titleSuffix})
       </Text>
       <View className="flex-1 justify-center">

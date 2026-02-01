@@ -147,7 +147,7 @@ export default function MonthlyProfitCard({
         <Text className="text-xs">💰</Text>
         <MaskedView
           maskElement={
-            <Text className="text-sm font-bold tracking-wide">
+            <Text className="text-base font-bold tracking-wide">
               Monthly Profit
             </Text>
           }
@@ -157,7 +157,7 @@ export default function MonthlyProfitCard({
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
           >
-            <Text className="text-sm font-bold tracking-wide opacity-0">
+            <Text className="text-base font-bold tracking-wide opacity-0">
               Monthly Profit
             </Text>
           </LinearGradient>

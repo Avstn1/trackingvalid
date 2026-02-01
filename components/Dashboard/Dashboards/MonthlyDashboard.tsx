@@ -10,6 +10,8 @@ import ServiceBreakdownChart from '@/components/Dashboard/Monthly/ServiceBreakdo
 import TopClientsCard from '@/components/Dashboard/Monthly/TopClientsCard';
 import React, { useEffect, useRef, useState } from 'react';
 import { Dimensions, FlatList, NativeScrollEvent, NativeSyntheticEvent, View } from 'react-native';
+import Animated from 'react-native-reanimated';
+import { getFadeInDown, useReducedMotionPreference } from '@/utils/motion';
 
 // Color Palette
 const COLORS = {
@@ -51,6 +53,7 @@ export default function MonthlyDashboard({
   const [activeChartIndex, setActiveChartIndex] = useState(0);
   const flatListRef = useRef<FlatList>(null);
   const hasAnimated = useRef(false);
+  const reduceMotion = useReducedMotionPreference();
 
   // Metric cards data
   const metricCards = [
@@ -197,16 +200,18 @@ export default function MonthlyDashboard({
   return (
     <View className="gap-4">
       {/* Hero Daily Revenue Card */}
-      <DailyRevenueCard
-        key={`daily-${globalRefreshKey}`}
-        userId={userId}
-        selectedDate={`${selectedYear}-${String(
-          MONTHS.indexOf(selectedMonth) + 1
-        ).padStart(2, "0")}-${String(selectedDay).padStart(2, "0")}`}
-      />
+      <Animated.View entering={getFadeInDown(reduceMotion)}>
+        <DailyRevenueCard
+          key={`daily-${globalRefreshKey}`}
+          userId={userId}
+          selectedDate={`${selectedYear}-${String(
+            MONTHS.indexOf(selectedMonth) + 1
+          ).padStart(2, "0")}-${String(selectedDay).padStart(2, "0")}`}
+        />
+      </Animated.View>
 
       {/* 2x2 Grid of Metric Cards */}
-      <View className="gap-3">
+      <Animated.View className="gap-3" entering={getFadeInDown(reduceMotion, 60)}>
         {/* First Row */}
         <View className="flex-row gap-3">
           <View className="flex-1">
@@ -226,16 +231,16 @@ export default function MonthlyDashboard({
             {metricCards[3]?.component}
           </View>
         </View>
-      </View>
+      </Animated.View>
 
       {/* Swipeable Charts Container - Glassy */}
-      <View 
+      <Animated.View 
         className="rounded-3xl overflow-hidden"
         style={{  
-          minHeight: SCREEN_HEIGHT * 0.42,
-          maxHeight: SCREEN_HEIGHT * 0.37,
+          minHeight: Math.max(SCREEN_HEIGHT * 0.42, 360),
           marginTop: -15
         }}
+        entering={getFadeInDown(reduceMotion, 120)}
       >
 
         <FlatList
@@ -282,7 +287,7 @@ export default function MonthlyDashboard({
             />
           ))}
         </View>
-      </View>
+      </Animated.View>
     </View>
   );
 }

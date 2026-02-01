@@ -3,9 +3,11 @@ import ClientSheets from '@/components/ClientManager/ClientSheets/ClientSheets';
 import SMSAutoNudge from '@/components/ClientManager/SMSAutoNudge/SMSAutoNudge';
 import SMSCampaigns from '@/components/ClientManager/SMSCampaigns/SMSCampaigns';
 import { CustomHeader } from '@/components/Header/CustomHeader';
+import { getFadeInDown, useFocusAnimation, useReducedMotionPreference } from '@/utils/motion';
 import { Bell, Calendar, Send, Users, X } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { Modal, Pressable, Text, TouchableOpacity, View } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const COLORS = {
@@ -62,6 +64,8 @@ const MANAGE_OPTIONS: ManageOption[] = [
 export default function ClientManagerScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [activeView, setActiveView] = useState<string>('clients');
+  const reduceMotion = useReducedMotionPreference();
+  const focusStyle = useFocusAnimation(reduceMotion);
 
   const handleNavigate = (option: ManageOption) => {
     setModalVisible(false);
@@ -87,9 +91,9 @@ export default function ClientManagerScreen() {
     <SafeAreaView className="flex-1" style={{ backgroundColor: COLORS.background }}>
       <CustomHeader pageName="Client Manager" />
 
-      <View className="flex-1 px-4">
+      <Animated.View className="flex-1 px-4" style={focusStyle}>
         {/* Manage Button */}
-        <View className="mt-3 mb-3">
+        <Animated.View className="mt-3 mb-3" entering={getFadeInDown(reduceMotion)}>
           <TouchableOpacity
             onPress={() => setModalVisible(true)}
             className="bg-lime-300 rounded-full py-2 px-6"
@@ -105,13 +109,17 @@ export default function ClientManagerScreen() {
               Manage
             </Text>
           </TouchableOpacity>
-        </View>
+        </Animated.View>
 
         {/* Active View */}
-        <View className="flex-1">
+        <Animated.View
+          key={activeView}
+          className="flex-1"
+          entering={getFadeInDown(reduceMotion, 60)}
+        >
           {renderActiveView()}
-        </View>
-      </View>
+        </Animated.View>
+      </Animated.View>
 
       {/* Modal */}
       <Modal

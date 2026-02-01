@@ -1,4 +1,5 @@
 // components/Finances/RecurringExpenses.tsx
+import { formatDateToYMD } from '@/utils/date';
 import { supabase } from '@/utils/supabaseClient';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Calendar } from 'lucide-react-native';
@@ -148,8 +149,8 @@ export default function RecurringExpenses({
       label: label.trim(),
       amount: parseFloat(amount),
       frequency,
-      start_date: startDate.toISOString().split('T')[0],
-      end_date: endDate ? endDate.toISOString().split('T')[0] : null,
+      start_date: formatDateToYMD(startDate),
+      end_date: endDate ? formatDateToYMD(endDate) : null,
       weekly_days: frequency === 'weekly' ? selectedDays : null,
       monthly_day: frequency === 'monthly' ? parseInt(monthlyDay) : null,
       yearly_month: frequency === 'yearly' ? yearlyMonth : null,

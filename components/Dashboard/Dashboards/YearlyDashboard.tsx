@@ -7,6 +7,8 @@ import YearlyServiceBreakdownChart from '@/components/Dashboard/Yearly/YearlySer
 import YearlyTopClientsCard from '@/components/Dashboard/Yearly/YearlyTopClientsCard';
 import React, { useEffect, useRef, useState } from 'react';
 import { Dimensions, FlatList, NativeScrollEvent, NativeSyntheticEvent, View } from 'react-native';
+import Animated from 'react-native-reanimated';
+import { getFadeInDown, useReducedMotionPreference } from '@/utils/motion';
 
 // Color Palette - matching Monthly dashboard
 const COLORS = {
@@ -43,6 +45,7 @@ export default function YearlyDashboard({
   const [activeChartIndex, setActiveChartIndex] = useState(0);
   const flatListRef = useRef<FlatList>(null);
   const hasAnimated = useRef(false);
+  const reduceMotion = useReducedMotionPreference();
 
   // Metric cards data in 2x2 grid layout
   const metricCards = [
@@ -172,21 +175,28 @@ export default function YearlyDashboard({
     <View className="gap-3">
       <View></View>
       {/* Hero Yearly Revenue Card */}
-      {metricCards[0]?.component}
+      <Animated.View entering={getFadeInDown(reduceMotion)}>
+        {metricCards[0]?.component}
+      </Animated.View>
 
       {/* Average Ticket Card Row */}
-      {metricCards[1]?.component}
+      <Animated.View entering={getFadeInDown(reduceMotion, 60)}>
+        {metricCards[1]?.component}
+      </Animated.View>
 
       {/* Expenses Card Row */}
-      {metricCards[2]?.component}
+      <Animated.View entering={getFadeInDown(reduceMotion, 120)}>
+        {metricCards[2]?.component}
+      </Animated.View>
 
       {/* Swipeable Charts Container - Glassy */}
-      <View 
+      <Animated.View 
         className="rounded-3xl overflow-hidden"
         style={{  
           flex: 1,
           marginTop: -15
         }}
+        entering={getFadeInDown(reduceMotion, 180)}
       >
         <FlatList
           ref={flatListRef}
@@ -208,7 +218,7 @@ export default function YearlyDashboard({
             </View>
           )}
         />
-      </View>
+      </Animated.View>
 
               {/* Page Indicator Dots - Glassy style */}
       <View 

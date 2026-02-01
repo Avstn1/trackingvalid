@@ -34,10 +34,10 @@ interface ServiceBreakdownChartProps {
 
 const CenterLabel = ({ totalBookings }: { totalBookings: number }) => (
   <View className="items-center justify-center">
-    <Text className="text-lg font-bold" style={{ color: COLORS_PALETTE.text }}>
+    <Text className="text-2xl font-bold" style={{ color: COLORS_PALETTE.text }}>
       {totalBookings}
     </Text>
-    <Text className="text-xs" style={{ color: COLORS_PALETTE.textMuted }}>
+    <Text className="text-sm" style={{ color: COLORS_PALETTE.textMuted }}>
       Total
     </Text>
   </View>
@@ -201,7 +201,7 @@ export default function ServiceBreakdownChart({
         }}
       />
 
-      <Text className="text-base font-semibold mb-3" style={{ color: COLORS_PALETTE.green }}>
+      <Text className="text-lg font-semibold mb-3" style={{ color: COLORS_PALETTE.green }}>
         💈 Service Breakdown
       </Text>
 
@@ -217,10 +217,10 @@ export default function ServiceBreakdownChart({
               setSelectedIndex(selectedIndex === item.index ? null : item.index);
             }}
             textColor={COLORS_PALETTE.text}
-            textSize={10}
+            textSize={12}
             showText
             textBackgroundColor={COLORS_PALETTE.background}
-            textBackgroundRadius={4}
+            textBackgroundRadius={6}
             donut
             centerLabelComponent={() => <CenterLabel totalBookings={totalBookings} />}
             semiCircle={false}
@@ -258,7 +258,7 @@ export default function ServiceBreakdownChart({
                 
                 <View className="flex-1">
                   <Text 
-                    className="text-xs font-medium" 
+                    className="text-sm font-medium" 
                     numberOfLines={1}
                     style={{ 
                       color: isSelected ? COLORS_PALETTE.green : COLORS_PALETTE.text,
@@ -267,7 +267,7 @@ export default function ServiceBreakdownChart({
                   >
                     {item.label}
                   </Text>
-                  <Text className="text-[10px] mt-0.5" style={{ color: COLORS_PALETTE.textMuted }}>
+                  <Text className="text-xs mt-1" style={{ color: COLORS_PALETTE.textMuted }}>
                     {item.value} bookings ({item.percentage}%)
                   </Text>
                 </View>

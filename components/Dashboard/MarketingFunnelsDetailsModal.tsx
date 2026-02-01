@@ -401,7 +401,7 @@ export default function MarketingFunnelsDetailsModal({
                               {idx + 1}
                             </Text>
                           </View>
-                          <Text className="text-sm font-semibold" style={{ color: COLORS_PALETTE.text }}>
+                          <Text className="text-base font-semibold" style={{ color: COLORS_PALETTE.text }}>
                             {funnel.source}
                           </Text>
                         </View>
@@ -605,7 +605,7 @@ export default function MarketingFunnelsDetailsModal({
                 className="px-5 py-1.5 rounded-lg"
                 style={{ backgroundColor: COLORS_PALETTE.green }}
               >
-                <Text className="text-sm font-semibold" style={{ color: '#2a3612ff' }}>
+                <Text className="text-base font-semibold" style={{ color: '#2a3612ff' }}>
                   Close
                 </Text>
               </TouchableOpacity>

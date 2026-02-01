@@ -126,7 +126,7 @@ export default function AverageTicketCard({ userId, selectedMonth, year }: Avera
         <Text className="text-xs">💵</Text>
         <MaskedView
           maskElement={
-            <Text className="text-sm font-bold tracking-wide">
+            <Text className="text-base font-bold tracking-wide">
               Avg Ticket
             </Text>
           }
@@ -136,7 +136,7 @@ export default function AverageTicketCard({ userId, selectedMonth, year }: Avera
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
           >
-            <Text className="text-sm font-bold tracking-wide opacity-0">
+            <Text className="text-base font-bold tracking-wide opacity-0">
               Avg Ticket
             </Text>
           </LinearGradient>

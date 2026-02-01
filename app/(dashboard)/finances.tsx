@@ -4,6 +4,7 @@ import ExpensesViewer from '@/components/Finances/ExpensesViewer';
 import RecurringExpenses from '@/components/Finances/RecurringExpenses';
 import { CustomHeader } from '@/components/Header/CustomHeader';
 import { supabase } from '@/utils/supabaseClient';
+import { useFocusAnimation, useReducedMotionPreference } from '@/utils/motion';
 import * as ImagePicker from 'expo-image-picker';
 import { Image as ImageIcon, Plus, Trash2, X } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
@@ -22,6 +23,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 // Color Palette
@@ -79,13 +81,15 @@ export default function FinancesPage() {
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [uploadingImage, setUploadingImage] = useState<string | null>(null);
   const [receiptLabel, setReceiptLabel] = useState('');
+  const reduceMotion = useReducedMotionPreference();
+  const focusStyle = useFocusAnimation(reduceMotion);
   const [viewerOpenedFromGallery, setViewerOpenedFromGallery] = useState(false);
   const [loadingImagePicker, setLoadingImagePicker] = useState(false);
 
   // Swipeable view state
   const [currentIndex, setCurrentIndex] = useState(0);
   const flatListRef = useRef<FlatList>(null);
-  const pickerTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const pickerTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [componentsReady, setComponentsReady] = useState(false);
 
@@ -429,11 +433,12 @@ export default function FinancesPage() {
 
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: COLORS.background }}>
-      <CustomHeader pageName="Finances" onDateChange={handleDateChange} />
+      <Animated.View style={[{ flex: 1 }, focusStyle]}>
+        <CustomHeader pageName="Finances" onDateChange={handleDateChange} />
 
-      <View
-        className="flex-1 px-4"
-      >
+        <View
+          className="flex-1 px-4"
+        >
         {/* Header */}
         <View className="my-4">
           <Text className="text-xs mb-3" style={{ color: COLORS.textMuted }}>
@@ -889,6 +894,7 @@ export default function FinancesPage() {
           </TouchableOpacity>
         </Modal>
       )}
+      </Animated.View>
     </SafeAreaView>
   );
 }

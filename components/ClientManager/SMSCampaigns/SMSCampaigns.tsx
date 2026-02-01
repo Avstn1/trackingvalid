@@ -1,3 +1,5 @@
+import { formatDateToYMD } from '@/utils/date';
+import { getFadeIn, getFadeInDown, useReducedMotionPreference } from '@/utils/motion';
 import { supabase } from '@/utils/supabaseClient';
 import { Clock, Coins, Info, MessageSquare, Plus, Send } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
@@ -7,11 +9,13 @@ import {
   FlatList,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  ScrollView,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
-import Animated, { FadeIn } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import { v4 as uuidv4 } from 'uuid';
 import { MessageCard } from './MessageCard';
@@ -73,6 +77,8 @@ export default function SMSCampaigns() {
   const flatListRef = useRef<FlatList>(null);
 
   const [listWidth, setListWidth] = useState(0);
+  const insets = useSafeAreaInsets();
+  const reduceMotion = useReducedMotionPreference();
 
   useEffect(() => {
     initializeSession();
@@ -216,7 +222,7 @@ export default function SMSCampaigns() {
         const loadedMessages = data.messages.map((dbMsg: any) => {
           // Parse the ISO timestamp directly
           const scheduleDateTime = new Date(dbMsg.cron);
-          const scheduleDate = scheduleDateTime.toISOString().split('T')[0];
+          const scheduleDate = formatDateToYMD(scheduleDateTime);
           
           // Get local time components
           const hour24 = scheduleDateTime.getHours();
@@ -377,7 +383,7 @@ export default function SMSCampaigns() {
 
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
-    const tomorrowString = tomorrow.toISOString().split('T')[0];
+    const tomorrowString = formatDateToYMD(tomorrow);
 
     const newMessage: SMSMessage = {
       id: uuidv4(),
@@ -885,9 +891,20 @@ export default function SMSCampaigns() {
   }
 
   return (
-    <View className="flex-1">
+    <ScrollView
+      className="flex-1"
+      contentContainerStyle={{
+        paddingBottom: Math.max(insets.bottom + 24, 24),
+        paddingTop: 4,
+      }}
+      showsVerticalScrollIndicator={false}
+    >
+      <View className="flex-1">
       {/* Header - Compact Version */}
-      <View className="bg-white/5 border border-white/10 rounded-2xl shadow-xl p-4 mb-4">
+      <Animated.View
+        className="bg-white/5 border border-white/10 rounded-2xl shadow-xl p-4 mb-4"
+        entering={getFadeInDown(reduceMotion)}
+      >
         {/* Title */}
         <View className="flex-row items-center gap-2 mb-3">
           <MessageSquare size={20} color="#7dd3fc" />
@@ -901,7 +918,7 @@ export default function SMSCampaigns() {
             className="flex-1 flex-row items-center justify-center gap-1 px-2 py-2 bg-purple-300/10 border border-purple-300/30 rounded-lg"
           >
             <Clock size={14} color="#c084fc" />
-            <Text className="text-xs font-semibold text-purple-300">History</Text>
+            <Text className="text-sm font-semibold text-purple-300">History</Text>
           </TouchableOpacity>
 
           <TouchableOpacity 
@@ -909,12 +926,12 @@ export default function SMSCampaigns() {
             className="flex-1 flex-row items-center justify-center gap-1 px-2 py-2 bg-sky-300/10 border border-sky-300/30 rounded-lg"
           >
             <Info size={14} color="#7dd3fc" />
-            <Text className="text-xs font-semibold text-sky-300">How</Text>
+            <Text className="text-sm font-semibold text-sky-300">How</Text>
           </TouchableOpacity>
 
           <View className="flex-1 px-2 py-2 bg-lime-300/10 border border-lime-300/20 rounded-lg flex-row items-center justify-center gap-1">
             <Coins size={14} color="#bef264" />
-            <Text className="text-xs font-semibold text-lime-300" numberOfLines={1}>
+            <Text className="text-sm font-semibold text-lime-300" numberOfLines={1}>
               {availableCredits > 999 ? `${(availableCredits / 1000).toFixed(1)}k` : availableCredits}
             </Text>
           </View>
@@ -925,7 +942,7 @@ export default function SMSCampaigns() {
               : 'bg-sky-300/10 border border-sky-300/20'
           }`}>
             <Send size={14} color={testMessagesUsed >= 10 ? '#fca5a5' : '#7dd3fc'} />
-            <Text className={`text-xs font-semibold ${
+            <Text className={`text-sm font-semibold ${
               testMessagesUsed >= 10 ? 'text-rose-300' : 'text-sky-300'
             }`} numberOfLines={1}>
               {10 - testMessagesUsed}
@@ -956,16 +973,16 @@ export default function SMSCampaigns() {
               />
             ))}
           </View>
-          <Text className="text-xs text-[#bdbdbd]">
+          <Text className="text-sm text-[#bdbdbd]">
             {messages.length}/3
           </Text>
         </View>
-      </View>
+      </Animated.View>
 
       {/* Messages List - Horizontal Pagination */}
       {messages.length === 0 ? (
         <Animated.View
-          entering={FadeIn}
+          entering={getFadeIn(reduceMotion, 40)}
           className="bg-white/5 border border-white/10 rounded-2xl shadow-xl p-12 items-center"
         >
           <View className="w-20 h-20 bg-sky-300/10 rounded-full items-center justify-center mb-4">
@@ -986,145 +1003,144 @@ export default function SMSCampaigns() {
           </TouchableOpacity>
         </Animated.View>
       ) : (
-        <View
-          className="flex-1"
-          style={{ minHeight: SCREEN_HEIGHT * 0.7 }}
-          onLayout={(e) => {
-            setListWidth(e.nativeEvent.layout.width);
-          }}
-        >
-          {listWidth > 0 && (
-            <FlatList
-              ref={flatListRef}
-              data={messages}
-              horizontal
-              pagingEnabled
-              showsHorizontalScrollIndicator={false}
-              onScroll={handleScroll}
-              scrollEventThrottle={16}
-              keyExtractor={(item) => item.id}
-              renderItem={({ item, index }) => (
-                <View style={{ width: listWidth, alignItems: 'center' }}>
-                  <View style={{ width: listWidth }}>
-                    <MessageCard
-                      setLimitMode={setLimitMode}
-                      maxClients={maxClients}
-                      testMessagesUsed={testMessagesUsed}
-                      profile={profile}
-                      setAlgorithmType={setAlgorithmType}
-                      availableCredits={availableCredits}
-                      message={item}
-                      index={index}
-                      isSaving={isSaving}
-                      savingMode={savingMode}
-                      validatingId={validatingId}
-                      editingTitleId={editingTitleId}
-                      tempTitle={tempTitle}
-                      previewCount={previewCounts[item.id] || 0}
-                      loadingPreview={loadingPreview}
-                      campaignProgress={campaignProgress[item.id]}
-                      session={session}
-                      onLoadPreview={(limit) => {
-                        loadClientPreview(item.id, limit);
-                      }}
-                      onUpdate={updateMessage}
-                      onRemove={removeMessage}
-                      onEnableEdit={enableEditMode}
-                      onCancelEdit={cancelEdit}
-                      onSave={handleSave}
-                      onValidate={async (msgId: string) => {
-                        const msg = messages.find((m) => m.id === msgId);
-                        if (!msg || !msg.message.trim()) {
-                          Toast.show({
-                            type: 'error',
-                            text1: 'Please enter a message first',
-                          });
-                          return;
-                        }
-
-                        if (msg.message.length < 100) {
-                          Toast.show({
-                            type: 'error',
-                            text1: 'Message must be at least 100 characters',
-                          });
-                          return;
-                        }
-
-                        setValidatingId(msgId);
-                        try {
-                          const { data: { session } } = await supabase.auth.getSession();
-                          
-                          const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/client-messaging/verify-message`, {
-                            method: 'POST',
-                            headers: { 
-                              'Content-Type': 'application/json',
-                              'x-client-access-token': session?.access_token || '',
-                            },
-                            body: JSON.stringify({ message: msg.message }),
-                          });
-
-                          const data = await response.json();
-
-                          if (!response.ok) {
-                            throw new Error(data.error || 'Validation failed');
-                          }
-
-                          updateMessage(msgId, {
-                            isValidated: data.approved,
-                            validationStatus: data.approved ? 'DRAFT' : 'DENIED',
-                            validationReason: data.approved ? undefined : data.reason,
-                          });
-
-                          if (data.approved) {
-                            Toast.show({
-                              type: 'success',
-                              text1: 'Message validated and approved!',
-                              text2: 'You can now save as draft or activate',
-                            });
-                          } else {
+        <Animated.View entering={getFadeInDown(reduceMotion, 80)}>
+          <View
+            className="flex-1"
+            style={{ minHeight: SCREEN_HEIGHT * 0.7 }}
+            onLayout={(e) => {
+              setListWidth(e.nativeEvent.layout.width);
+            }}
+          >
+            {listWidth > 0 && (
+              <FlatList
+                ref={flatListRef}
+                data={messages}
+                horizontal
+                pagingEnabled
+                showsHorizontalScrollIndicator={false}
+                onScroll={handleScroll}
+                scrollEventThrottle={16}
+                keyExtractor={(item) => item.id}
+                renderItem={({ item, index }) => (
+                  <View style={{ width: listWidth, alignItems: 'center' }}>
+                    <View style={{ width: listWidth }}>
+                      <MessageCard
+                        maxClients={maxClients}
+                        profile={profile}
+                        setAlgorithmType={setAlgorithmType}
+                        availableCredits={availableCredits}
+                        message={item}
+                        index={index}
+                        isSaving={isSaving}
+                        savingMode={savingMode}
+                        validatingId={validatingId}
+                        editingTitleId={editingTitleId}
+                        tempTitle={tempTitle}
+                        previewCount={previewCounts[item.id] || 0}
+                        loadingPreview={loadingPreview}
+                        campaignProgress={campaignProgress[item.id]}
+                        session={session}
+                        onLoadPreview={(limit) => {
+                          loadClientPreview(item.id, limit);
+                        }}
+                        onUpdate={updateMessage}
+                        onRemove={removeMessage}
+                        onEnableEdit={enableEditMode}
+                        onCancelEdit={cancelEdit}
+                        onSave={handleSave}
+                        onValidate={async (msgId: string) => {
+                          const msg = messages.find((m) => m.id === msgId);
+                          if (!msg || !msg.message.trim()) {
                             Toast.show({
                               type: 'error',
-                              text1: data.reason || 'Message was denied',
+                              text1: 'Please enter a message first',
                             });
+                            return;
                           }
-                        } catch (error: any) {
-                          console.error('Validation error:', error);
-                          Toast.show({
-                            type: 'error',
-                            text1: error.message || 'Failed to validate message',
-                          });
-                        } finally {
-                          setValidatingId(null);
-                        }
-                      }}
-                      onStartEditingTitle={(id: string, currentTitle: string) => {
-                        setEditingTitleId(id);
-                        setTempTitle(currentTitle);
-                      }}
-                      onSaveTitle={(id: string) => {
-                        if (tempTitle.trim()) {
-                          updateMessage(id, { title: tempTitle.trim() });
-                        }
-                        setEditingTitleId(null);
-                        setTempTitle('');
-                      }}
-                      onCancelEditTitle={() => {
-                        setEditingTitleId(null);
-                        setTempTitle('');
-                      }}
-                      onTempTitleChange={setTempTitle}
-                      onRequestTest={(msgId) => {
-                        setPendingTestMessageId(msgId);
-                        setShowTestConfirmModal(true);
-                      }}
-                      onTestComplete={() => fetchTestMessageCount()}
-                    />
+
+                          if (msg.message.length < 100) {
+                            Toast.show({
+                              type: 'error',
+                              text1: 'Message must be at least 100 characters',
+                            });
+                            return;
+                          }
+
+                          setValidatingId(msgId);
+                          try {
+                            const { data: { session } } = await supabase.auth.getSession();
+                            
+                            const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/client-messaging/verify-message`, {
+                              method: 'POST',
+                              headers: { 
+                                'Content-Type': 'application/json',
+                                'x-client-access-token': session?.access_token || '',
+                              },
+                              body: JSON.stringify({ message: msg.message }),
+                            });
+
+                            const data = await response.json();
+
+                            if (!response.ok) {
+                              throw new Error(data.error || 'Validation failed');
+                            }
+
+                            updateMessage(msgId, {
+                              isValidated: data.approved,
+                              validationStatus: data.approved ? 'DRAFT' : 'DENIED',
+                              validationReason: data.approved ? undefined : data.reason,
+                            });
+
+                            if (data.approved) {
+                              Toast.show({
+                                type: 'success',
+                                text1: 'Message validated and approved!',
+                                text2: 'You can now save as draft or activate',
+                              });
+                            } else {
+                              Toast.show({
+                                type: 'error',
+                                text1: data.reason || 'Message was denied',
+                              });
+                            }
+                          } catch (error: any) {
+                            console.error('Validation error:', error);
+                            Toast.show({
+                              type: 'error',
+                              text1: error.message || 'Failed to validate message',
+                            });
+                          } finally {
+                            setValidatingId(null);
+                          }
+                        }}
+                        onStartEditingTitle={(id: string, currentTitle: string) => {
+                          setEditingTitleId(id);
+                          setTempTitle(currentTitle);
+                        }}
+                        onSaveTitle={(id: string) => {
+                          if (tempTitle.trim()) {
+                            updateMessage(id, { title: tempTitle.trim() });
+                          }
+                          setEditingTitleId(null);
+                          setTempTitle('');
+                        }}
+                        onCancelEditTitle={() => {
+                          setEditingTitleId(null);
+                          setTempTitle('');
+                        }}
+                        onTempTitleChange={setTempTitle}
+                        onRequestTest={(msgId) => {
+                          setPendingTestMessageId(msgId);
+                          setShowTestConfirmModal(true);
+                        }}
+                      />
+                    </View>
                   </View>
-                </View>
-              )}
-            />
-          )}
-        </View>
+                )}
+              />
+            )}
+          </View>
+        </Animated.View>
       )}
       
       {/* Page Indicators - Outside FlatList */}
@@ -1195,6 +1211,7 @@ export default function SMSCampaigns() {
         initialTotalUnselectedClients={totalUnselectedClients}
         clientLimit={messages.find(m => m.id === activePreviewMessageId)?.clientLimit || 0}
       />
-    </View>
+      </View>
+    </ScrollView>
   );
 }

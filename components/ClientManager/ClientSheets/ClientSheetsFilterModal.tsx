@@ -151,7 +151,7 @@ export default function ClientSheetsFilterModal({
     if (!type) {
       return (
         <View className="mt-3">
-          <Text className="text-[#555] text-sm text-center py-4">
+          <Text className="text-[#555] text-base text-center py-4">
             Please select a filter type first
           </Text>
         </View>
@@ -167,7 +167,7 @@ export default function ClientSheetsFilterModal({
     ) {
       return (
         <View className="mt-3">
-          <Text className="text-white text-sm mb-2">
+          <Text className="text-white text-base mb-2">
             Enter {FILTER_OPTIONS.find((f) => f.value === type)?.label}
           </Text>
           <TextInput
@@ -175,7 +175,7 @@ export default function ClientSheetsFilterModal({
             onChangeText={setCurrentValue}
             placeholder={`Enter ${FILTER_OPTIONS.find((f) => f.value === type)?.label.toLowerCase()}...`}
             placeholderTextColor="#555"
-            className="px-4 py-3 rounded-xl border text-white text-sm"
+            className="px-4 py-3 rounded-xl border text-white text-base"
             style={{
               backgroundColor: COLORS.input,
               borderColor: COLORS.glassBorder,
@@ -190,7 +190,7 @@ export default function ClientSheetsFilterModal({
             }}
             className="mt-3 py-3 px-4 rounded-xl bg-lime-300"
           >
-            <Text className="text-black text-sm font-semibold text-center">
+            <Text className="text-black text-base font-semibold text-center">
               Apply Filter
             </Text>
           </TouchableOpacity>
@@ -202,7 +202,7 @@ export default function ClientSheetsFilterModal({
     if (type === 'first_appt_month' || type === 'last_appt_month') {
       return (
         <View className="mt-3">
-          <Text className="text-white text-sm mb-2">Select Month</Text>
+          <Text className="text-white text-base mb-2">Select Month</Text>
           <ScrollView className="max-h-64">
             {MONTHS.map((month) => (
               <TouchableOpacity
@@ -215,7 +215,7 @@ export default function ClientSheetsFilterModal({
                   borderColor: COLORS.glassBorder,
                 }}
               >
-                <Text className="text-white text-sm">{month.label}</Text>
+                <Text className="text-white text-base">{month.label}</Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -231,7 +231,7 @@ export default function ClientSheetsFilterModal({
 
       return (
         <View className="mt-3">
-          <Text className="text-white text-sm mb-2">Select Year</Text>
+          <Text className="text-white text-base mb-2">Select Year</Text>
           <ScrollView className="max-h-64">
             {years.map((year) => (
               <TouchableOpacity
@@ -244,7 +244,7 @@ export default function ClientSheetsFilterModal({
                   borderColor: COLORS.glassBorder,
                 }}
               >
-                <Text className="text-white text-sm">{year}</Text>
+                <Text className="text-white text-base">{year}</Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -256,7 +256,7 @@ export default function ClientSheetsFilterModal({
     if (type === 'visiting_type') {
       return (
         <View className="mt-3">
-          <Text className="text-white text-sm mb-2">Select Visiting Type</Text>
+          <Text className="text-white text-base mb-2">Select Visiting Type</Text>
           {VISITING_TYPES.map((vType) => (
             <TouchableOpacity
               key={vType.value}
@@ -268,7 +268,7 @@ export default function ClientSheetsFilterModal({
                 borderColor: COLORS.glassBorder,
               }}
             >
-              <Text className="text-white text-sm">{vType.label}</Text>
+              <Text className="text-white text-base">{vType.label}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -279,7 +279,7 @@ export default function ClientSheetsFilterModal({
     if (type === 'sms_subscribed' || type === 'phone_available') {
       return (
         <View className="mt-3">
-          <Text className="text-white text-sm mb-2">Select Option</Text>
+          <Text className="text-white text-base mb-2">Select Option</Text>
           {['Yes', 'No'].map((option) => (
             <TouchableOpacity
               key={option}
@@ -293,7 +293,7 @@ export default function ClientSheetsFilterModal({
                 borderColor: COLORS.glassBorder,
               }}
             >
-              <Text className="text-white text-sm">{option}</Text>
+              <Text className="text-white text-base">{option}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -338,7 +338,7 @@ export default function ClientSheetsFilterModal({
           <ScrollView showsVerticalScrollIndicator={false}>
             {/* Filter Type Selection */}
             <View>
-              <Text className="text-white text-sm mb-2">Filter Type</Text>
+              <Text className="text-white text-base mb-2">Filter Type</Text>
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
@@ -362,7 +362,7 @@ export default function ClientSheetsFilterModal({
                     }}
                   >
                     <Text
-                      className="text-xs font-medium"
+                      className="text-sm font-medium"
                       style={{
                         color: selectedType === option.value ? COLORS.lime : '#fff',
                       }}
@@ -380,14 +380,14 @@ export default function ClientSheetsFilterModal({
             {/* Active Filters in Modal - Grouped with content */}
             {activeFilters.length > 0 && (
               <View className="mt-6 pt-4 border-t border-white/10">
-                <Text className="text-white text-sm mb-2">Active Filters</Text>
+                <Text className="text-white text-base mb-2">Active Filters</Text>
                 <View className="flex-row flex-wrap gap-2">
                   {activeFilters.map((filter) => (
                     <View
                       key={filter.id}
                       className="px-3 py-1.5 rounded-full bg-lime-300/10 border border-lime-300/30 flex-row items-center gap-2"
                     >
-                      <Text className="text-lime-300 text-xs font-medium">{filter.label}</Text>
+                      <Text className="text-lime-300 text-sm font-medium">{filter.label}</Text>
                       <TouchableOpacity
                         onPress={() => {
                           const newFilters = activeFilters.filter((f) => f.id !== filter.id);
@@ -411,7 +411,7 @@ export default function ClientSheetsFilterModal({
                   }}
                   className="flex-1 py-3 px-4 rounded-xl bg-red-500/10 border border-red-500/30"
                 >
-                  <Text className="text-red-300 text-sm font-semibold text-center">
+                  <Text className="text-red-300 text-base font-semibold text-center">
                     Clear All Filters
                   </Text>
                 </TouchableOpacity>
@@ -420,7 +420,7 @@ export default function ClientSheetsFilterModal({
                 onPress={onClose}
                 className="flex-1 py-3 px-4 rounded-xl bg-lime-300"
               >
-                <Text className="text-black text-sm font-semibold text-center">
+                <Text className="text-black text-base font-semibold text-center">
                   Done
                 </Text>
               </TouchableOpacity>

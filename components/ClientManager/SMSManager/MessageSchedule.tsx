@@ -1,26 +1,18 @@
-import { ChevronDown, FileText, Zap } from 'lucide-react-native';
+import { ChevronDown } from 'lucide-react-native';
 import React, { useState } from 'react';
-import { ActivityIndicator, Modal, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Modal, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { DAYS_OF_MONTH, DAYS_OF_WEEK, HOURS_12, MINUTES, PERIODS, SMSMessage } from './types';
 
 interface MessageScheduleProps {
   message: SMSMessage;
-  isSaving: boolean;
-  savingMode: 'draft' | 'activate' | null;
   onUpdate: (id: string, updates: Partial<SMSMessage>) => void;
-  onSave: (msgId: string, mode: 'draft' | 'activate') => void;
-  onCancelEdit: (id: string) => void;
 }
 
 type DropdownType = 'frequency' | 'day' | 'hour' | 'minute' | 'period' | null;
 
 export function MessageSchedule({
   message: msg,
-  isSaving,
-  savingMode,
   onUpdate,
-  onSave,
-  onCancelEdit,
 }: MessageScheduleProps) {
   const [activeDropdown, setActiveDropdown] = useState<DropdownType>(null);
 
@@ -83,7 +75,7 @@ export function MessageSchedule({
       {/* Frequency & Day Row */}
       <View className="flex-row gap-2">
         <View className="flex-1">
-          <Text className="text-xs text-[#bdbdbd] mb-1">Frequency</Text>
+          <Text className="text-sm text-[#bdbdbd] mb-1">Frequency</Text>
           <TouchableOpacity
             onPress={() => msg.isEditing && setActiveDropdown('frequency')}
             disabled={!msg.isEditing}
@@ -91,13 +83,13 @@ export function MessageSchedule({
               !msg.isEditing ? 'opacity-50' : ''
             }`}
           >
-            <Text className="text-white text-sm">{getFrequencyLabel()}</Text>
+            <Text className="text-white text-base">{getFrequencyLabel()}</Text>
             <ChevronDown color="#7dd3fc" size={14} />
           </TouchableOpacity>
         </View>
 
         <View className="flex-1">
-          <Text className="text-xs text-[#bdbdbd] mb-1">
+          <Text className="text-sm text-[#bdbdbd] mb-1">
             {msg.frequency === 'monthly' ? 'Day' : 'Day'}
           </Text>
           <TouchableOpacity
@@ -107,7 +99,7 @@ export function MessageSchedule({
               !msg.isEditing ? 'opacity-50' : ''
             }`}
           >
-            <Text className="text-white text-sm">{getDayLabel()}</Text>
+            <Text className="text-white text-base">{getDayLabel()}</Text>
             <ChevronDown color="#7dd3fc" size={14} />
           </TouchableOpacity>
         </View>
@@ -115,7 +107,7 @@ export function MessageSchedule({
 
       {/* Time Row */}
       <View>
-        <Text className="text-xs text-[#bdbdbd] mb-1">Time</Text>
+        <Text className="text-sm text-[#bdbdbd] mb-1">Time</Text>
         <View className="flex-row gap-2">
           {/* Hour */}
           <TouchableOpacity
@@ -125,7 +117,7 @@ export function MessageSchedule({
               !msg.isEditing ? 'opacity-50' : ''
             }`}
           >
-            <Text className="text-white text-sm">{displayHour.toString().padStart(2, '0')}</Text>
+            <Text className="text-white text-base">{displayHour.toString().padStart(2, '0')}</Text>
             <ChevronDown color="#7dd3fc" size={14} />
           </TouchableOpacity>
 
@@ -137,7 +129,7 @@ export function MessageSchedule({
               !msg.isEditing ? 'opacity-50' : ''
             }`}
           >
-            <Text className="text-white text-sm">{msg.minute.toString().padStart(2, '0')}</Text>
+            <Text className="text-white text-base">{msg.minute.toString().padStart(2, '0')}</Text>
             <ChevronDown color="#7dd3fc" size={14} />
           </TouchableOpacity>
 
@@ -149,82 +141,11 @@ export function MessageSchedule({
               !msg.isEditing ? 'opacity-50' : ''
             }`}
           >
-            <Text className="text-white text-sm">{msg.period}</Text>
+            <Text className="text-white text-base">{msg.period}</Text>
             <ChevronDown color="#7dd3fc" size={14} />
           </TouchableOpacity>
         </View>
       </View>
-
-      {/* Action Buttons */}
-      {msg.isEditing && (
-        <View className="gap-2 mt-1">
-          <View className="flex-row gap-2">
-            {/* Save as Draft */}
-            <TouchableOpacity
-              onPress={() => onSave(msg.id, 'draft')}
-              disabled={isSaving || msg.message.length < 100}
-              className={`flex-1 flex-row items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg ${
-                isSaving || msg.message.length < 100
-                  ? 'bg-gray-600/50'
-                  : 'bg-amber-300/20 border border-amber-300/30'
-              }`}
-            >
-              {isSaving && savingMode === 'draft' ? (
-                <>
-                  <ActivityIndicator size="small" color="#fcd34d" />
-                  <Text className="text-amber-300 font-bold text-sm">Saving...</Text>
-                </>
-              ) : (
-                <>
-                  <FileText color="#fcd34d" size={16} />
-                  <Text className="text-amber-300 font-bold text-sm">Draft</Text>
-                </>
-              )}
-            </TouchableOpacity>
-
-            {/* Activate Schedule */}
-            <TouchableOpacity
-              onPress={() => onSave(msg.id, 'activate')}
-              disabled={
-                isSaving ||
-                msg.message.length < 100 ||
-                !msg.isValidated ||
-                msg.validationStatus !== 'ACCEPTED'
-              }
-              className={`flex-1 flex-row items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg ${
-                isSaving ||
-                msg.message.length < 100 ||
-                !msg.isValidated ||
-                msg.validationStatus !== 'ACCEPTED'
-                  ? 'bg-gray-600/50'
-                  : 'bg-sky-300'
-              }`}
-            >
-              {isSaving && savingMode === 'activate' ? (
-                <>
-                  <ActivityIndicator size="small" color="#000000" />
-                  <Text className="text-black font-bold text-sm">Activating...</Text>
-                </>
-              ) : (
-                <>
-                  <Zap color="#000000" size={16} />
-                  <Text className="text-black font-bold text-sm">Activate</Text>
-                </>
-              )}
-            </TouchableOpacity>
-          </View>
-
-          {/* Cancel Button */}
-          {msg.isSaved && (
-            <TouchableOpacity
-              onPress={() => onCancelEdit(msg.id)}
-              className="w-full px-4 py-2.5 rounded-lg bg-white/5 border border-white/10"
-            >
-              <Text className="text-[#bdbdbd] font-semibold text-center text-sm">Cancel</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      )}
 
       {/* Dropdowns */}
       {renderDropdown(

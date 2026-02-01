@@ -266,7 +266,7 @@ export default function ClientSheets() {
               className="flex-1 bg-lime-300 rounded-xl py-3 px-4 flex-row items-center justify-center gap-2"
             >
               <Filter color="#000" size={18} />
-              <Text className="text-black text-sm font-semibold">
+              <Text className="text-black text-base font-semibold">
                 Filters {activeFilters.length > 0 && `(${activeFilters.length})`}
               </Text>
             </TouchableOpacity>
@@ -276,7 +276,7 @@ export default function ClientSheets() {
               className="bg-white/10 rounded-xl py-3 px-4 flex-row items-center gap-2"
             >
               <ChevronDown color={COLORS.text.primary} size={18} />
-              <Text className="text-white text-sm font-semibold">Sort</Text>
+              <Text className="text-white text-base font-semibold">Sort</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -288,7 +288,7 @@ export default function ClientSheets() {
               }}
               className="bg-white/10 rounded-xl py-3 px-4"
             >
-              <Text className="text-white text-sm font-semibold">{limit}</Text>
+              <Text className="text-white text-base font-semibold">{limit}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -307,7 +307,7 @@ export default function ClientSheets() {
                 key={filter.id}
                 className="px-3 py-2 rounded-full bg-lime-300/10 border border-lime-300/30 flex-row items-center gap-2"
               >
-                <Text className="text-lime-300 text-xs font-medium">{filter.label}</Text>
+                <Text className="text-lime-300 text-sm font-medium">{filter.label}</Text>
                 <TouchableOpacity onPress={() => handleRemoveFilter(filter.id)}>
                   <X size={14} color={COLORS.lime} />
                 </TouchableOpacity>
@@ -320,7 +320,7 @@ export default function ClientSheets() {
               }}
               className="px-3 py-2 rounded-full bg-red-500/10 border border-red-500/30"
             >
-              <Text className="text-red-300 text-xs font-medium">Clear All</Text>
+              <Text className="text-red-300 text-sm font-medium">Clear All</Text>
             </TouchableOpacity>
           </ScrollView>
           </View>
@@ -329,7 +329,7 @@ export default function ClientSheets() {
         {/* Stats Bar */}
         <View className="mb-3 px-2">
           <View className="flex-row items-center justify-between flex-wrap gap-2">
-            <Text className="text-xs text-[#bdbdbd]">
+            <Text className="text-sm text-[#bdbdbd]">
               Showing{' '}
               <Text className="text-white font-semibold">
                 {pageStart}–{pageEnd}
@@ -340,13 +340,13 @@ export default function ClientSheets() {
               )}
             </Text>
             <View className="flex-row gap-3">
-              <Text className="text-xs text-[#e5e5e5]">
+              <Text className="text-sm text-[#e5e5e5]">
                 2+ visits:{' '}
                 <Text className="font-semibold">
                   {displayClients.filter((c) => (c.total_appointments ?? 0) >= 2).length}
                 </Text>
               </Text>
-              <Text className="text-xs text-[#e5e5e5]">
+              <Text className="text-sm text-[#e5e5e5]">
                 10+ visits:{' '}
                 <Text className="font-semibold">
                   {displayClients.filter((c) => (c.total_appointments ?? 0) >= 10).length}
@@ -360,16 +360,16 @@ export default function ClientSheets() {
         {loading && !refreshing ? (
           <View className="flex-1 items-center justify-center">
             <ActivityIndicator size="large" color={COLORS.lime} />
-            <Text className="text-[#bdbdbd] text-sm mt-3">Loading clients…</Text>
+            <Text className="text-[#bdbdbd] text-base mt-3">Loading clients…</Text>
           </View>
         ) : error ? (
           <View className="flex-1 items-center justify-center">
-            <Text className="text-red-300 text-sm">{error}</Text>
+            <Text className="text-red-300 text-base">{error}</Text>
           </View>
         ) : displayClients.length === 0 ? (
           <View className="flex-1 items-center justify-center">
             <User size={48} color={COLORS.text.muted} />
-            <Text className="text-[#bdbdbd] text-sm mt-3">
+            <Text className="text-[#bdbdbd] text-base mt-3">
               {activeFilters.length > 0
                 ? 'No clients match your filters.'
                 : 'No clients found.'}
@@ -382,7 +382,7 @@ export default function ClientSheets() {
                 }}
                 className="mt-3"
               >
-                <Text className="text-lime-300 text-xs underline">Clear filters</Text>
+                <Text className="text-lime-300 text-sm underline">Clear filters</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -397,7 +397,7 @@ export default function ClientSheets() {
                   tintColor={COLORS.lime}
                 />
               }
-              contentContainerStyle={{ paddingBottom: 5 }}
+              contentContainerStyle={{ paddingBottom: Math.max(insets.bottom + 24, 24) }}
             >
             {displayClients.map((client) => {
               const fullName =
@@ -418,12 +418,12 @@ export default function ClientSheets() {
                   {/* Client Name, Type & Visit Count */}
                   <View className="flex-row items-center justify-between mb-2">
                     <View className="flex-1 flex-row items-center gap-2">
-                      <Text className="text-white text-sm font-semibold">
+                      <Text className="text-white text-base font-semibold">
                         {fullName}
                       </Text>
                       {client.visiting_type && (
                         <View className="px-2 py-0.5 rounded-full bg-lime-300/10">
-                          <Text className="text-lime-300 text-xs capitalize">
+                          <Text className="text-lime-300 text-sm capitalize">
                             {client.visiting_type.replace('-', ' ')}
                           </Text>
                         </View>
@@ -433,7 +433,7 @@ export default function ClientSheets() {
                       <Text className="text-white text-base font-bold">
                         {client.total_appointments ?? 0}
                       </Text>
-                      <Text className="text-[#8a8a8a] text-xs">visits</Text>
+                      <Text className="text-[#8a8a8a] text-sm">visits</Text>
                     </View>
                   </View>
 
@@ -442,14 +442,14 @@ export default function ClientSheets() {
                     <View className="flex-row items-center gap-3 mb-2 flex-wrap">
                       {client.phone && (
                         <View className="flex-row items-center gap-1.5">
-                          <Phone size={11} color={COLORS.text.secondary} />
-                          <Text className="text-[#bdbdbd] text-xs">{client.phone}</Text>
+                          <Phone size={14} color={COLORS.text.secondary} />
+                          <Text className="text-[#bdbdbd] text-sm">{client.phone}</Text>
                         </View>
                       )}
                       {client.email && (
                         <View className="flex-row items-center gap-1.5 flex-1">
-                          <Mail size={11} color={COLORS.text.secondary} />
-                          <Text className="text-[#bdbdbd] text-xs flex-1" numberOfLines={1}>
+                          <Mail size={14} color={COLORS.text.secondary} />
+                          <Text className="text-[#bdbdbd] text-sm flex-1" numberOfLines={1}>
                             {client.email}
                           </Text>
                         </View>
@@ -460,13 +460,13 @@ export default function ClientSheets() {
                   {/* Visit Dates & SMS Status */}
                   <View className="flex-row items-center justify-between pt-2 border-t border-white/5">
                     <View className="flex-1">
-                      <Text className="text-[#8a8a8a] text-xs">
+                      <Text className="text-[#8a8a8a] text-sm">
                         {firstVisit} → {lastVisit}
                       </Text>
                     </View>
                     <View className="ml-2">
                       <Text
-                        className="text-xs font-semibold"
+                        className="text-sm font-semibold"
                         style={{ color: client.sms_subscribed ? COLORS.lime : COLORS.red }}
                       >
                         SMS: {client.sms_subscribed ? 'Yes' : 'No'}
@@ -498,7 +498,7 @@ export default function ClientSheets() {
                 }`}
               >
                 <Text
-                  className={`text-center text-sm font-semibold ${
+                  className={`text-center text-base font-semibold ${
                     page <= 1 ? 'text-white/30' : 'text-white'
                   }`}
                 >
@@ -507,7 +507,7 @@ export default function ClientSheets() {
               </TouchableOpacity>
 
               <View className="px-3 py-2 rounded-xl bg-black/30 border border-white/10">
-                <Text className="text-white text-sm">
+                <Text className="text-white text-base">
                   Page {page} / {totalPages}
                 </Text>
               </View>
@@ -520,7 +520,7 @@ export default function ClientSheets() {
                 }`}
               >
                 <Text
-                  className={`text-center text-sm font-semibold ${
+                  className={`text-center text-base font-semibold ${
                     page >= totalPages ? 'text-white/30' : 'text-white'
                   }`}
                 >
@@ -621,7 +621,7 @@ export default function ClientSheets() {
                   </Text>
                   {sortField === option.value && (
                     <View className="flex-row items-center gap-2">
-                      <Text className="text-lime-300 text-xs">
+                      <Text className="text-lime-300 text-sm">
                         {sortDir === 'asc' ? 'Ascending' : 'Descending'}
                       </Text>
                       {sortDir === 'asc' ? (

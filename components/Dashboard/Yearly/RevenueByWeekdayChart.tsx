@@ -155,7 +155,7 @@ export default function RevenueByWeekdayChart({ userId, year, timeframe, refresh
     spacing: 2,
     labelTextStyle: {
       color: COLORS.textMuted,
-      fontSize: 10,
+      fontSize: 11,
     },
   }));
 
@@ -186,7 +186,7 @@ export default function RevenueByWeekdayChart({ userId, year, timeframe, refresh
       fontSize: 10,
     },
     topLabelComponent: () => (
-      <Text style={{ color: COLORS.text, fontSize: 9, marginBottom: 2 }}>
+      <Text style={{ color: COLORS.text, fontSize: 10, marginBottom: 2 }}>
         {formatTopLabel(d.total_revenue)}
       </Text>
     ),
@@ -195,12 +195,12 @@ export default function RevenueByWeekdayChart({ userId, year, timeframe, refresh
   return (
     <View className="flex-1" style={{ width: '100%' }}>
       <Text 
-        className="text-sm font-semibold mb-3" 
-        style={{ color: COLORS.text }}
+        className="text-base font-semibold mb-3" 
+        style={{ color: COLORS.text, paddingRight: 110 }}
       >
         {title}
       </Text>
-      <View style={{ flex: 1, width: '100%', marginTop: 45 }}>
+      <View style={{ flex: 1, width: '100%', marginTop: 24 }}>
         <BarChart
           data={barDataWithLabels}
           barWidth={43}
@@ -211,8 +211,8 @@ export default function RevenueByWeekdayChart({ userId, year, timeframe, refresh
           showGradient
           yAxisThickness={0}
           xAxisThickness={0}
-          yAxisTextStyle={{ color: COLORS.textMuted, fontSize: 10 }}
-          xAxisLabelTextStyle={{ color: COLORS.textMuted, fontSize: 10 }}
+          yAxisTextStyle={{ color: COLORS.textMuted, fontSize: 11 }}
+          xAxisLabelTextStyle={{ color: COLORS.textMuted, fontSize: 11 }}
           maxValue={roundedMax}
           spacing={28}
           hideRules={false}

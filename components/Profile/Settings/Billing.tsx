@@ -1,3 +1,4 @@
+import { getFadeInDown, useReducedMotionPreference } from '@/utils/motion';
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
@@ -6,6 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import Animated from 'react-native-reanimated';
 
 // Match the palette you use in Profile/Settings
 const COLORS = {
@@ -24,6 +26,7 @@ const COLORS = {
 };
 
 export default function Billing() {
+  const reduceMotion = useReducedMotionPreference();
   // ⚠️ UI-only demo state – replace with real billing summary later
   const [hasSubscription] = useState(true);
   const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(false);
@@ -65,7 +68,7 @@ export default function Billing() {
   };
 
   return (
-    <View className="mb-4">
+    <Animated.View className="mb-4" entering={getFadeInDown(reduceMotion)}>
       {/* Section heading */}
       <Text
         className="text-lg font-bold mb-3"
@@ -84,7 +87,7 @@ export default function Billing() {
         }}
       >
         <Text
-          className="text-xs font-semibold mb-1"
+          className="text-sm font-semibold mb-1"
           style={{ color: COLORS.textSubtle, textTransform: 'uppercase' }}
         >
           Current plan
@@ -99,7 +102,7 @@ export default function Billing() {
 
         {hasSubscription && (
           <Text
-            className="text-xs mt-1"
+            className="text-sm mt-1"
             style={{ color: COLORS.textMuted }}
           >
             1 active subscription
@@ -117,23 +120,23 @@ export default function Billing() {
         }}
       >
         <Text
-          className="text-xs font-semibold mb-1"
+          className="text-sm font-semibold mb-1"
           style={{ color: COLORS.textSubtle, textTransform: 'uppercase' }}
         >
           Payment
         </Text>
 
         {!hasSubscription ? (
-          <Text
-            className="text-sm"
-            style={{ color: COLORS.textMuted }}
-          >
-            You don't have an active subscription right now.
-          </Text>
+            <Text
+              className="text-base"
+              style={{ color: COLORS.textMuted }}
+            >
+              You don't have an active subscription right now.
+            </Text>
         ) : (
           <>
             <Text
-              className="text-sm"
+              className="text-base"
               style={{ color: COLORS.textMuted }}
             >
               {cancelAtPeriodEnd
@@ -151,7 +154,7 @@ export default function Billing() {
             </Text>
 
             <Text
-              className="text-sm mt-1.5"
+              className="text-base mt-1.5"
               style={{ color: COLORS.textMuted }}
             >
               You&apos;ll be charged{' '}
@@ -178,13 +181,13 @@ export default function Billing() {
       >
         <View className="mb-3">
           <Text
-            className="text-sm font-semibold mb-1"
+            className="text-base font-semibold mb-1"
             style={{ color: COLORS.text }}
           >
             Manage subscription
           </Text>
           <Text
-            className="text-xs"
+            className="text-sm"
             style={{ color: COLORS.textMuted }}
           >
             {!cancelAtPeriodEnd
@@ -217,7 +220,7 @@ export default function Billing() {
             />
           )}
           <Text
-            className="text-sm font-semibold"
+            className="text-base font-semibold"
             style={{ color: COLORS.black }}
           >
             {loadingAction
@@ -229,7 +232,7 @@ export default function Billing() {
         </TouchableOpacity>
 
         <Text
-          className="text-[11px] mt-2"
+          className="text-sm mt-2"
           style={{ color: COLORS.textSubtle }}
         >
           You can&apos;t change plans in the app yet. We know it&apos;s not
@@ -257,7 +260,7 @@ export default function Billing() {
         onConfirm={handleConfirmResume}
         onClose={handleCloseModal}
       />
-    </View>
+    </Animated.View>
   );
 }
 
@@ -307,7 +310,7 @@ function ConfirmationModal({
             {title}
           </Text>
           <Text
-            className="text-sm mb-4"
+            className="text-base mb-4"
             style={{ color: COLORS.textMuted }}
           >
             {description}
@@ -324,7 +327,7 @@ function ConfirmationModal({
               }}
             >
               <Text
-                className="text-sm"
+                className="text-base"
                 style={{ color: COLORS.text }}
               >
                 Never mind
@@ -347,7 +350,7 @@ function ConfirmationModal({
                 />
               )}
               <Text
-                className="text-sm font-semibold"
+                className="text-base font-semibold"
                 style={{ color: COLORS.black }}
               >
                 {confirmText}

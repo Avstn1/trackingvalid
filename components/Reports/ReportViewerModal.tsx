@@ -271,10 +271,16 @@ export default function ReportViewerModal({
           <View className="flex-1">
             <WebView
               originWhitelist={['*']}
-              source={{ html: styledHTML }}
+              source={{ 
+                html: styledHTML,
+                baseUrl: ''
+              }}
               style={{ flex: 1, backgroundColor: COLORS.background }}
               showsVerticalScrollIndicator={true}
               scrollEnabled={true}
+              javaScriptEnabled={true}
+              domStorageEnabled={true}
+              startInLoadingState={true}
               onError={(syntheticEvent) => {
                 const { nativeEvent } = syntheticEvent;
                 console.error('WebView error:', nativeEvent);

@@ -513,7 +513,7 @@ export function CustomHeader({
   return (
     <View
       style={{
-        paddingTop: Math.max(insets.top + 6, 16),
+        paddingTop: 8,
         paddingBottom: 12,
         backgroundColor: COLORS.surface,
         borderBottomWidth: 1,

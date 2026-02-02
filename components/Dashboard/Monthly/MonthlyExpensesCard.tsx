@@ -1,3 +1,4 @@
+import { useCountUp, useReducedMotionPreference } from '@/utils/motion';
 import { supabase } from '@/utils/supabaseClient';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -28,6 +29,13 @@ interface MonthlyExpensesCardProps {
 export default function MonthlyExpensesCard({ userId, month, year }: MonthlyExpensesCardProps) {
   const [expenses, setExpenses] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
+
+  const reduceMotion = useReducedMotionPreference();
+  const { formatted: animatedExpenses } = useCountUp(expenses, {
+    reduceMotion,
+    decimals: 2,
+    prefix: '$',
+  });
 
   const fetchExpenses = async () => {
     try {
@@ -115,7 +123,7 @@ export default function MonthlyExpensesCard({ userId, month, year }: MonthlyExpe
             numberOfLines={1} 
             adjustsFontSizeToFit
           >
-            {formatCurrency(expenses)}
+            {animatedExpenses}
           </Text>
         )}
       </View>

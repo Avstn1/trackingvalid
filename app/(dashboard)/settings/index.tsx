@@ -1,6 +1,6 @@
 // app/(dashboard)/settings/index.tsx
 
-import { getFadeInDown, useFocusAnimation, useReducedMotionPreference } from '@/utils/motion';
+import { getSpringFadeInDown, getStaggerDelay, useFocusAnimation, useReducedMotionPreference } from '@/utils/motion';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
@@ -91,7 +91,7 @@ export default function SettingsMenuScreen() {
         {settingsItems.map((item, index) => (
           <Animated.View
             key={item.route}
-            entering={getFadeInDown(reduceMotion, index * 40)}
+            entering={getSpringFadeInDown(reduceMotion, getStaggerDelay(index))}
           >
             <TouchableOpacity
               onPress={() => router.push(item.route as any)}

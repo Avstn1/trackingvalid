@@ -1,3 +1,4 @@
+import { useCountUp, useReducedMotionPreference } from '@/utils/motion';
 import { supabase } from '@/utils/supabaseClient';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -52,6 +53,13 @@ export default function YearlyRevenueCard({
   const [loading, setLoading] = useState(true);
   const [barberType, setBarberType] = useState<'rental' | 'commission' | undefined>();
   const [commissionRate, setCommissionRate] = useState<number | null>(null);
+
+  const reduceMotion = useReducedMotionPreference();
+  const { formatted: animatedTotal } = useCountUp(total ?? 0, {
+    reduceMotion,
+    decimals: 2,
+    prefix: '$',
+  });
 
   useEffect(() => {
     if (!userId) return;
@@ -244,7 +252,7 @@ export default function YearlyRevenueCard({
                   numberOfLines={1}
                   adjustsFontSizeToFit
                 >
-                  {total !== null ? formatCurrency(total) : 'No data'}
+                  {total !== null ? animatedTotal : 'No data'}
                 </Text>
               )}
             </View>

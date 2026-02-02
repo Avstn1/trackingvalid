@@ -462,7 +462,7 @@ export default function ExpensesViewer({
         </View>
       ) : (
         <View className="flex-1">
-          <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+          <ScrollView className="flex-1" showsVerticalScrollIndicator={true} indicatorStyle="white">
             <View className="gap-3 pb-4">
               {expenses.map((exp) => {
                 const status = getExpenseStatus(exp, month, parseInt(year));

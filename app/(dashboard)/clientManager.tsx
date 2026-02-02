@@ -3,7 +3,7 @@ import ClientSheets from '@/components/ClientManager/ClientSheets/ClientSheets';
 import SMSAutoNudge from '@/components/ClientManager/SMSAutoNudge/SMSAutoNudge';
 import SMSCampaigns from '@/components/ClientManager/SMSCampaigns/SMSCampaigns';
 import { CustomHeader } from '@/components/Header/CustomHeader';
-import { getFadeInDown, useFocusAnimation, useReducedMotionPreference } from '@/utils/motion';
+import { getSpringFadeInDown, useFocusAnimation, usePressAnimation, useReducedMotionPreference } from '@/utils/motion';
 import { Bell, Calendar, Send, Users, X } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { Modal, Pressable, Text, TouchableOpacity, View } from 'react-native';
@@ -66,6 +66,7 @@ export default function ClientManagerScreen() {
   const [activeView, setActiveView] = useState<string>('clients');
   const reduceMotion = useReducedMotionPreference();
   const focusStyle = useFocusAnimation(reduceMotion);
+  const { onPressIn, onPressOut, animatedStyle: pressStyle } = usePressAnimation(reduceMotion);
 
   const handleNavigate = (option: ManageOption) => {
     setModalVisible(false);
@@ -93,29 +94,37 @@ export default function ClientManagerScreen() {
 
       <Animated.View className="flex-1 px-4" style={focusStyle}>
         {/* Manage Button */}
-        <Animated.View className="mt-3 mb-3" entering={getFadeInDown(reduceMotion)}>
-          <TouchableOpacity
+        <Animated.View className="mt-3 mb-3" entering={getSpringFadeInDown(reduceMotion)}>
+          <Pressable
             onPress={() => setModalVisible(true)}
-            className="bg-lime-300 rounded-full py-2 px-6"
-            style={{
-              shadowColor: '#bef264',
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.3,
-              shadowRadius: 8,
-              elevation: 5,
-            }}
+            onPressIn={onPressIn}
+            onPressOut={onPressOut}
           >
-            <Text className="text-black text-base font-bold text-center">
-              Manage
-            </Text>
-          </TouchableOpacity>
+            <Animated.View
+              className="bg-lime-300 rounded-full py-2 px-6"
+              style={[
+                {
+                  shadowColor: '#bef264',
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.3,
+                  shadowRadius: 8,
+                  elevation: 5,
+                },
+                pressStyle,
+              ]}
+            >
+              <Text className="text-black text-base font-bold text-center">
+                Manage
+              </Text>
+            </Animated.View>
+          </Pressable>
         </Animated.View>
 
         {/* Active View */}
         <Animated.View
           key={activeView}
           className="flex-1"
-          entering={getFadeInDown(reduceMotion, 60)}
+          entering={getSpringFadeInDown(reduceMotion, 60)}
         >
           {renderActiveView()}
         </Animated.View>

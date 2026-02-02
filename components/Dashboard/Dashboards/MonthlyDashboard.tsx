@@ -11,7 +11,7 @@ import TopClientsCard from '@/components/Dashboard/Monthly/TopClientsCard';
 import React, { useEffect, useRef, useState } from 'react';
 import { Dimensions, FlatList, NativeScrollEvent, NativeSyntheticEvent, View } from 'react-native';
 import Animated from 'react-native-reanimated';
-import { getFadeInDown, useReducedMotionPreference } from '@/utils/motion';
+import { getSpringFadeInDown, getStaggerDelay, useReducedMotionPreference } from '@/utils/motion';
 
 // Color Palette
 const COLORS = {
@@ -200,7 +200,7 @@ export default function MonthlyDashboard({
   return (
     <View className="gap-4">
       {/* Hero Daily Revenue Card */}
-      <Animated.View entering={getFadeInDown(reduceMotion)}>
+      <Animated.View entering={getSpringFadeInDown(reduceMotion, getStaggerDelay(0))}>
         <DailyRevenueCard
           key={`daily-${globalRefreshKey}`}
           userId={userId}
@@ -211,7 +211,7 @@ export default function MonthlyDashboard({
       </Animated.View>
 
       {/* 2x2 Grid of Metric Cards */}
-      <Animated.View className="gap-3" entering={getFadeInDown(reduceMotion, 60)}>
+      <Animated.View className="gap-3" entering={getSpringFadeInDown(reduceMotion, getStaggerDelay(1))}>
         {/* First Row */}
         <View className="flex-row gap-3">
           <View className="flex-1">
@@ -240,7 +240,7 @@ export default function MonthlyDashboard({
           minHeight: Math.max(SCREEN_HEIGHT * 0.42, 360),
           marginTop: -15
         }}
-        entering={getFadeInDown(reduceMotion, 120)}
+        entering={getSpringFadeInDown(reduceMotion, getStaggerDelay(2))}
       >
 
         <FlatList

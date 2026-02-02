@@ -1,3 +1,4 @@
+import { useCountUp, useReducedMotionPreference } from '@/utils/motion';
 import { supabase } from '@/utils/supabaseClient';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -39,6 +40,13 @@ export default function MonthlyProfitCard({
   const [profit, setProfit] = useState<number | null>(null);
   const [prevProfit, setPrevProfit] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const reduceMotion = useReducedMotionPreference();
+  const { formatted: animatedProfit } = useCountUp(profit ?? 0, {
+    reduceMotion,
+    decimals: 2,
+    prefix: '$',
+  });
 
   useEffect(() => {
     if (!userId || !selectedMonth) {
@@ -175,7 +183,7 @@ export default function MonthlyProfitCard({
               numberOfLines={1} 
               adjustsFontSizeToFit
             >
-              {profit !== null ? formatCurrency(profit) : 'N/A'}
+              {profit !== null ? animatedProfit : 'N/A'}
             </Text>
             
             {change !== null && (

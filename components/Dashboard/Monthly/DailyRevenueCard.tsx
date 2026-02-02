@@ -1,4 +1,5 @@
 import { parseYMDToLocalDate } from '@/utils/date';
+import { useCountUp, useReducedMotionPreference } from '@/utils/motion';
 import { supabase } from '@/utils/supabaseClient';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -44,6 +45,13 @@ export default function DailyRevenueCard({ userId, selectedDate }: DailyRevenueC
   const [loading, setLoading] = useState(true);
   const [barberType, setBarberType] = useState<'rental' | 'commission' | undefined>();
   const [commissionRate, setCommissionRate] = useState<number | null>(null);
+
+  const reduceMotion = useReducedMotionPreference();
+  const { formatted: animatedRevenue } = useCountUp(revenue ?? 0, {
+    reduceMotion,
+    decimals: 2,
+    prefix: '$',
+  });
 
   const selectedDateStr = selectedDate ?? new Date().toLocaleDateString('en-CA');
   const todayStr = new Date().toLocaleDateString('en-CA');
@@ -232,7 +240,7 @@ export default function DailyRevenueCard({ userId, selectedDate }: DailyRevenueC
                   numberOfLines={1}
                   ellipsizeMode="tail"
                 >
-                  {revenue !== null ? formatCurrency(revenue) : 'No data'}
+                  {revenue !== null ? animatedRevenue : 'No data'}
                 </Text>
               )}
             </View>

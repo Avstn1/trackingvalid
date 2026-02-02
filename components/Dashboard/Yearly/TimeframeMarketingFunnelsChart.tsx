@@ -1,6 +1,8 @@
+import { getStaggerDelay, SPRING, useReducedMotionPreference } from '@/utils/motion';
 import { supabase } from '@/utils/supabaseClient';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Dimensions, Text, TouchableOpacity, View } from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withDelay, withSpring } from 'react-native-reanimated';
 import MarketingFunnelsDetailsModal from '../MarketingFunnelsDetailsModal';
 
 const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -21,6 +23,43 @@ const COLORS = {
   newClientsRetained: '#748E63',
   retention: '#B19470',
 };
+
+// Animated bar component for smooth entry
+interface AnimatedBarProps {
+  width: number;
+  height: number;
+  color: string;
+  delay: number;
+  reduceMotion: boolean;
+}
+
+function AnimatedBar({ width, height, color, delay, reduceMotion }: AnimatedBarProps) {
+  const progress = useSharedValue(reduceMotion ? 1 : 0);
+
+  React.useEffect(() => {
+    if (!reduceMotion) {
+      progress.value = withDelay(delay, withSpring(1, SPRING.gentle));
+    }
+  }, [reduceMotion, delay, progress]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    width: `${progress.value * width}%`,
+    minWidth: reduceMotion ? 10 : progress.value > 0 ? 10 : 0,
+  }));
+
+  return (
+    <Animated.View
+      className="rounded"
+      style={[
+        {
+          height,
+          backgroundColor: color,
+        },
+        animatedStyle,
+      ]}
+    />
+  );
+}
 
 export interface MarketingFunnel {
   source: string;
@@ -62,6 +101,7 @@ export default function TimeframeMarketingFunnelsChart({
   const [data, setData] = useState<MarketingFunnel[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const reduceMotion = useReducedMotionPreference();
 
   // Convert month name to number
   const getMonthNumber = (monthName: string): number => {
@@ -354,9 +394,11 @@ export default function TimeframeMarketingFunnelsChart({
             const newClientsRetained = item.new_clients_retained || 0;
             const newWidth = maxValue > 0 ? (newClients / maxValue) * 100 : 0;
             const retainedWidth = maxValue > 0 ? (newClientsRetained / maxValue) * 100 : 0;
+            const retentionWidth = Math.min((item.retention || 0), 100);
 
             const itemCount = data.length;
             const isLast = idx === itemCount - 1;
+            const baseDelay = getStaggerDelay(idx, 80);
             
             return (
               <View key={idx} style={{ flex: 1, marginBottom: isLast ? 0 : 8 }}>
@@ -369,13 +411,12 @@ export default function TimeframeMarketingFunnelsChart({
                 </Text>
 
                 <View className="flex-row items-center mb-1">
-                  <View
-                    className="h-3 rounded"
-                    style={{
-                      backgroundColor: COLORS.newClients,
-                      width: `${newWidth}%`,
-                      minWidth: 10,
-                    }}
+                  <AnimatedBar
+                    width={newWidth}
+                    height={12}
+                    color={COLORS.newClients}
+                    delay={baseDelay}
+                    reduceMotion={reduceMotion}
                   />
                   <Text className="text-[11px] ml-2" style={{ color: COLORS_PALETTE.text }}>
                     {newClients}
@@ -383,13 +424,12 @@ export default function TimeframeMarketingFunnelsChart({
                 </View>
 
                 <View className="flex-row items-center mb-1">
-                  <View
-                    className="h-3 rounded"
-                    style={{
-                      backgroundColor: COLORS.newClientsRetained,
-                      width: `${retainedWidth}%`,
-                      minWidth: 10,
-                    }}
+                  <AnimatedBar
+                    width={retainedWidth}
+                    height={12}
+                    color={COLORS.newClientsRetained}
+                    delay={baseDelay + 40}
+                    reduceMotion={reduceMotion}
                   />
                   <Text className="text-[11px] ml-2" style={{ color: COLORS_PALETTE.text }}>
                     {newClientsRetained}
@@ -397,13 +437,12 @@ export default function TimeframeMarketingFunnelsChart({
                 </View>
 
                 <View className="flex-row items-center">
-                  <View
-                    className="h-2 rounded"
-                    style={{
-                      backgroundColor: COLORS.retention,
-                      width: `${Math.min((item.retention || 0), 100)}%`,
-                      minWidth: 10,
-                    }}
+                  <AnimatedBar
+                    width={retentionWidth}
+                    height={8}
+                    color={COLORS.retention}
+                    delay={baseDelay + 80}
+                    reduceMotion={reduceMotion}
                   />
                   <Text className="text-[11px] ml-2" style={{ color: COLORS_PALETTE.textMuted }}>
                     {item.retention?.toFixed(0)}%

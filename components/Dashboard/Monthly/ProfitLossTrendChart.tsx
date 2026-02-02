@@ -315,7 +315,8 @@ export default function ProfitLossTrendChart({
           dataPointsRadius={3}
           disableScroll={true}
           scrollToEnd={false}
-          isAnimated={false}
+          isAnimated
+          animationDuration={600}
         />
       </View>
 

@@ -527,13 +527,13 @@ export default function FinancesPage() {
 
         {/* Swipeable Expense Views */}
         <View 
-          className="rounded-2xl overflow-hidden mb-6"
+          className="rounded-2xl overflow-hidden"
           style={{
             backgroundColor: COLORS.surface,
             borderWidth: 1,
             borderColor: COLORS.glassBorder,
-            minHeight: 580,
-            maxHeight: '45%',
+            flex: 1,
+            marginBottom: 90, // Account for tab bar
           }}
         >
           <View 

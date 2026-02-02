@@ -1,3 +1,4 @@
+import { useCountUp, useReducedMotionPreference } from '@/utils/motion';
 import { supabase } from '@/utils/supabaseClient';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
@@ -26,6 +27,13 @@ export default function TimeframeAverageTicketCard({
 }: TimeframeAverageTicketCardProps) {
   const [avgTicket, setAvgTicket] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const reduceMotion = useReducedMotionPreference();
+  const { formatted: animatedAvgTicket } = useCountUp(avgTicket ?? 0, {
+    reduceMotion,
+    decimals: 2,
+    prefix: '$',
+  });
 
   useEffect(() => {
     if (!userId || !year) {
@@ -98,7 +106,7 @@ export default function TimeframeAverageTicketCard({
           <ActivityIndicator size="small" color="#c4ff85" />
         ) : (
           <Text className="text-lime-200 text-2xl font-bold">
-            {avgTicket !== null ? formatCurrency(avgTicket) : 'N/A'}
+            {avgTicket !== null ? animatedAvgTicket : 'N/A'}
           </Text>
         )}
       </View>

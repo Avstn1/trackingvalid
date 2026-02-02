@@ -1,3 +1,4 @@
+import { useCountUp, useReducedMotionPreference } from '@/utils/motion';
 import { supabase } from '@/utils/supabaseClient';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -33,6 +34,13 @@ export default function AverageTicketCard({ userId, selectedMonth, year }: Avera
   const [avgTicket, setAvgTicket] = useState<number | null>(null);
   const [prevAvgTicket, setPrevAvgTicket] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const reduceMotion = useReducedMotionPreference();
+  const { formatted: animatedAvgTicket } = useCountUp(avgTicket ?? 0, {
+    reduceMotion,
+    decimals: 2,
+    prefix: '$',
+  });
 
   useEffect(() => {
     if (!userId || !selectedMonth) return;
@@ -154,7 +162,7 @@ export default function AverageTicketCard({ userId, selectedMonth, year }: Avera
               numberOfLines={1} 
               adjustsFontSizeToFit
             >
-              {avgTicket !== null ? formatCurrency(avgTicket) : 'N/A'}
+              {avgTicket !== null ? animatedAvgTicket : 'N/A'}
             </Text>
             
             {change !== null && (

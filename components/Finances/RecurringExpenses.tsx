@@ -192,7 +192,12 @@ export default function RecurringExpenses({
   };
 
   return (
-    <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+    <ScrollView 
+      className="flex-1" 
+      showsVerticalScrollIndicator={true}
+      contentContainerStyle={{ paddingBottom: 32 }}
+      indicatorStyle="white"
+    >
       <View className="gap-4">
         {/* Label Input */}
         <View>

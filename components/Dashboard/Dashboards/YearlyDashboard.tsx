@@ -8,7 +8,7 @@ import YearlyTopClientsCard from '@/components/Dashboard/Yearly/YearlyTopClients
 import React, { useEffect, useRef, useState } from 'react';
 import { Dimensions, FlatList, NativeScrollEvent, NativeSyntheticEvent, View } from 'react-native';
 import Animated from 'react-native-reanimated';
-import { getFadeInDown, useReducedMotionPreference } from '@/utils/motion';
+import { getSpringFadeInDown, getStaggerDelay, useReducedMotionPreference } from '@/utils/motion';
 
 // Color Palette - matching Monthly dashboard
 const COLORS = {
@@ -175,17 +175,17 @@ export default function YearlyDashboard({
     <View className="gap-3">
       <View></View>
       {/* Hero Yearly Revenue Card */}
-      <Animated.View entering={getFadeInDown(reduceMotion)}>
+      <Animated.View entering={getSpringFadeInDown(reduceMotion, getStaggerDelay(0))}>
         {metricCards[0]?.component}
       </Animated.View>
 
       {/* Average Ticket Card Row */}
-      <Animated.View entering={getFadeInDown(reduceMotion, 60)}>
+      <Animated.View entering={getSpringFadeInDown(reduceMotion, getStaggerDelay(1))}>
         {metricCards[1]?.component}
       </Animated.View>
 
       {/* Expenses Card Row */}
-      <Animated.View entering={getFadeInDown(reduceMotion, 120)}>
+      <Animated.View entering={getSpringFadeInDown(reduceMotion, getStaggerDelay(2))}>
         {metricCards[2]?.component}
       </Animated.View>
 
@@ -196,7 +196,7 @@ export default function YearlyDashboard({
           flex: 1,
           marginTop: -15
         }}
-        entering={getFadeInDown(reduceMotion, 180)}
+        entering={getSpringFadeInDown(reduceMotion, getStaggerDelay(3))}
       >
         <FlatList
           ref={flatListRef}

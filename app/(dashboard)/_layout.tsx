@@ -1,11 +1,11 @@
 import { HapticTab } from '@/components/haptic-tab';
 import { supabase } from '@/utils/supabaseClient';
-import { MOTION, useReducedMotionPreference } from '@/utils/motion';
+import { SPRING, useReducedMotionPreference } from '@/utils/motion';
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs, useRouter } from 'expo-router';
 import React, { useEffect } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
-import Animated, { interpolate, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import Animated, { interpolate, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 
 const TAB_BAR_STYLES = StyleSheet.create({
   tabBar: {
@@ -70,10 +70,7 @@ function AnimatedTabIcon({ focused, color, size, activeName, inactiveName }: Ani
     if (reduceMotion) {
       progress.value = focused ? 1 : 0;
     } else {
-      progress.value = withTiming(focused ? 1 : 0, {
-        duration: MOTION.durationFast,
-        easing: MOTION.easingStandard,
-      });
+      progress.value = withSpring(focused ? 1 : 0, SPRING.bouncy);
     }
   }, [focused, reduceMotion, progress]);
 
@@ -87,16 +84,17 @@ function AnimatedTabIcon({ focused, color, size, activeName, inactiveName }: Ani
 
     return {
       transform: [
-        { translateY: interpolate(progress.value, [0, 1], [2, -2]) },
-        { scale: interpolate(progress.value, [0, 1], [1, 1.08]) },
+        { translateY: interpolate(progress.value, [0, 1], [3, -3]) },
+        { scale: interpolate(progress.value, [0, 0.5, 1], [1, 1.15, 1.1]) },
       ],
-      opacity: interpolate(progress.value, [0, 1], [0.6, 1]),
+      opacity: interpolate(progress.value, [0, 1], [0.5, 1]),
     };
   }, [reduceMotion]);
 
   const indicatorStyle = useAnimatedStyle(() => ({
-    width: interpolate(progress.value, [0, 1], [6, 18]),
-    opacity: interpolate(progress.value, [0, 1], [0, 1]),
+    width: interpolate(progress.value, [0, 1], [4, 20]),
+    opacity: interpolate(progress.value, [0, 0.3, 1], [0, 0.8, 1]),
+    transform: [{ scaleX: interpolate(progress.value, [0, 0.5, 1], [0.5, 1.2, 1]) }],
   }));
 
   return (
@@ -161,40 +159,6 @@ export default function DashboardLayout() {
         }}>
 
         <Tabs.Screen
-          name="reports"
-          options={{
-            title: '',
-            headerShown: false,
-            tabBarIcon: ({ color, focused }) => (
-              <AnimatedTabIcon
-                focused={focused}
-                color={color}
-                size={24}
-                activeName="document-text"
-                inactiveName="document-text-outline"
-              />
-            ),
-          }}
-        />
-
-        <Tabs.Screen
-          name="finances"
-          options={{
-            title: '',
-            headerShown: false,
-            tabBarIcon: ({ color, focused }) => (
-              <AnimatedTabIcon
-                focused={focused}
-                color={color}
-                size={24}
-                activeName="wallet"
-                inactiveName="wallet-outline"
-              />
-            ),
-          }}
-        />
-
-        <Tabs.Screen
           name="dashboard"
           options={{
             title: '',
@@ -223,6 +187,40 @@ export default function DashboardLayout() {
                 size={24}
                 activeName="people-circle"
                 inactiveName="people-circle-outline"
+              />
+            ),
+          }}
+        />
+
+        <Tabs.Screen
+          name="finances"
+          options={{
+            title: '',
+            headerShown: false,
+            tabBarIcon: ({ color, focused }) => (
+              <AnimatedTabIcon
+                focused={focused}
+                color={color}
+                size={24}
+                activeName="wallet"
+                inactiveName="wallet-outline"
+              />
+            ),
+          }}
+        />
+
+        <Tabs.Screen
+          name="reports"
+          options={{
+            title: '',
+            headerShown: false,
+            tabBarIcon: ({ color, focused }) => (
+              <AnimatedTabIcon
+                focused={focused}
+                color={color}
+                size={24}
+                activeName="document-text"
+                inactiveName="document-text-outline"
               />
             ),
           }}

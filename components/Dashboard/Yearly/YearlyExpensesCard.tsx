@@ -1,3 +1,4 @@
+import { useCountUp, useReducedMotionPreference } from '@/utils/motion';
 import { supabase } from '@/utils/supabaseClient';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
@@ -30,6 +31,13 @@ function getDateRange(timeframe: Timeframe, year: number) {
 export default function YearlyExpensesCard({ userId, year, timeframe, refreshKey }: Props) {
   const [total, setTotal] = useState<number>(0);
   const [loading, setLoading] = useState(true);
+
+  const reduceMotion = useReducedMotionPreference();
+  const { formatted: animatedTotal } = useCountUp(total, {
+    reduceMotion,
+    decimals: 2,
+    prefix: '$',
+  });
 
   useEffect(() => {
     if (!userId) {
@@ -106,7 +114,7 @@ export default function YearlyExpensesCard({ userId, year, timeframe, refreshKey
           <ActivityIndicator size="small" color="#c4ff85" />
         ) : (
           <Text className="text-red-200 text-2xl font-bold">
-            {formatCurrency(total)}
+            {animatedTotal}
           </Text>
         )}
       </View>

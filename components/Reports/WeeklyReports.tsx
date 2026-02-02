@@ -185,7 +185,9 @@ export default function WeeklyReports({
       const existingReport = filteredReports.find(r => r.week_number === weekNum);
       
       if (existingReport) {
-        allWeeks.push({ ...existingReport, isUpcoming: false });
+        // Only mark as not upcoming if the week has actually passed
+        const isUpcoming = currentWeek !== -1 && weekNum >= currentWeek;
+        allWeeks.push({ ...existingReport, isUpcoming });
       } else {
         const isUpcoming = weekNum >= currentWeek;
         

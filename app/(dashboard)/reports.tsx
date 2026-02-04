@@ -4,8 +4,9 @@ import { CustomHeader } from '@/components/Header/CustomHeader';
 import MonthlyReports from '@/components/Reports/MonthlyReports';
 import WeeklyComparisonReports from '@/components/Reports/WeeklyComparisonReports';
 import WeeklyReports from '@/components/Reports/WeeklyReports';
-import { supabase } from '@/utils/supabaseClient';
 import { useFocusAnimation, useReducedMotionPreference } from '@/utils/motion';
+import { supabase } from '@/utils/supabaseClient';
+import { useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
   Dimensions,
@@ -42,6 +43,12 @@ const MONTHS = [
 ];
 
 export default function ReportsPage() {
+  const params = useLocalSearchParams<{
+    reference?: string;
+  }>();
+
+  const reference = params.reference;
+
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -148,6 +155,7 @@ export default function ReportsPage() {
                 refresh={refreshKey}
                 filterMonth={selectedMonth}
                 filterYear={selectedYear}
+                reference={reference}
               />
             </View>
           </View>
@@ -182,6 +190,7 @@ export default function ReportsPage() {
                 refresh={refreshKey}
                 filterMonth={selectedMonth}
                 filterYear={selectedYear}
+                reference={reference}
               />
             </View>
           </View>
@@ -216,6 +225,7 @@ export default function ReportsPage() {
                 refresh={refreshKey}
                 filterMonth={selectedMonth}
                 filterYear={selectedYear}
+                reference={reference}
               />
             </View>
           </View>

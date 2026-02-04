@@ -1,11 +1,36 @@
 import { HapticTab } from '@/components/haptic-tab';
-import { supabase } from '@/utils/supabaseClient';
+import ReportViewerModal from '@/components/Reports/ReportViewerModal';
 import { SPRING, useReducedMotionPreference } from '@/utils/motion';
+import { supabase } from '@/utils/supabaseClient';
 import { Ionicons } from '@expo/vector-icons';
+import * as Device from 'expo-device';
+import { EventSubscription } from 'expo-modules-core';
+import * as Notifications from 'expo-notifications';
 import { Tabs, useRouter } from 'expo-router';
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 import Animated, { interpolate, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+
+interface Report {
+  id: string
+  content: string
+  month: string
+  year: number
+  type?: 'weekly' | 'monthly' | 'weekly_comparison'
+  week_number?: number
+  title?: string
+}
+
+// Set notification handler
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+});
 
 const TAB_BAR_STYLES = StyleSheet.create({
   tabBar: {
@@ -32,7 +57,7 @@ const TAB_BAR_STYLES = StyleSheet.create({
     marginTop: 2,
   },
   tabBarLabel: {
-    display: 'none', // Hide labels
+    display: 'none',
   },
   tabBarItem: {
     borderRadius: 20,
@@ -41,7 +66,7 @@ const TAB_BAR_STYLES = StyleSheet.create({
   },
   activeTabGlow: {
     shadowColor: '#8bcf68ff',
-    shadowOffset: { width: 0, height: 0 },
+    shadowOffset: { width: 0, height: 0 }, 
     shadowOpacity: 0.6,
     shadowRadius: 12,
   },
@@ -111,8 +136,79 @@ function AnimatedTabIcon({ focused, color, size, activeName, inactiveName }: Ani
   );
 }
 
+async function registerForPushNotificationsAsync() {
+  if (!Device.isDevice) {
+    console.log('Must use physical device for push notifications');
+    return;
+  }
+
+  const { status: existingStatus } = await Notifications.getPermissionsAsync();
+  let finalStatus = existingStatus;
+  
+  if (existingStatus !== 'granted') {
+    const { status } = await Notifications.requestPermissionsAsync();
+    finalStatus = status;
+  }
+  
+  if (finalStatus !== 'granted') {
+    console.log('Permission not granted for push notifications');
+    return;
+  }
+
+  try {
+    const pushTokenString = (await Notifications.getExpoPushTokenAsync()).data;
+    return pushTokenString;
+  } catch (e) {
+    console.error('Error getting push token:', e);
+  }
+}
+
 export default function DashboardLayout() {
   const router = useRouter();
+  const notificationListener = useRef<EventSubscription | undefined>(undefined);
+  const responseListener = useRef<EventSubscription | undefined>(undefined);
+
+  const [selectedReport, setSelectedReport] = useState<Report | null>(null)
+  const [reportModalVisible, setReportModalVisible] = useState(false)
+
+  const handleNotificationNavigation = async (data: any) => {
+    const { reference, reference_type } = data;
+
+    if (!reference_type) {
+      router.push('/dashboard');
+      return;
+    }
+
+    switch (reference_type) {
+      case 'weekly':
+      case 'weekly_comparison':
+      case 'monthly':
+        router.push({
+          pathname: '/reports',
+          params: { reference: reference }
+        });
+        break;
+      
+      case 'sms_campaigns':
+        router.push({
+          pathname: '/clientManager',
+          params: { openComponent: 'campaigns', reference }
+        });
+        break;
+      
+      case 'sms_auto_nudge':
+      case 'sms_auto_nudge_update':
+        router.push({
+          pathname: '/clientManager',
+          params: { openComponent: 'auto-nudge', reference }
+        });
+        break;
+      
+      default:
+        router.push('/dashboard');
+        break;
+    }
+  };
 
   useEffect(() => {
     // Check initial session
@@ -120,6 +216,23 @@ export default function DashboardLayout() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         router.replace('/login');
+        return;
+      }
+
+      // Register for push notifications
+      const token = await registerForPushNotificationsAsync();
+      if (token && session.user) {
+        await supabase
+          .from('push_tokens')
+          .upsert({
+            user_id: session.user.id,
+            token: token,
+            device_name: await Device.deviceName,
+            device_type: Device.osName,
+            last_used_at: new Date().toISOString(),
+          }, {
+            onConflict: 'token'
+          });
       }
     };
 
@@ -134,115 +247,143 @@ export default function DashboardLayout() {
       }
     });
 
-    // Cleanup subscription on unmount
+    // Listen for notifications received while app is in foreground
+    notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
+      console.log('Notification received:', notification);
+      // Optionally show in-app banner or update badge
+    });
+
+    // Listen for notification taps/clicks (works for all app states: foreground, background, and closed)
+    responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
+      const data = response.notification.request.content.data;
+      console.log('Notification tapped:', data);
+      handleNotificationNavigation(data);
+    });
+
+    // Cleanup
     return () => {
       subscription.unsubscribe();
+      notificationListener.current?.remove();
+      responseListener.current?.remove();
     };
   }, []);
 
+  const handleCloseReportModal = () => {
+    setReportModalVisible(false)
+    setSelectedReport(null)
+  }
+
   return (
-    <View className="flex-1 bg-[#181818]">
-      <Tabs
-        initialRouteName="dashboard" 
-        screenOptions={{
-          headerShown: false,
-          tabBarStyle: TAB_BAR_STYLES.tabBar,
-          
-          tabBarInactiveTintColor: 'rgba(247, 247, 247, 0.3)',
-          tabBarActiveTintColor: '#8bcf68ff',
-          
-          tabBarButton: (props) => <HapticTab {...props} />,
-          tabBarIconStyle: TAB_BAR_STYLES.tabBarIcon,
-          tabBarLabelStyle: TAB_BAR_STYLES.tabBarLabel,
-          
-          tabBarItemStyle: TAB_BAR_STYLES.tabBarItem,
-        }}>
-
-        <Tabs.Screen
-          name="dashboard"
-          options={{
-            title: '',
+    <>
+      <View className="flex-1 bg-[#181818]">
+        <Tabs
+          initialRouteName="dashboard" 
+          screenOptions={{
             headerShown: false,
-            tabBarIcon: ({ color, focused }) => (
-              <AnimatedTabIcon
-                focused={focused}
-                color={color}
-                size={26}
-                activeName="apps"
-                inactiveName="apps-outline"
-              />
-            ),
-          }}
-        />
+            tabBarStyle: TAB_BAR_STYLES.tabBar,
+            
+            tabBarInactiveTintColor: 'rgba(247, 247, 247, 0.3)',
+            tabBarActiveTintColor: '#8bcf68ff',
+            
+            tabBarButton: (props) => <HapticTab {...props} />,
+            tabBarIconStyle: TAB_BAR_STYLES.tabBarIcon,
+            tabBarLabelStyle: TAB_BAR_STYLES.tabBarLabel,
+            
+            tabBarItemStyle: TAB_BAR_STYLES.tabBarItem,
+          }}>
 
-        <Tabs.Screen
-          name="clientManager"
-          options={{
-            title: '',
-            headerShown: false,
-            tabBarIcon: ({ color, focused }) => (
-              <AnimatedTabIcon
-                focused={focused}
-                color={color}
-                size={24}
-                activeName="people-circle"
-                inactiveName="people-circle-outline"
-              />
-            ),
-          }}
-        />
+          <Tabs.Screen
+            name="dashboard"
+            options={{
+              title: '',
+              headerShown: false,
+              tabBarIcon: ({ color, focused }) => (
+                <AnimatedTabIcon
+                  focused={focused}
+                  color={color}
+                  size={26}
+                  activeName="apps"
+                  inactiveName="apps-outline"
+                />
+              ),
+            }}
+          />
 
-        <Tabs.Screen
-          name="finances"
-          options={{
-            title: '',
-            headerShown: false,
-            tabBarIcon: ({ color, focused }) => (
-              <AnimatedTabIcon
-                focused={focused}
-                color={color}
-                size={24}
-                activeName="wallet"
-                inactiveName="wallet-outline"
-              />
-            ),
-          }}
-        />
+          <Tabs.Screen
+            name="clientManager"
+            options={{
+              title: '',
+              headerShown: false,
+              tabBarIcon: ({ color, focused }) => (
+                <AnimatedTabIcon
+                  focused={focused}
+                  color={color}
+                  size={24}
+                  activeName="people-circle"
+                  inactiveName="people-circle-outline"
+                />
+              ),
+            }}
+          />
 
-        <Tabs.Screen
-          name="reports"
-          options={{
-            title: '',
-            headerShown: false,
-            tabBarIcon: ({ color, focused }) => (
-              <AnimatedTabIcon
-                focused={focused}
-                color={color}
-                size={24}
-                activeName="document-text"
-                inactiveName="document-text-outline"
-              />
-            ),
-          }}
-        />
+          <Tabs.Screen
+            name="finances"
+            options={{
+              title: '',
+              headerShown: false,
+              tabBarIcon: ({ color, focused }) => (
+                <AnimatedTabIcon
+                  focused={focused}
+                  color={color}
+                  size={24}
+                  activeName="wallet"
+                  inactiveName="wallet-outline"
+                />
+              ),
+            }}
+          />
 
-        <Tabs.Screen
-          name="settings"
-          options={{
-            title: 'Settings',
-            headerShown: false,
-            tabBarIcon: ({ color, focused }) => (
-              <AnimatedTabIcon
-                focused={focused}
-                color={color}
-                size={24}
-                activeName="settings"
-                inactiveName="settings-outline"
-              />
-            ),
-          }}
-        />
-      </Tabs>
-    </View>
+          <Tabs.Screen
+            name="reports"
+            options={{
+              title: '',
+              headerShown: false,
+              tabBarIcon: ({ color, focused }) => (
+                <AnimatedTabIcon
+                  focused={focused}
+                  color={color}
+                  size={24}
+                  activeName="document-text"
+                  inactiveName="document-text-outline"
+                />
+              ),
+            }}
+          />
+
+          <Tabs.Screen
+            name="settings"
+            options={{
+              title: 'Settings',
+              headerShown: false,
+              tabBarIcon: ({ color, focused }) => (
+                <AnimatedTabIcon
+                  focused={focused}
+                  color={color}
+                  size={24}
+                  activeName="settings"
+                  inactiveName="settings-outline"
+                />
+              ),
+            }}
+          />
+        </Tabs>
+      </View>
+
+      <ReportViewerModal
+        report={selectedReport}
+        visible={reportModalVisible}
+        onClose={handleCloseReportModal}
+      />
+    </>
   );
 }

@@ -4,8 +4,9 @@ import SMSAutoNudge from '@/components/ClientManager/SMSAutoNudge/SMSAutoNudge';
 import SMSCampaigns from '@/components/ClientManager/SMSCampaigns/SMSCampaigns';
 import { CustomHeader } from '@/components/Header/CustomHeader';
 import { getSpringFadeInDown, useFocusAnimation, usePressAnimation, useReducedMotionPreference } from '@/utils/motion';
+import { useLocalSearchParams } from 'expo-router';
 import { Bell, Calendar, Send, Users, X } from 'lucide-react-native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Modal, Pressable, Text, TouchableOpacity, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -62,11 +63,23 @@ const MANAGE_OPTIONS: ManageOption[] = [
 ];
 
 export default function ClientManagerScreen() {
-  const [modalVisible, setModalVisible] = useState(false);
+  const params = useLocalSearchParams<{
+    openComponent?: string;
+    reference?: string;
+  }>();
+
   const [activeView, setActiveView] = useState<string>('clients');
+
+  const [modalVisible, setModalVisible] = useState(false);
   const reduceMotion = useReducedMotionPreference();
   const focusStyle = useFocusAnimation(reduceMotion);
   const { onPressIn, onPressOut, animatedStyle: pressStyle } = usePressAnimation(reduceMotion);
+
+  useEffect(() => {
+  if (params.openComponent) {
+    setActiveView(params.openComponent);
+  }
+}, [params.openComponent]);
 
   const handleNavigate = (option: ManageOption) => {
     setModalVisible(false);

@@ -36,6 +36,7 @@ interface WeeklyComparisonReportsProps {
   refresh?: number;
   filterMonth?: string;
   filterYear?: number | null;
+  reference?: string | null;
 }
 
 const MONTHS = [
@@ -97,6 +98,7 @@ export default function WeeklyComparisonReports({
   refresh,
   filterMonth,
   filterYear,
+  reference,
 }: WeeklyComparisonReportsProps) {
   const [reports, setReports] = useState<WeeklyComparisonReport[]>([]);
   const [selectedReport, setSelectedReport] = useState<WeeklyComparisonReport | null>(null);
@@ -126,6 +128,30 @@ export default function WeeklyComparisonReports({
           type: 'weekly_comparison' as const,
         }))
       );
+
+      if (reference) {
+        const { data, error } = await supabase
+          .from('reports')
+          .select('*')
+          .eq('id', reference)
+          .single();
+
+        if (error || !data) {
+          return;
+        }
+
+        handleOpenReport({
+          id: data.id,
+          week_number: data.week_number,
+          month: data.month,
+          year: data.year || new Date().getFullYear(),
+          content: data.content || '',
+          type: 'weekly_comparison' as const,
+          isUpcoming: data.isUpcoming,
+          releaseDate: data.releaseDate,
+        });
+      }
+
     } catch (err) {
       console.error(err);
       setReports([]);

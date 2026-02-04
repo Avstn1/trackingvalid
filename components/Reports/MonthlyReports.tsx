@@ -36,6 +36,7 @@ interface MonthlyReportsProps {
   refresh?: number;
   filterMonth?: string;
   filterYear?: number | null;
+  reference?: string | null;
 }
 
 const MONTHS = [
@@ -81,6 +82,7 @@ export default function MonthlyReports({
   refresh,
   filterMonth,
   filterYear,
+  reference,
 }: MonthlyReportsProps) {
   const [reports, setReports] = useState<MonthlyReport[]>([]);
   const [selectedReport, setSelectedReport] = useState<MonthlyReport | null>(null);
@@ -95,6 +97,8 @@ export default function MonthlyReports({
         .select('*')
         .eq('user_id', userId)
         .eq('type', 'monthly')
+        .eq('month', filterMonth)
+        .eq('year', filterYear)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -113,6 +117,28 @@ export default function MonthlyReports({
           type: 'monthly',
         }))
       );
+
+      if (reference) {
+        const { data: reportData, error } = await supabase
+          .from('reports')
+          .select('*')
+          .eq('id', reference)
+          .single();
+
+        if (error || !reportData) {
+          return;
+        }
+
+        handleOpenReport({
+          id: reportData.id,
+          month: reportData.month,
+          notes: reportData.notes || '',
+          content: reportData.content || '',
+          year: reportData.year || new Date().getFullYear(),
+          type: 'monthly',
+        });
+      }
+      
     } catch (err) {
       console.error(err);
       setReports([]);

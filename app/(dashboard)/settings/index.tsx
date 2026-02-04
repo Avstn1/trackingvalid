@@ -43,6 +43,11 @@ const settingsItems = [
     route: '/(dashboard)/settings/logout',
     description: 'Sign out of your account',
   },
+    {
+    label: 'Admin',
+    route: '/(dashboard)/settings/admin',
+    description: 'Sign out of your account',
+  },
 ];
 
 export default function SettingsMenuScreen() {

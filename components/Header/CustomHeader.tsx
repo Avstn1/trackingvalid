@@ -183,6 +183,7 @@ export function CustomHeader({
         .from('notifications')
         .select('*', { count: 'exact' })
         .eq('user_id', profile.user_id)
+        .eq('show', true)
         .order('timestamp', { ascending: false })
         .range(from, to);
 

@@ -1,3 +1,4 @@
+import { COLORS } from '@/constants/design-system';
 import { parseYMDToLocalDate } from '@/utils/date';
 import { useCountUp, useReducedMotionPreference } from '@/utils/motion';
 import { supabase } from '@/utils/supabaseClient';
@@ -5,22 +6,6 @@ import MaskedView from '@react-native-masked-view/masked-view';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
-
-// Color Palette
-const COLORS = {
-  background: '#181818',
-  cardBg: '#1a1a1a',
-  surface: 'rgba(37, 37, 37, 0.6)',
-  glassBorder: 'rgba(255, 255, 255, 0.1)',
-  glassHighlight: 'rgba(255, 255, 255, 0.08)',
-  text: '#FFFFFF',
-  textMuted: 'rgba(255, 255, 255, 0.6)',
-  green: '#54d33dff',
-  greenLight: '#5b8f52ff',
-  greenGlow: 'rgba(255, 87, 34, 0.25)',
-  purple: '#673AB7',
-  yellow: '#FFEB3B',
-};
 
 interface DailyRevenueCardProps {
   userId: string;
@@ -101,6 +86,9 @@ export default function DailyRevenueCard({ userId, selectedDate }: DailyRevenueC
               ? total * commissionRate + tips
               : total;
           setRevenue(final);
+        } else {
+          // Reset state when no data for selected date
+          setRevenue(null);
         }
 
         const { data: prevData } = await supabase
@@ -138,17 +126,9 @@ export default function DailyRevenueCard({ userId, selectedDate }: DailyRevenueC
   const formatCurrency = (amount: number) =>
     `$${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-  const isPrevDay = prevDataDate
-    ? (() => {
-        const selected = parseYMDToLocalDate(selectedDateStr);
-        const prev = parseYMDToLocalDate(prevDataDate);
-        const diff = selected.getTime() - prev.getTime();
-        return diff === 24 * 60 * 60 * 1000;
-      })()
-    : false;
-
+  // Calculate change percentage - compare with most recent previous day (not just consecutive)
   const change =
-    revenue !== null && prevRevenue !== null && prevRevenue !== 0 && isPrevDay
+    revenue !== null && prevRevenue !== null && prevRevenue !== 0
       ? parseFloat(((revenue - prevRevenue) / prevRevenue * 100).toFixed(2))
       : null;
 
@@ -156,7 +136,7 @@ export default function DailyRevenueCard({ userId, selectedDate }: DailyRevenueC
     <View
       style={{
         borderRadius: 24,
-        shadowColor: COLORS.green,
+        shadowColor: COLORS.primary,
         shadowOffset: { width: 0, height: 6 },
         shadowRadius: 16,
         elevation: 10,
@@ -176,7 +156,7 @@ export default function DailyRevenueCard({ userId, selectedDate }: DailyRevenueC
         <View
           style={{
             borderRadius: 22,
-            backgroundColor: COLORS.cardBg,
+            backgroundColor: COLORS.surface,
             overflow: 'hidden',
           }}
         >
@@ -191,7 +171,7 @@ export default function DailyRevenueCard({ userId, selectedDate }: DailyRevenueC
                 width: 120,
                 height: 120,
                 borderRadius: 60,
-                backgroundColor: COLORS.green,
+                backgroundColor: COLORS.primary,
                 opacity: 0.08,
               }}
             />
@@ -217,13 +197,13 @@ export default function DailyRevenueCard({ userId, selectedDate }: DailyRevenueC
               </MaskedView>
               <View
                 style={{
-                  backgroundColor: COLORS.green,
+                backgroundColor: COLORS.primary,
                   paddingHorizontal: 12,
                   paddingVertical: 5,
                   borderRadius: 12,
                 }}
               >
-                <Text className="text-sm font-bold" style={{ color: COLORS.text }}>
+                <Text className="text-sm font-bold" style={{ color: COLORS.textInverse }}>
                   {label}
                 </Text>
               </View>
@@ -232,53 +212,74 @@ export default function DailyRevenueCard({ userId, selectedDate }: DailyRevenueC
             {/* Revenue amount */}
             <View className="min-h-[60px] justify-center mb-3">
               {loading ? (
-                <ActivityIndicator color={COLORS.green} size="large" />
-              ) : (
+                <ActivityIndicator color={COLORS.primary} size="large" />
+              ) : revenue !== null ? (
                 <Text
                   className="font-extrabold tracking-tight"
-                  style={{ color: COLORS.text, fontSize: 36, lineHeight: 40 }}
+                  style={{ color: COLORS.textPrimary, fontSize: 36, lineHeight: 40 }}
                   numberOfLines={1}
                   ellipsizeMode="tail"
                 >
-                  {revenue !== null ? animatedRevenue : 'No data'}
+                  {animatedRevenue}
                 </Text>
+              ) : (
+                <View>
+                  <Text
+                    className="font-extrabold tracking-tight"
+                    style={{ color: COLORS.textSecondary, fontSize: 28, lineHeight: 34 }}
+                  >
+                    {selectedDateStr === todayStr ? 'Day Off' : selectedDateStr > todayStr ? '—' : '$0.00'}
+                  </Text>
+                  <Text
+                    className="text-sm mt-1"
+                    style={{ color: COLORS.textTertiary }}
+                  >
+                    {selectedDateStr === todayStr 
+                      ? 'No appointments logged yet' 
+                      : selectedDateStr > todayStr 
+                        ? 'Future date' 
+                        : 'No revenue recorded'}
+                  </Text>
+                </View>
               )}
             </View>
 
-            {/* Change indicator */}
-            {change !== null ? (
-              <View className="flex-row items-center gap-2">
-                <View
-                  style={{
-                    backgroundColor: change > 0 ? 'rgba(74, 222, 128, 0.15)' : change < 0 ? 'rgba(248, 113, 113, 0.15)' : 'rgba(255,255,255,0.1)',
-                    paddingHorizontal: 12,
-                    paddingVertical: 6,
-                    borderRadius: 10,
-                    borderWidth: 1,
-                    borderColor: change > 0 ? 'rgba(74, 222, 128, 0.3)' : change < 0 ? 'rgba(248, 113, 113, 0.3)' : 'rgba(255,255,255,0.1)',
-                  }}
-                >
-                  <Text
-                    className="text-sm font-bold"
-                    style={{ color: change > 0 ? '#4ade80' : change < 0 ? '#f87171' : COLORS.textMuted }}
+            {/* Change indicator - only show when we have revenue data */}
+            {revenue !== null && (
+              change !== null ? (
+                <View className="flex-row items-center gap-2">
+                  <View
+                    style={{
+                      backgroundColor: change > 0 ? COLORS.positiveMuted : change < 0 ? COLORS.negativeMuted : 'rgba(255,255,255,0.1)',
+                      paddingHorizontal: 12,
+                      paddingVertical: 6,
+                      borderRadius: 10,
+                      borderWidth: 1,
+                      borderColor: change > 0 ? 'rgba(34, 197, 94, 0.3)' : change < 0 ? 'rgba(239, 68, 68, 0.3)' : 'rgba(255,255,255,0.1)',
+                    }}
                   >
-                    {change > 0 ? `↑ +${change}%` : change < 0 ? `↓ ${change}%` : `${change}%`}
+                    <Text
+                      className="text-sm font-bold"
+                      style={{ color: change > 0 ? COLORS.positive : change < 0 ? COLORS.negative : COLORS.textSecondary }}
+                    >
+                      {change > 0 ? `↑ +${change}%` : change < 0 ? `↓ ${change}%` : `${change}%`}
+                    </Text>
+                  </View>
+                  <Text className="text-sm" style={{ color: COLORS.textSecondary }}>
+                    vs. prev. workday
                   </Text>
                 </View>
-                <Text className="text-sm" style={{ color: COLORS.textMuted }}>
-                  vs. previous day
+              ) : (
+                <Text className="text-sm" style={{ color: COLORS.textSecondary }}>
+                  No comparison data
                 </Text>
-              </View>
-            ) : (
-              <Text className="text-sm" style={{ color: COLORS.textMuted }}>
-                No comparison data
-              </Text>
+              )
             )}
           </View>
 
           {/* Bottom accent line */}
           <LinearGradient
-            colors={['transparent', COLORS.greenGlow, 'transparent']}
+            colors={['transparent', COLORS.primaryGlow, 'transparent']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={{

@@ -1,3 +1,4 @@
+import { COLORS } from '@/constants/design-system';
 import { supabase } from '@/utils/supabaseClient';
 import {
   ArrowDownRight,
@@ -33,18 +34,11 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const COLORS = {
-  background: '#1a1a1a',
-  surface: '#0a0a0a',
-  card: '#252525',
+// Component-specific accent colors
+const ACCENT_COLORS = {
   lime: '#c4ff85',
   amber: '#fbbf24',
-  green: '#22c55e',
-  red: '#ef4444',
   sky: '#38bdf8',
-  text: '#ffffff',
-  textMuted: '#bdbdbd',
-  glassBorder: 'rgba(255, 255, 255, 0.1)',
   limeGlow: 'rgba(196, 255, 133, 0.2)',
   amberGlow: 'rgba(251, 191, 36, 0.2)',
 };
@@ -253,13 +247,13 @@ export default function CreditsModal({ isOpen, onClose, onBack }: CreditsModalPr
   const getTransactionIcon = (type: 'credit' | 'debit' | 'reserve' | 'release') => {
     switch (type) {
       case 'credit':
-        return { Icon: ArrowUpRight, color: COLORS.lime, bg: COLORS.limeGlow };
+        return { Icon: ArrowUpRight, color: ACCENT_COLORS.lime, bg: ACCENT_COLORS.limeGlow };
       case 'debit':
-        return { Icon: ArrowDownRight, color: COLORS.red, bg: 'rgba(239, 68, 68, 0.2)' };
+        return { Icon: ArrowDownRight, color: COLORS.negative, bg: COLORS.negativeMuted };
       case 'reserve':
-        return { Icon: Lock, color: COLORS.amber, bg: COLORS.amberGlow };
+        return { Icon: Lock, color: ACCENT_COLORS.amber, bg: ACCENT_COLORS.amberGlow };
       case 'release':
-        return { Icon: TrendingUp, color: COLORS.sky, bg: 'rgba(56, 189, 248, 0.2)' };
+        return { Icon: TrendingUp, color: ACCENT_COLORS.sky, bg: 'rgba(56, 189, 248, 0.2)' };
     }
   };
 
@@ -369,7 +363,7 @@ export default function CreditsModal({ isOpen, onClose, onBack }: CreditsModalPr
                       style={{
                         width: 40,
                         height: 4,
-                        backgroundColor: COLORS.textMuted,
+                        backgroundColor: COLORS.textSecondary,
                         borderRadius: 2,
                         opacity: 0.3,
                       }}
@@ -383,11 +377,11 @@ export default function CreditsModal({ isOpen, onClose, onBack }: CreditsModalPr
                   >
                     {onBack && (
                       <TouchableOpacity onPress={onBack} className="p-1 mr-2">
-                        <ArrowLeft size={24} color={COLORS.textMuted} />
+                        <ArrowLeft size={24} color={COLORS.textSecondary} />
                       </TouchableOpacity>
                     )}
                     <View className="flex-row items-center gap-2 flex-1">
-                      <Coins size={24} color={COLORS.lime} />
+                      <Coins size={24} color={ACCENT_COLORS.lime} />
                       <Text className="text-2xl font-bold text-white">Credits</Text>
                     </View>
                   </View>
@@ -407,13 +401,13 @@ export default function CreditsModal({ isOpen, onClose, onBack }: CreditsModalPr
                 onPress={() => setActiveView('balance')}
                 className="flex-1 px-6 py-3 rounded-full flex-row items-center justify-center gap-2"
                 style={{
-                  backgroundColor: activeView === 'balance' ? COLORS.lime : 'transparent',
+                  backgroundColor: activeView === 'balance' ? ACCENT_COLORS.lime : 'transparent',
                 }}
               >
-                <Coins size={16} color={activeView === 'balance' ? '#000' : COLORS.textMuted} />
+                <Coins size={16} color={activeView === 'balance' ? '#000' : COLORS.textSecondary} />
                 <Text
                   className="text-sm font-semibold"
-                  style={{ color: activeView === 'balance' ? '#000' : COLORS.textMuted }}
+                  style={{ color: activeView === 'balance' ? '#000' : COLORS.textSecondary }}
                 >
                   Balance
                 </Text>
@@ -423,13 +417,13 @@ export default function CreditsModal({ isOpen, onClose, onBack }: CreditsModalPr
                 onPress={() => setActiveView('history')}
                 className="flex-1 px-6 py-3 rounded-full flex-row items-center justify-center gap-2"
                 style={{
-                  backgroundColor: activeView === 'history' ? COLORS.lime : 'transparent',
+                  backgroundColor: activeView === 'history' ? ACCENT_COLORS.lime : 'transparent',
                 }}
               >
-                <History size={16} color={activeView === 'history' ? '#000' : COLORS.textMuted} />
+                <History size={16} color={activeView === 'history' ? '#000' : COLORS.textSecondary} />
                 <Text
                   className="text-sm font-semibold"
-                  style={{ color: activeView === 'history' ? '#000' : COLORS.textMuted }}
+                  style={{ color: activeView === 'history' ? '#000' : COLORS.textSecondary }}
                 >
                   History
                 </Text>
@@ -439,16 +433,16 @@ export default function CreditsModal({ isOpen, onClose, onBack }: CreditsModalPr
                 onPress={() => setActiveView('purchase')}
                 className="flex-1 px-6 py-3 rounded-full flex-row items-center justify-center gap-2"
                 style={{
-                  backgroundColor: activeView === 'purchase' ? COLORS.lime : 'transparent',
+                  backgroundColor: activeView === 'purchase' ? ACCENT_COLORS.lime : 'transparent',
                 }}
               >
                 <ShoppingCart
                   size={16}
-                  color={activeView === 'purchase' ? '#000' : COLORS.textMuted}
+                  color={activeView === 'purchase' ? '#000' : COLORS.textSecondary}
                 />
                 <Text
                   className="text-sm font-semibold"
-                  style={{ color: activeView === 'purchase' ? '#000' : COLORS.textMuted }}
+                  style={{ color: activeView === 'purchase' ? '#000' : COLORS.textSecondary }}
                 >
                   Buy
                 </Text>
@@ -464,7 +458,7 @@ export default function CreditsModal({ isOpen, onClose, onBack }: CreditsModalPr
           >
             {isLoading ? (
               <View className="items-center justify-center py-12">
-                <ActivityIndicator size="large" color={COLORS.lime} />
+                <ActivityIndicator size="large" color={ACCENT_COLORS.lime} />
               </View>
             ) : (
               <>
@@ -477,14 +471,14 @@ export default function CreditsModal({ isOpen, onClose, onBack }: CreditsModalPr
                       <View
                         className="rounded-2xl p-6 overflow-hidden"
                         style={{
-                          backgroundColor: COLORS.limeGlow,
+                          backgroundColor: ACCENT_COLORS.limeGlow,
                           borderWidth: 1,
                           borderColor: 'rgba(196, 255, 133, 0.3)',
                         }}
                       >
                         <View className="flex-row items-center gap-2 mb-2">
-                          <Coins size={20} color={COLORS.lime} />
-                          <Text className="text-sm font-medium" style={{ color: COLORS.lime }}>
+                          <Coins size={20} color={ACCENT_COLORS.lime} />
+                          <Text className="text-sm font-medium" style={{ color: ACCENT_COLORS.lime }}>
                             Available Credits
                           </Text>
                         </View>
@@ -492,11 +486,11 @@ export default function CreditsModal({ isOpen, onClose, onBack }: CreditsModalPr
                           <Text className="text-5xl font-bold text-white">
                             {availableCredits.toLocaleString()}
                           </Text>
-                          <Text className="text-lg" style={{ color: COLORS.lime }}>
+                          <Text className="text-lg" style={{ color: ACCENT_COLORS.lime }}>
                             credits
                           </Text>
                         </View>
-                        <Text className="text-xs mt-3" style={{ color: COLORS.textMuted }}>
+                        <Text className="text-xs mt-3" style={{ color: COLORS.textSecondary }}>
                           Ready to use for SMS campaigns and premium features
                         </Text>
                       </View>
@@ -505,14 +499,14 @@ export default function CreditsModal({ isOpen, onClose, onBack }: CreditsModalPr
                       <View
                         className="rounded-2xl p-6 overflow-hidden"
                         style={{
-                          backgroundColor: COLORS.amberGlow,
+                          backgroundColor: ACCENT_COLORS.amberGlow,
                           borderWidth: 1,
                           borderColor: 'rgba(251, 191, 36, 0.3)',
                         }}
                       >
                         <View className="flex-row items-center gap-2 mb-2">
-                          <Lock size={20} color={COLORS.amber} />
-                          <Text className="text-sm font-medium" style={{ color: COLORS.amber }}>
+                          <Lock size={20} color={ACCENT_COLORS.amber} />
+                          <Text className="text-sm font-medium" style={{ color: ACCENT_COLORS.amber }}>
                             Reserved Credits
                           </Text>
                         </View>
@@ -520,11 +514,11 @@ export default function CreditsModal({ isOpen, onClose, onBack }: CreditsModalPr
                           <Text className="text-5xl font-bold text-white">
                             {reservedCredits.toLocaleString()}
                           </Text>
-                          <Text className="text-lg" style={{ color: COLORS.amber }}>
+                          <Text className="text-lg" style={{ color: ACCENT_COLORS.amber }}>
                             credits
                           </Text>
                         </View>
-                        <Text className="text-xs mt-3" style={{ color: COLORS.textMuted }}>
+                        <Text className="text-xs mt-3" style={{ color: COLORS.textSecondary }}>
                           Allocated for scheduled messages
                         </Text>
                       </View>
@@ -541,7 +535,7 @@ export default function CreditsModal({ isOpen, onClose, onBack }: CreditsModalPr
                     >
                       <View className="flex-row items-center justify-between">
                         <View>
-                          <Text className="text-sm mb-1" style={{ color: COLORS.textMuted }}>
+                          <Text className="text-sm mb-1" style={{ color: COLORS.textSecondary }}>
                             Total Balance
                           </Text>
                           <Text className="text-3xl font-bold text-white">
@@ -551,7 +545,7 @@ export default function CreditsModal({ isOpen, onClose, onBack }: CreditsModalPr
                         <TouchableOpacity
                           onPress={() => setActiveView('purchase')}
                           className="px-6 py-3 rounded-full"
-                          style={{ backgroundColor: COLORS.lime }}
+                          style={{ backgroundColor: ACCENT_COLORS.lime }}
                         >
                           <Text className="text-sm font-semibold text-black">Buy More</Text>
                         </TouchableOpacity>
@@ -568,12 +562,12 @@ export default function CreditsModal({ isOpen, onClose, onBack }: CreditsModalPr
                       }}
                     >
                       <View className="flex-row gap-3">
-                        <Zap size={20} color={COLORS.sky} className="mt-0.5" />
+                        <Zap size={20} color={ACCENT_COLORS.sky} className="mt-0.5" />
                         <View className="flex-1">
-                          <Text className="text-sm font-semibold mb-1" style={{ color: COLORS.sky }}>
+                          <Text className="text-sm font-semibold mb-1" style={{ color: ACCENT_COLORS.sky }}>
                             How Credits Work
                           </Text>
-                          <Text className="text-xs leading-relaxed" style={{ color: COLORS.textMuted }}>
+                          <Text className="text-xs leading-relaxed" style={{ color: COLORS.textSecondary }}>
                             Credits are used for SMS campaigns, premium analytics, and advanced features.
                             Each SMS message costs 1 credit. Reserved credits are allocated for your
                             scheduled messages and will be automatically used when messages are sent. Unused
@@ -599,13 +593,13 @@ export default function CreditsModal({ isOpen, onClose, onBack }: CreditsModalPr
                         className="flex-1 px-4 py-2 rounded-full"
                         style={{
                           backgroundColor:
-                            historySubView === 'purchases' ? COLORS.lime : 'transparent',
+                            historySubView === 'purchases' ? ACCENT_COLORS.lime : 'transparent',
                         }}
                       >
                         <Text
                           className="text-xs font-semibold text-center"
                           style={{
-                            color: historySubView === 'purchases' ? '#000' : COLORS.textMuted,
+                            color: historySubView === 'purchases' ? '#000' : COLORS.textSecondary,
                           }}
                         >
                           Credit Purchases
@@ -617,13 +611,13 @@ export default function CreditsModal({ isOpen, onClose, onBack }: CreditsModalPr
                         className="flex-1 px-4 py-2 rounded-full"
                         style={{
                           backgroundColor:
-                            historySubView === 'transactions' ? COLORS.lime : 'transparent',
+                            historySubView === 'transactions' ? ACCENT_COLORS.lime : 'transparent',
                         }}
                       >
                         <Text
                           className="text-xs font-semibold text-center"
                           style={{
-                            color: historySubView === 'transactions' ? '#000' : COLORS.textMuted,
+                            color: historySubView === 'transactions' ? '#000' : COLORS.textSecondary,
                           }}
                         >
                           Credit Transactions
@@ -633,22 +627,22 @@ export default function CreditsModal({ isOpen, onClose, onBack }: CreditsModalPr
 
                     {isLoadingTransactions ? (
                       <View className="items-center justify-center py-12">
-                        <ActivityIndicator size="large" color={COLORS.lime} />
+                        <ActivityIndicator size="large" color={ACCENT_COLORS.lime} />
                       </View>
                     ) : filteredTransactions.length === 0 ? (
                       <View className="items-center py-12">
                         <View
                           className="w-20 h-20 rounded-full items-center justify-center mb-4"
-                          style={{ backgroundColor: COLORS.limeGlow }}
+                          style={{ backgroundColor: ACCENT_COLORS.limeGlow }}
                         >
-                          <History size={40} color={COLORS.lime} />
+                          <History size={40} color={ACCENT_COLORS.lime} />
                         </View>
                         <Text className="text-xl font-semibold text-white mb-2">
                           {historySubView === 'purchases' ? 'No Purchases Yet' : 'No Transactions Yet'}
                         </Text>
                         <Text
                           className="text-sm text-center max-w-md mb-6 px-4"
-                          style={{ color: COLORS.textMuted }}
+                          style={{ color: COLORS.textSecondary }}
                         >
                           {historySubView === 'purchases'
                             ? 'Your credit purchase history will appear here once you make your first purchase'
@@ -658,7 +652,7 @@ export default function CreditsModal({ isOpen, onClose, onBack }: CreditsModalPr
                           <TouchableOpacity
                             onPress={() => setActiveView('purchase')}
                             className="px-6 py-3 rounded-full"
-                            style={{ backgroundColor: COLORS.lime }}
+                            style={{ backgroundColor: ACCENT_COLORS.lime }}
                           >
                             <Text className="text-sm font-semibold text-black">
                               Buy Your First Credits
@@ -701,8 +695,8 @@ export default function CreditsModal({ isOpen, onClose, onBack }: CreditsModalPr
                                         {transaction.action}
                                       </Text>
                                       <View className="flex-row items-center gap-1.5">
-                                        <Calendar size={12} color={COLORS.textMuted} />
-                                        <Text className="text-xs" style={{ color: COLORS.textMuted }}>
+                                        <Calendar size={12} color={COLORS.textSecondary} />
+                                        <Text className="text-xs" style={{ color: COLORS.textSecondary }}>
                                           {formatDate(transaction.created_at)}
                                         </Text>
                                       </View>
@@ -713,7 +707,7 @@ export default function CreditsModal({ isOpen, onClose, onBack }: CreditsModalPr
                                       {availableDiff !== 0 && (
                                         <Text
                                           className="text-sm font-semibold text-right"
-                                          style={{ color: availableDiff > 0 ? COLORS.lime : COLORS.red }}
+                                          style={{ color: availableDiff > 0 ? ACCENT_COLORS.lime : COLORS.negative }}
                                         >
                                           Available {availableDiff > 0 ? '+' : ''}
                                           {availableDiff.toLocaleString()}
@@ -723,7 +717,7 @@ export default function CreditsModal({ isOpen, onClose, onBack }: CreditsModalPr
                                         <Text
                                           className="text-xs font-medium text-right"
                                           style={{
-                                            color: reservedDiff > 0 ? COLORS.amber : COLORS.sky,
+                                            color: reservedDiff > 0 ? ACCENT_COLORS.amber : ACCENT_COLORS.sky,
                                           }}
                                         >
                                           Reserved {reservedDiff > 0 ? '+' : ''}
@@ -736,7 +730,7 @@ export default function CreditsModal({ isOpen, onClose, onBack }: CreditsModalPr
                                   {/* Balance Details */}
                                   <View className="gap-1">
                                     <View className="flex-row items-center gap-1.5 flex-wrap">
-                                      <Text className="text-xs" style={{ color: COLORS.textMuted }}>
+                                      <Text className="text-xs" style={{ color: COLORS.textSecondary }}>
                                         Available:
                                       </Text>
                                       <Text className="text-xs font-medium text-white">
@@ -745,7 +739,7 @@ export default function CreditsModal({ isOpen, onClose, onBack }: CreditsModalPr
                                       </Text>
                                     </View>
                                     <View className="flex-row items-center gap-1.5 flex-wrap">
-                                      <Text className="text-xs" style={{ color: COLORS.textMuted }}>
+                                      <Text className="text-xs" style={{ color: COLORS.textSecondary }}>
                                         Reserved:
                                       </Text>
                                       <Text className="text-xs font-medium text-white">
@@ -769,12 +763,12 @@ export default function CreditsModal({ isOpen, onClose, onBack }: CreditsModalPr
                   <View className="items-center justify-center py-12 px-6">
                     <View
                       className="w-20 h-20 rounded-full items-center justify-center mb-4"
-                      style={{ backgroundColor: COLORS.limeGlow }}
+                      style={{ backgroundColor: ACCENT_COLORS.limeGlow }}
                     >
-                      <ShoppingCart size={40} color={COLORS.lime} />
+                      <ShoppingCart size={40} color={ACCENT_COLORS.lime} />
                     </View>
                     <Text className="text-xl font-semibold text-white mb-2">Purchase Credits</Text>
-                    <Text className="text-sm text-center max-w-md mb-6" style={{ color: COLORS.textMuted }}>
+                    <Text className="text-sm text-center max-w-md mb-6" style={{ color: COLORS.textSecondary }}>
                       You'll be redirected to Corva Web to complete your credit purchase securely.
                     </Text>
                     
@@ -783,7 +777,7 @@ export default function CreditsModal({ isOpen, onClose, onBack }: CreditsModalPr
                       disabled={isRedirecting}
                       className="px-8 py-4 rounded-full"
                       style={{ 
-                        backgroundColor: isRedirecting ? COLORS.textMuted : COLORS.lime,
+                        backgroundColor: isRedirecting ? COLORS.textSecondary : ACCENT_COLORS.lime,
                         opacity: isRedirecting ? 0.6 : 1,
                       }}
                     >
@@ -792,7 +786,7 @@ export default function CreditsModal({ isOpen, onClose, onBack }: CreditsModalPr
                       </Text>
                     </TouchableOpacity>
 
-                    <Text className="text-xs text-center mt-4" style={{ color: COLORS.textMuted }}>
+                    <Text className="text-xs text-center mt-4" style={{ color: COLORS.textSecondary }}>
                       This will redirect you to Corva Web's settings page
                     </Text>
                   </View>

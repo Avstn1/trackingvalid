@@ -1,3 +1,4 @@
+import { COLORS } from '@/constants/design-system';
 import { supabase } from '@/utils/supabaseClient';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -15,21 +16,6 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
-
-// Color Palette matching DailyRevenueCard
-const COLORS = {
-  background: '#181818',
-  cardBg: '#1a1a1a',
-  surface: 'rgba(37, 37, 37, 0.6)',
-  surfaceSolid: '#252525',
-  glassBorder: 'rgba(255, 255, 255, 0.1)',
-  text: '#FFFFFF',
-  textMuted: 'rgba(255, 255, 255, 0.6)',
-  green: '#73aa57ff',
-  greenLight: '#5b8f52ff',
-  greenGlow: 'rgba(139, 207, 104, 0.4)',
-  red: '#ef4444',
-};
 
 export default function SignUpPage() {
   const [email, setEmail] = useState('');
@@ -109,7 +95,7 @@ export default function SignUpPage() {
         <View
           className="w-full max-w-md rounded-3xl p-8 shadow-lg"
           style={{
-            backgroundColor: COLORS.cardBg,
+            backgroundColor: COLORS.surface,
             borderWidth: 1,
             borderColor: COLORS.glassBorder,
           }}
@@ -166,8 +152,8 @@ export default function SignUpPage() {
             <View
               className="h-1 w-16 rounded-full mt-2"
               style={{
-                backgroundColor: COLORS.green,
-                shadowColor: COLORS.green,
+                backgroundColor: COLORS.primary,
+                shadowColor: COLORS.primary,
                 shadowOffset: { width: 0, height: 0 },
                 shadowOpacity: 0.8,
                 shadowRadius: 8,
@@ -180,13 +166,13 @@ export default function SignUpPage() {
             <TextInput
               className="w-full p-4 rounded-xl text-white"
               style={{
-                backgroundColor: COLORS.surfaceSolid,
+                backgroundColor: COLORS.surfaceElevated,
                 borderWidth: 1,
                 borderColor: COLORS.glassBorder,
-                color: COLORS.text,
+                color: COLORS.textPrimary,
               }}
               placeholder="Email"
-              placeholderTextColor={COLORS.textMuted}
+              placeholderTextColor={COLORS.textSecondary}
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
@@ -199,14 +185,14 @@ export default function SignUpPage() {
               <TextInput
                 className="w-full p-4 rounded-xl text-white"
                 style={{
-                  backgroundColor: COLORS.surfaceSolid,
+                  backgroundColor: COLORS.surfaceElevated,
                   borderWidth: 1,
                   borderColor: COLORS.glassBorder,
-                  color: COLORS.text,
+                  color: COLORS.textPrimary,
                   paddingRight: 48,
                 }}
                 placeholder="Password"
-                placeholderTextColor={COLORS.textMuted}
+                placeholderTextColor={COLORS.textSecondary}
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
@@ -223,9 +209,9 @@ export default function SignUpPage() {
                 disabled={loading}
               >
                 {showPassword ? (
-                  <EyeOff size={20} color={COLORS.textMuted} />
+                  <EyeOff size={20} color={COLORS.textSecondary} />
                 ) : (
-                  <Eye size={20} color={COLORS.textMuted} />
+                  <Eye size={20} color={COLORS.textSecondary} />
                 )}
               </TouchableOpacity>
             </View>
@@ -234,18 +220,18 @@ export default function SignUpPage() {
               <TextInput
                 className="w-full p-4 rounded-xl text-white"
                 style={{
-                  backgroundColor: COLORS.surfaceSolid,
+                  backgroundColor: COLORS.surfaceElevated,
                   borderWidth: 1,
                   borderColor: confirmPassword
                     ? passwordMatch
                       ? COLORS.glassBorder
-                      : COLORS.red
+                      : COLORS.negative
                     : COLORS.glassBorder,
-                  color: COLORS.text,
+                  color: COLORS.textPrimary,
                   paddingRight: 48,
                 }}
                 placeholder="Confirm Password"
-                placeholderTextColor={COLORS.textMuted}
+                placeholderTextColor={COLORS.textSecondary}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
                 secureTextEntry={!showConfirm}
@@ -263,15 +249,15 @@ export default function SignUpPage() {
                 disabled={loading}
               >
                 {showConfirm ? (
-                  <EyeOff size={20} color={COLORS.textMuted} />
+                  <EyeOff size={20} color={COLORS.textSecondary} />
                 ) : (
-                  <Eye size={20} color={COLORS.textMuted} />
+                  <Eye size={20} color={COLORS.textSecondary} />
                 )}
               </TouchableOpacity>
             </View>
 
             {confirmPassword && !passwordMatch && (
-              <Text className="text-sm -mt-2" style={{ color: COLORS.red }}>
+              <Text className="text-sm -mt-2" style={{ color: COLORS.negative }}>
                 Passwords don't match
               </Text>
             )}
@@ -279,7 +265,7 @@ export default function SignUpPage() {
             <TouchableOpacity
               className="w-full py-4 rounded-xl mt-2"
               style={{
-                backgroundColor: loading ? COLORS.surfaceSolid : COLORS.green,
+                backgroundColor: loading ? COLORS.surfaceElevated : COLORS.primary,
                 opacity: loading ? 0.5 : 1,
                 elevation: loading ? 0 : 8,
               }}
@@ -287,11 +273,11 @@ export default function SignUpPage() {
               disabled={loading}
             >
               {loading ? (
-                <ActivityIndicator color={COLORS.text} />
+                <ActivityIndicator color={COLORS.textPrimary} />
               ) : (
                 <Text
                   className="font-bold text-center text-base"
-                  style={{ color: COLORS.text }}
+                  style={{ color: COLORS.textPrimary }}
                 >
                   Sign Up
                 </Text>
@@ -300,10 +286,10 @@ export default function SignUpPage() {
           </View>
 
           <View className="mt-6 items-center">
-            <Text style={{ color: COLORS.textMuted, fontSize: 14 }}>
+            <Text style={{ color: COLORS.textSecondary, fontSize: 14 }}>
               Already have an account?{' '}
               <Text
-                style={{ color: COLORS.green, fontWeight: '600' }}
+                style={{ color: COLORS.primary, fontWeight: '600' }}
                 onPress={() => !loading && router.push('/(auth)/login')}
               >
                 Log in

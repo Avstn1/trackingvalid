@@ -1,3 +1,4 @@
+import { COLORS } from '@/constants/design-system';
 import { supabase } from '@/utils/supabaseClient';
 import {
   ChevronDown,
@@ -20,14 +21,8 @@ import {
 import Collapsible from 'react-native-collapsible';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 
-const COLORS_PALETTE = {
-  background: '#1a1f1b',
-  backgroundAlt: '#2e3b2b',
-  surface: 'rgba(37, 37, 37, 0.6)',
-  glassBorder: 'rgba(255, 255, 255, 0.1)',
-  text: '#E8EDC7',
-  textMuted: 'rgba(232, 237, 199, 0.7)',
-  green: '#748E63',
+// Modal-specific accent colors
+const ACCENT_COLORS = {
   teal: '#9AC8CD',
   tan: '#B19470',
   cream: '#F1EEDC',
@@ -330,9 +325,9 @@ export default function MarketingFunnelsDetailsModal({
           <View 
             className="w-full rounded-2xl overflow-hidden"
             style={{
-              backgroundColor: COLORS_PALETTE.background,
+              backgroundColor: COLORS.surface,
               borderWidth: 1,
-              borderColor: COLORS_PALETTE.glassBorder,
+              borderColor: COLORS.glassBorder,
               maxWidth: 600,
               height: '85%',
             }}
@@ -341,15 +336,15 @@ export default function MarketingFunnelsDetailsModal({
             <View 
               className="flex-row items-center justify-between p-4 border-b"
               style={{
-                backgroundColor: `${COLORS_PALETTE.green}30`,
-                borderBottomColor: COLORS_PALETTE.glassBorder,
+                backgroundColor: `${COLORS.primary}30`,
+                borderBottomColor: COLORS.glassBorder,
               }}
             >
               <View className="flex-1 pr-2">
-                <Text className="text-lg font-bold" style={{ color: COLORS_PALETTE.text }}>
+                <Text className="text-lg font-bold" style={{ color: COLORS.textPrimary }}>
                   📣 Marketing Funnels Details
                 </Text>
-                <Text className="text-xs mt-0.5" style={{ color: COLORS_PALETTE.textMuted }}>
+                <Text className="text-xs mt-0.5" style={{ color: COLORS.textSecondary }}>
                   {monthsDisplay} {year} • {detailedData.length} source{detailedData.length !== 1 ? 's' : ''}
                 </Text>
               </View>
@@ -358,7 +353,7 @@ export default function MarketingFunnelsDetailsModal({
                 className="p-2 rounded-lg"
                 style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
               >
-                <X size={20} color={COLORS_PALETTE.text} />
+                <X size={20} color={COLORS.textPrimary} />
               </TouchableOpacity>
             </View>
 
@@ -366,14 +361,14 @@ export default function MarketingFunnelsDetailsModal({
             <ScrollView className="flex-1 p-4">
               {loading ? (
                 <View className="items-center justify-center py-12">
-                  <ActivityIndicator size="large" color={COLORS_PALETTE.green} />
-                  <Text className="text-sm mt-2" style={{ color: COLORS_PALETTE.textMuted }}>
+                  <ActivityIndicator size="large" color={COLORS.primary} />
+                  <Text className="text-sm mt-2" style={{ color: COLORS.textSecondary }}>
                     Loading details...
                   </Text>
                 </View>
               ) : detailedData.length === 0 ? (
                 <View className="items-center justify-center py-12">
-                  <Text style={{ color: COLORS_PALETTE.textMuted }}>No data available</Text>
+                  <Text style={{ color: COLORS.textSecondary }}>No data available</Text>
                 </View>
               ) : (
                 <View className="gap-2">
@@ -384,7 +379,7 @@ export default function MarketingFunnelsDetailsModal({
                       style={{
                         backgroundColor: 'rgba(255, 255, 255, 0.05)',
                         borderWidth: 1,
-                        borderColor: COLORS_PALETTE.glassBorder,
+                        borderColor: COLORS.glassBorder,
                       }}
                     >
                       {/* Source Header */}
@@ -395,20 +390,20 @@ export default function MarketingFunnelsDetailsModal({
                         <View className="flex-row items-center gap-2">
                           <View 
                             className="w-7 h-7 rounded-full items-center justify-center"
-                            style={{ backgroundColor: COLORS_PALETTE.teal }}
+                            style={{ backgroundColor: ACCENT_COLORS.teal }}
                           >
                             <Text className="text-xs font-bold" style={{ color: '#2a3612ff' }}>
                               {idx + 1}
                             </Text>
                           </View>
-                          <Text className="text-base font-semibold" style={{ color: COLORS_PALETTE.text }}>
+                          <Text className="text-base font-semibold" style={{ color: COLORS.textPrimary }}>
                             {funnel.source}
                           </Text>
                         </View>
                         {expandedSource === funnel.source ? (
-                          <ChevronUp size={16} color={COLORS_PALETTE.textMuted} />
+                          <ChevronUp size={16} color={COLORS.textSecondary} />
                         ) : (
-                          <ChevronDown size={16} color={COLORS_PALETTE.textMuted} />
+                          <ChevronDown size={16} color={COLORS.textSecondary} />
                         )}
                       </TouchableOpacity>
 
@@ -418,18 +413,18 @@ export default function MarketingFunnelsDetailsModal({
                           <View 
                             className="flex-1 px-1.5 py-1 rounded"
                             style={{ 
-                              backgroundColor: `${COLORS_PALETTE.teal}10`,
+                              backgroundColor: `${ACCENT_COLORS.teal}10`,
                               borderWidth: 1,
-                              borderColor: `${COLORS_PALETTE.teal}20`
+                              borderColor: `${ACCENT_COLORS.teal}20`
                             }}
                           >
                             <View className="flex-row items-center gap-0.5 mb-0.5">
-                              <Users size={9} color={COLORS_PALETTE.teal} />
-                              <Text className="text-[9px] font-semibold" style={{ color: COLORS_PALETTE.teal }}>
+                              <Users size={9} color={ACCENT_COLORS.teal} />
+                              <Text className="text-[9px] font-semibold" style={{ color: ACCENT_COLORS.teal }}>
                                 New
                               </Text>
                             </View>
-                            <Text className="text-sm font-bold" style={{ color: COLORS_PALETTE.text }}>
+                            <Text className="text-sm font-bold" style={{ color: COLORS.textPrimary }}>
                               {funnel.new_clients}
                             </Text>
                           </View>
@@ -437,18 +432,18 @@ export default function MarketingFunnelsDetailsModal({
                           <View 
                             className="flex-1 px-1.5 py-1 rounded"
                             style={{ 
-                              backgroundColor: `${COLORS_PALETTE.green}10`,
+                              backgroundColor: `${COLORS.primary}10`,
                               borderWidth: 1,
-                              borderColor: `${COLORS_PALETTE.green}20`
+                              borderColor: `${COLORS.primary}20`
                             }}
                           >
                             <View className="flex-row items-center gap-0.5 mb-0.5">
-                              <TrendingUp size={9} color={COLORS_PALETTE.green} />
-                              <Text className="text-[9px] font-semibold" style={{ color: COLORS_PALETTE.green }}>
+                              <TrendingUp size={9} color={COLORS.primary} />
+                              <Text className="text-[9px] font-semibold" style={{ color: COLORS.primary }}>
                                 Returned
                               </Text>
                             </View>
-                            <Text className="text-sm font-bold" style={{ color: COLORS_PALETTE.text }}>
+                            <Text className="text-sm font-bold" style={{ color: COLORS.textPrimary }}>
                               {funnel.new_clients_retained}
                             </Text>
                           </View>
@@ -456,18 +451,18 @@ export default function MarketingFunnelsDetailsModal({
                           <View 
                             className="flex-1 px-1.5 py-1 rounded"
                             style={{ 
-                              backgroundColor: `${COLORS_PALETTE.tan}10`,
+                              backgroundColor: `${ACCENT_COLORS.tan}10`,
                               borderWidth: 1,
-                              borderColor: `${COLORS_PALETTE.tan}20`
+                              borderColor: `${ACCENT_COLORS.tan}20`
                             }}
                           >
                             <View className="flex-row items-center gap-0.5 mb-0.5">
-                              <Percent size={9} color={COLORS_PALETTE.tan} />
-                              <Text className="text-[9px] font-semibold" style={{ color: COLORS_PALETTE.tan }}>
+                              <Percent size={9} color={ACCENT_COLORS.tan} />
+                              <Text className="text-[9px] font-semibold" style={{ color: ACCENT_COLORS.tan }}>
                                 Retention
                               </Text>
                             </View>
-                            <Text className="text-sm font-bold" style={{ color: COLORS_PALETTE.text }}>
+                            <Text className="text-sm font-bold" style={{ color: COLORS.textPrimary }}>
                               {funnel.retention.toFixed(1)}%
                             </Text>
                           </View>
@@ -475,18 +470,18 @@ export default function MarketingFunnelsDetailsModal({
                           <View 
                             className="flex-1 px-1.5 py-1 rounded"
                             style={{ 
-                              backgroundColor: `${COLORS_PALETTE.cream}10`,
+                              backgroundColor: `${ACCENT_COLORS.cream}10`,
                               borderWidth: 1,
-                              borderColor: `${COLORS_PALETTE.cream}20`
+                              borderColor: `${ACCENT_COLORS.cream}20`
                             }}
                           >
                             <View className="flex-row items-center gap-0.5 mb-0.5">
-                              <DollarSign size={9} color={COLORS_PALETTE.cream} />
-                              <Text className="text-[9px] font-semibold" style={{ color: COLORS_PALETTE.cream }}>
+                              <DollarSign size={9} color={ACCENT_COLORS.cream} />
+                              <Text className="text-[9px] font-semibold" style={{ color: ACCENT_COLORS.cream }}>
                                 Avg
                               </Text>
                             </View>
-                            <Text className="text-sm font-bold" style={{ color: COLORS_PALETTE.text }}>
+                            <Text className="text-sm font-bold" style={{ color: COLORS.textPrimary }}>
                               ${funnel.avg_ticket.toFixed(0)}
                             </Text>
                           </View>
@@ -497,11 +492,11 @@ export default function MarketingFunnelsDetailsModal({
                       <Collapsible collapsed={expandedSource !== funnel.source}>
                         <View 
                           className="px-3 pb-3 pt-2.5 border-t"
-                          style={{ borderTopColor: COLORS_PALETTE.glassBorder }}
+                          style={{ borderTopColor: COLORS.glassBorder }}
                         >
                           <View className="flex-row items-center gap-1.5 mb-2 mt-1">
-                            <Users size={12} color={COLORS_PALETTE.text} />
-                            <Text className="text-xs font-semibold" style={{ color: COLORS_PALETTE.text }}>
+                            <Users size={12} color={COLORS.textPrimary} />
+                            <Text className="text-xs font-semibold" style={{ color: COLORS.textPrimary }}>
                               New Clients ({funnel.client_names?.length || 0}):
                             </Text>
                           </View>
@@ -527,40 +522,40 @@ export default function MarketingFunnelsDetailsModal({
                                       style={{
                                         backgroundColor: 'rgba(255, 255, 255, 0.05)',
                                         borderWidth: 1,
-                                        borderColor: COLORS_PALETTE.glassBorder,
+                                        borderColor: COLORS.glassBorder,
                                         width: '48.5%',
                                       }}
                                     >
                                       <Text 
                                         className="text-xs font-semibold mb-1.5"
-                                        style={{ color: COLORS_PALETTE.text }}
+                                        style={{ color: COLORS.textPrimary }}
                                         numberOfLines={1}
                                       >
                                         {client.client_name}
                                       </Text>
                                       <View className="gap-0.5">
                                         <View className="flex-row items-center gap-1">
-                                          <Text className="text-[10px]" style={{ color: COLORS_PALETTE.textMuted }}>
+                                          <Text className="text-[10px]" style={{ color: COLORS.textSecondary }}>
                                             1st:
                                           </Text>
                                           <Text 
                                             className="text-[10px] font-medium flex-1"
-                                            style={{ color: COLORS_PALETTE.text }}
+                                            style={{ color: COLORS.textPrimary }}
                                             numberOfLines={1}
                                           >
                                             {formatDate(client.first_visit)}
                                           </Text>
                                         </View>
                                         <View className="flex-row items-center gap-1">
-                                          <Text className="text-[10px]" style={{ color: COLORS_PALETTE.textMuted }}>
+                                          <Text className="text-[10px]" style={{ color: COLORS.textSecondary }}>
                                             2nd:
                                           </Text>
                                           <Text 
                                             className="text-[10px] font-medium flex-1"
                                             style={{ 
                                               color: hasSecondVisitInTimeline 
-                                                ? COLORS_PALETTE.text 
-                                                : COLORS_PALETTE.textMuted
+                                                ? COLORS.textPrimary 
+                                                : COLORS.textSecondary
                                             }}
                                             numberOfLines={1}
                                           >
@@ -577,7 +572,7 @@ export default function MarketingFunnelsDetailsModal({
                               </View>
                             </ScrollView>
                           ) : (
-                            <Text className="text-xs" style={{ color: COLORS_PALETTE.textMuted }}>
+                            <Text className="text-xs" style={{ color: COLORS.textSecondary }}>
                               No client data available
                             </Text>
                           )}
@@ -594,16 +589,16 @@ export default function MarketingFunnelsDetailsModal({
               className="p-3 border-t flex-row justify-between items-center"
               style={{
                 backgroundColor: 'rgba(0, 0, 0, 0.2)',
-                borderTopColor: COLORS_PALETTE.glassBorder,
+                borderTopColor: COLORS.glassBorder,
               }}
             >
-              <Text className="text-[10px]" style={{ color: COLORS_PALETTE.textMuted }}>
+              <Text className="text-[10px]" style={{ color: COLORS.textSecondary }}>
                 Click on any source to view details
               </Text>
               <TouchableOpacity
                 onPress={onClose}
                 className="px-5 py-1.5 rounded-lg"
-                style={{ backgroundColor: COLORS_PALETTE.green }}
+                style={{ backgroundColor: COLORS.primary }}
               >
                 <Text className="text-base font-semibold" style={{ color: '#2a3612ff' }}>
                   Close

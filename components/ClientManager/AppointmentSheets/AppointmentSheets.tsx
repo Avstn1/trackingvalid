@@ -1,3 +1,4 @@
+import { COLORS } from '@/constants/design-system';
 import { supabase } from '@/utils/supabaseClient';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Calendar, ChevronLeft, ChevronRight, X } from 'lucide-react-native';
@@ -16,18 +17,14 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AppointmentEditModal from './AppointmentEditModal';
 
-const COLORS = {
-  background: '#181818',
-  card: '#1f1f1f',
-  surface: 'rgba(37, 37, 37, 0.6)',
-  glassBorder: 'rgba(255, 255, 255, 0.1)',
-  text: {
-    primary: '#ffffff',
-    secondary: '#bdbdbd',
-    muted: '#8a8a8a',
-  },
+// Component-specific accent colors
+const ACCENT_COLORS = {
   amber: '#fbbf24',
-  green: '#4ade80',
+};
+
+type AcuityClient = {
+  first_name: string | null;
+  last_name: string | null;
 };
 
 type AppointmentRow = {
@@ -40,13 +37,7 @@ type AppointmentRow = {
   revenue: number | null;
   tip: number | null;
   service_type: string | null;
-  client_first_name: string | null;
-  client_last_name: string | null;
-};
-
-type ApiResponse = {
-  appointments: AppointmentRow[];
-  total: number;
+  acuity_clients: AcuityClient | null;
 };
 
 export default function AppointmentSheets() {
@@ -166,38 +157,52 @@ export default function AppointmentSheets() {
     setError(null);
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const accessToken = session?.access_token;
+      // Step 1: Fetch appointments (without FK join - no relationship exists)
+      const { data: appointmentsData, error: apptError } = await supabase
+        .from('acuity_appointments')
+        .select('id, acuity_appointment_id, client_id, phone_normalized, appointment_date, datetime, revenue, tip, service_type')
+        .eq('user_id', user.id)
+        .eq('appointment_date', dateStr)
+        .order('datetime', { ascending: true });
 
-      const params = new URLSearchParams();
-      params.set('date', dateStr);
-
-      const res = await fetch(
-        `${process.env.EXPO_PUBLIC_API_URL}/api/appointment-manager/appointments?${params.toString()}`,
-        {
-          headers: {
-            'x-client-access-token': accessToken || '',
-          },
-        }
-      );
-
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body.error || 'Failed to fetch appointments');
+      if (apptError) {
+        throw new Error(apptError.message || 'Failed to fetch appointments');
       }
-
-      const body: ApiResponse = await res.json();
 
       if (seq !== requestSeq.current) return;
 
-      // Sort by datetime ascending (earliest first, so #1 is at top)
-      const sortedAppointments = (body.appointments || []).sort((a, b) => {
-        const dateA = new Date(a.datetime).getTime();
-        const dateB = new Date(b.datetime).getTime();
-        return dateA - dateB;
-      });
+      // Step 2: Get unique client IDs
+      const clientIds = [...new Set(
+        (appointmentsData || [])
+          .map(a => a.client_id)
+          .filter((id): id is string => Boolean(id))
+      )];
 
-      setAppointments(sortedAppointments);
+      // Step 3: Fetch client names in batch from acuity_clients
+      const clientsMap = new Map<string, { first_name: string | null; last_name: string | null }>();
+
+      if (clientIds.length > 0) {
+        const { data: clientsData } = await supabase
+          .from('acuity_clients')
+          .select('client_id, first_name, last_name')
+          .eq('user_id', user.id)
+          .in('client_id', clientIds);
+
+        clientsData?.forEach(c => {
+          clientsMap.set(c.client_id, {
+            first_name: c.first_name,
+            last_name: c.last_name,
+          });
+        });
+      }
+
+      // Step 4: Merge appointment data with client names
+      const appointments = (appointmentsData || []).map(appt => ({
+        ...appt,
+        acuity_clients: appt.client_id ? clientsMap.get(appt.client_id) ?? null : null,
+      })) as AppointmentRow[];
+
+      setAppointments(appointments);
     } catch (err: any) {
       if (seq !== requestSeq.current) return;
       console.error(err);
@@ -355,7 +360,7 @@ export default function AppointmentSheets() {
                 borderColor: 'rgba(251, 191, 36, 0.3)',
               }}
             >
-              <Calendar color={COLORS.amber} size={18} />
+              <Calendar color={ACCENT_COLORS.amber} size={18} />
               <Text className="text-amber-100 text-sm font-medium">
                 {isToday ? 'Today' : formatDateShort(selectedDate)}
               </Text>
@@ -406,7 +411,7 @@ export default function AppointmentSheets() {
         <View className="flex-1">
           {loading && !refreshing ? (
             <View className="flex-1 items-center justify-center">
-              <ActivityIndicator size="large" color={COLORS.amber} />
+              <ActivityIndicator size="large" color={ACCENT_COLORS.amber} />
               <Text className="text-[#bdbdbd] text-sm mt-3">Loading appointments…</Text>
             </View>
           ) : error ? (
@@ -424,14 +429,16 @@ export default function AppointmentSheets() {
             <ScrollView
               showsVerticalScrollIndicator={false}
               refreshControl={
-                <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={COLORS.amber} />
+                <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={ACCENT_COLORS.amber} />
               }
               contentContainerStyle={{ paddingBottom: Math.max(insets.bottom + 20, 20) }}
             >
             {appointments.map((appt, index) => {
               const rowNumber = index + 1; // Start from 1 at the top
+              const firstName = appt.acuity_clients?.first_name || '';
+              const lastName = appt.acuity_clients?.last_name || '';
               const clientName =
-                `${capitalizeName(appt.client_first_name)} ${capitalizeName(appt.client_last_name)}`.trim() ||
+                `${capitalizeName(firstName)} ${capitalizeName(lastName)}`.trim() ||
                 'Unknown';
 
               return (
@@ -440,7 +447,7 @@ export default function AppointmentSheets() {
                   onPress={() => handleRowClick(appt)}
                   className="mb-2 rounded-lg p-3"
                   style={{
-                    backgroundColor: COLORS.card,
+                    backgroundColor: COLORS.surface,
                     borderWidth: 1,
                     borderColor: COLORS.glassBorder,
                   }}
@@ -458,7 +465,7 @@ export default function AppointmentSheets() {
                       </Text>
                       <Text
                         className="text-sm font-semibold"
-                        style={{ color: appt.tip && appt.tip > 0 ? COLORS.amber : '#555' }}
+                        style={{ color: appt.tip && appt.tip > 0 ? ACCENT_COLORS.amber : '#555' }}
                       >
                         {formatCurrency(appt.tip)}
                       </Text>
@@ -501,7 +508,7 @@ export default function AppointmentSheets() {
             <Pressable
               className="w-11/12 max-w-md rounded-2xl p-6"
               style={{
-                backgroundColor: COLORS.card,
+                backgroundColor: COLORS.surface,
                 borderWidth: 1,
                 borderColor: COLORS.glassBorder,
               }}

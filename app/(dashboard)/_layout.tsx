@@ -40,10 +40,10 @@ const TAB_BAR_STYLES = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    height: 75,
-    paddingVertical: 8,
-    paddingHorizontal: 20,
-    paddingBottom: Platform.OS === 'ios' ? 25 : 15,
+    height: Platform.OS === 'ios' ? 85 : 70,
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    paddingBottom: Platform.OS === 'ios' ? 25 : 10,
     
     borderTopWidth: 1,
     borderTopColor: 'rgba(255, 255, 255, 0.1)',
@@ -55,14 +55,17 @@ const TAB_BAR_STYLES = StyleSheet.create({
   },
   tabBarIcon: {
     marginTop: 2,
+    marginBottom: 2,
   },
   tabBarLabel: {
-    display: 'none',
+    fontSize: 10,
+    fontWeight: '500',
+    marginTop: -2,
   },
   tabBarItem: {
-    borderRadius: 20,
+    borderRadius: 16,
     marginHorizontal: 2,
-    paddingVertical: 8,
+    paddingVertical: 4,
   },
   activeTabGlow: {
     shadowColor: '#8bcf68ff',
@@ -71,9 +74,9 @@ const TAB_BAR_STYLES = StyleSheet.create({
     shadowRadius: 12,
   },
   tabIndicator: {
-    height: 3,
+    height: 2,
     borderRadius: 999,
-    marginTop: 4,
+    marginTop: 3,
     alignSelf: 'center',
     backgroundColor: '#8bcf68ff',
   },
@@ -295,13 +298,13 @@ export default function DashboardLayout() {
           <Tabs.Screen
             name="dashboard"
             options={{
-              title: '',
+              title: 'Home',
               headerShown: false,
               tabBarIcon: ({ color, focused }) => (
                 <AnimatedTabIcon
                   focused={focused}
                   color={color}
-                  size={26}
+                  size={22}
                   activeName="apps"
                   inactiveName="apps-outline"
                 />
@@ -312,13 +315,13 @@ export default function DashboardLayout() {
           <Tabs.Screen
             name="clientManager"
             options={{
-              title: '',
+              title: 'Clients',
               headerShown: false,
               tabBarIcon: ({ color, focused }) => (
                 <AnimatedTabIcon
                   focused={focused}
                   color={color}
-                  size={24}
+                  size={22}
                   activeName="people-circle"
                   inactiveName="people-circle-outline"
                 />
@@ -329,13 +332,13 @@ export default function DashboardLayout() {
           <Tabs.Screen
             name="finances"
             options={{
-              title: '',
+              title: 'Finances',
               headerShown: false,
               tabBarIcon: ({ color, focused }) => (
                 <AnimatedTabIcon
                   focused={focused}
                   color={color}
-                  size={24}
+                  size={22}
                   activeName="wallet"
                   inactiveName="wallet-outline"
                 />
@@ -346,13 +349,13 @@ export default function DashboardLayout() {
           <Tabs.Screen
             name="reports"
             options={{
-              title: '',
+              title: 'Reports',
               headerShown: false,
               tabBarIcon: ({ color, focused }) => (
                 <AnimatedTabIcon
                   focused={focused}
                   color={color}
-                  size={24}
+                  size={22}
                   activeName="document-text"
                   inactiveName="document-text-outline"
                 />
@@ -360,20 +363,12 @@ export default function DashboardLayout() {
             }}
           />
 
+          {/* Settings is accessed via ProfileDrawer, not tab bar */}
           <Tabs.Screen
             name="settings"
             options={{
-              title: 'Settings',
+              href: null, // Hide from tab bar
               headerShown: false,
-              tabBarIcon: ({ color, focused }) => (
-                <AnimatedTabIcon
-                  focused={focused}
-                  color={color}
-                  size={24}
-                  activeName="settings"
-                  inactiveName="settings-outline"
-                />
-              ),
             }}
           />
         </Tabs>

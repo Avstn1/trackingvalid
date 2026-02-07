@@ -1,4 +1,5 @@
 // components/Settings/ProfileSecurityLogout.tsx
+import { COLORS } from '@/constants/design-system';
 import { supabase } from '@/utils/supabaseClient';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
@@ -16,16 +17,8 @@ import {
   View,
 } from 'react-native';
 
-// Color Palette
-const COLORS = {
-  background: '#181818',
-  surface: 'rgba(37, 37, 37, 0.6)',
-  surfaceSolid: '#252525',
-  glassBorder: 'rgba(255, 255, 255, 0.1)',
-  text: '#F7F7F7',
-  textMuted: 'rgba(247, 247, 247, 0.5)',
-  green: '#8bcf68ff',
-  greenGlow: '#5b8f52ff',
+// Component-specific accent colors not in design system
+const ACCENT_COLORS = {
   greenBg: 'rgba(139, 207, 104, 0.2)',
   greenBorder: 'rgba(139, 207, 104, 0.3)',
   amber: '#fbbf24',
@@ -489,12 +482,12 @@ export default function ProfileSecurityLogout() {
         <View
           className="px-2 py-0.5 rounded-full"
           style={{
-            backgroundColor: COLORS.greenBg,
+            backgroundColor: ACCENT_COLORS.greenBg,
             borderWidth: 1,
-            borderColor: COLORS.greenBorder,
+            borderColor: ACCENT_COLORS.greenBorder,
           }}
         >
-          <Text className="text-[10px] font-semibold" style={{ color: COLORS.green }}>
+          <Text className="text-[10px] font-semibold" style={{ color: COLORS.primary }}>
             Verified
           </Text>
         </View>
@@ -506,12 +499,12 @@ export default function ProfileSecurityLogout() {
         <View
           className="px-2 py-0.5 rounded-full"
           style={{
-            backgroundColor: COLORS.amberBg,
+            backgroundColor: ACCENT_COLORS.amberBg,
             borderWidth: 1,
-            borderColor: COLORS.amberBorder,
+            borderColor: ACCENT_COLORS.amberBorder,
           }}
         >
-          <Text className="text-[10px] font-semibold" style={{ color: COLORS.amber }}>
+          <Text className="text-[10px] font-semibold" style={{ color: ACCENT_COLORS.amber }}>
             Not Verified
           </Text>
         </View>
@@ -522,12 +515,12 @@ export default function ProfileSecurityLogout() {
       <View
         className="px-2 py-0.5 rounded-full"
         style={{
-          backgroundColor: COLORS.roseBg,
+          backgroundColor: ACCENT_COLORS.roseBg,
           borderWidth: 1,
-          borderColor: COLORS.roseBorder,
+          borderColor: ACCENT_COLORS.roseBorder,
         }}
       >
-        <Text className="text-[10px] font-semibold" style={{ color: COLORS.rose }}>
+        <Text className="text-[10px] font-semibold" style={{ color: ACCENT_COLORS.rose }}>
           Required for SMS
         </Text>
       </View>
@@ -537,14 +530,14 @@ export default function ProfileSecurityLogout() {
   if (loading) {
     return (
       <View className="flex-1 justify-center items-center py-20">
-        <ActivityIndicator size="large" color={COLORS.green} />
+        <ActivityIndicator size="large" color={COLORS.primary} />
       </View>
     );
   }
 
   if (!profile || !authUser) {
     return (
-      <Text style={{ color: COLORS.text }}>Loading...</Text>
+      <Text style={{ color: COLORS.textPrimary }}>Loading...</Text>
     );
   }
 
@@ -558,7 +551,7 @@ export default function ProfileSecurityLogout() {
       <View className="mb-1">
         <Text 
           className="text-lg font-bold mb-4"
-          style={{ color: COLORS.text }}
+          style={{ color: COLORS.textPrimary }}
         >
           Profile Information
         </Text>
@@ -569,15 +562,15 @@ export default function ProfileSecurityLogout() {
             <Image
               source={{ uri: profile.avatar_url || 'https://via.placeholder.com/150' }}
               className="w-20 h-20 rounded-full"
-              style={{ backgroundColor: COLORS.surfaceSolid }}
+              style={{ backgroundColor: COLORS.surfaceElevated }}
             />
             <TouchableOpacity
               onPress={handleAvatarChange}
               disabled={uploading}
               className="absolute bottom-0 right-0 p-1.5 rounded-full"
               style={{ 
-                backgroundColor: COLORS.green,
-                shadowColor: COLORS.green,
+                backgroundColor: COLORS.primary,
+                shadowColor: COLORS.primary,
                 shadowOffset: { width: 0, height: 0 },
                 shadowOpacity: 0.5,
                 shadowRadius: 4,
@@ -585,22 +578,22 @@ export default function ProfileSecurityLogout() {
               }}
             >
               {uploading ? (
-                <ActivityIndicator size="small" color={COLORS.text} />
+                <ActivityIndicator size="small" color={COLORS.textPrimary} />
               ) : (
-                <Camera size={14} color={COLORS.text} />
+                <Camera size={14} color={COLORS.textPrimary} />
               )}
             </TouchableOpacity>
           </View>
           
           <Text 
             className="text-base font-semibold"
-            style={{ color: COLORS.text }}
+            style={{ color: COLORS.textPrimary }}
           >
             {profile.full_name}
           </Text>
           <Text 
             className="text-xs capitalize"
-            style={{ color: COLORS.textMuted }}
+            style={{ color: COLORS.textSecondary }}
           >
             {profile.role === "Barber" 
               ? profile.barber_type === "rental" 
@@ -612,7 +605,7 @@ export default function ProfileSecurityLogout() {
 
           {/* Email with verification */}
           <View className="flex-row items-center gap-2 mt-1 flex-wrap justify-center">
-            <Text className="text-xs" style={{ color: COLORS.textMuted }}>
+            <Text className="text-xs" style={{ color: COLORS.textSecondary }}>
               {profile.email || authUser.email}
             </Text>
             <VerificationBadge verified={profile.email_verified} type="email" />
@@ -621,14 +614,14 @@ export default function ProfileSecurityLogout() {
           {/* Phone with verification */}
           {profile.phone ? (
             <View className="flex-row items-center gap-2 mt-1 flex-wrap justify-center">
-              <Text className="text-xs" style={{ color: COLORS.textMuted }}>
+              <Text className="text-xs" style={{ color: COLORS.textSecondary }}>
                 {formatPhoneNumber(profile.phone)}
               </Text>
               <VerificationBadge verified={profile.phone_verified} type="phone" />
             </View>
           ) : (
             <View className="flex-row items-center gap-2 mt-1 flex-wrap justify-center">
-              <Text className="text-xs italic" style={{ color: COLORS.textMuted }}>
+              <Text className="text-xs italic" style={{ color: COLORS.textSecondary }}>
                 No phone number
               </Text>
               <VerificationBadge verified={false} type="phone" />
@@ -638,7 +631,7 @@ export default function ProfileSecurityLogout() {
 
         {/* Email Section */}
         <View className="mb-3">
-          <Text className="text-sm font-medium mb-2" style={{ color: COLORS.text }}>
+          <Text className="text-sm font-medium mb-2" style={{ color: COLORS.textPrimary }}>
             Email Address
           </Text>
           <View className="flex-row items-center gap-2">
@@ -647,10 +640,10 @@ export default function ProfileSecurityLogout() {
               editable={false}
               className="flex-1 px-3 py-2.5 rounded-xl text-sm"
               style={{
-                backgroundColor: COLORS.surfaceSolid,
+                backgroundColor: COLORS.surfaceElevated,
                 borderWidth: 1,
                 borderColor: COLORS.glassBorder,
-                color: COLORS.textMuted,
+                color: COLORS.textSecondary,
               }}
             />
             <TouchableOpacity
@@ -660,12 +653,12 @@ export default function ProfileSecurityLogout() {
               }}
               className="px-4 py-2.5 rounded-xl"
               style={{
-                backgroundColor: COLORS.greenBg,
+                backgroundColor: ACCENT_COLORS.greenBg,
                 borderWidth: 1,
-                borderColor: COLORS.greenBorder,
+                borderColor: ACCENT_COLORS.greenBorder,
               }}
             >
-              <Text className="text-sm font-semibold" style={{ color: COLORS.green }}>
+              <Text className="text-sm font-semibold" style={{ color: COLORS.primary }}>
                 Update
               </Text>
             </TouchableOpacity>
@@ -674,7 +667,7 @@ export default function ProfileSecurityLogout() {
 
         {/* Phone Section */}
         <View className="mb-4">
-          <Text className="text-sm font-medium mb-2" style={{ color: COLORS.text }}>
+          <Text className="text-sm font-medium mb-2" style={{ color: COLORS.textPrimary }}>
             Phone Number
           </Text>
           <View className="flex-row items-center gap-2">
@@ -682,13 +675,13 @@ export default function ProfileSecurityLogout() {
               value={profile.phone ? formatPhoneNumber(profile.phone) : ''}
               editable={false}
               placeholder="No phone number set"
-              placeholderTextColor={COLORS.textMuted}
+              placeholderTextColor={COLORS.textSecondary}
               className="flex-1 px-3 py-2.5 rounded-xl text-sm"
               style={{
-                backgroundColor: COLORS.surfaceSolid,
+                backgroundColor: COLORS.surfaceElevated,
                 borderWidth: 1,
                 borderColor: COLORS.glassBorder,
-                color: COLORS.textMuted,
+                color: COLORS.textSecondary,
               }}
             />
             <TouchableOpacity
@@ -698,12 +691,12 @@ export default function ProfileSecurityLogout() {
               }}
               className="px-4 py-2.5 rounded-xl"
               style={{
-                backgroundColor: COLORS.greenBg,
+                backgroundColor: ACCENT_COLORS.greenBg,
                 borderWidth: 1,
-                borderColor: COLORS.greenBorder,
+                borderColor: ACCENT_COLORS.greenBorder,
               }}
             >
-              <Text className="text-sm font-semibold" style={{ color: COLORS.green }}>
+              <Text className="text-sm font-semibold" style={{ color: COLORS.primary }}>
                 Update
               </Text>
             </TouchableOpacity>
@@ -715,7 +708,7 @@ export default function ProfileSecurityLogout() {
           <View className="mt-4">
             <Text 
               className="text-sm font-medium mb-2"
-              style={{ color: COLORS.text }}
+              style={{ color: COLORS.textPrimary }}
             >
               Commission Rate (%)
             </Text>
@@ -725,21 +718,21 @@ export default function ProfileSecurityLogout() {
                 onChangeText={setCommission}
                 keyboardType="numeric"
                 placeholder="0"
-                placeholderTextColor={COLORS.textMuted}
+                placeholderTextColor={COLORS.textSecondary}
                 className="flex-1 px-3 py-2.5 rounded-xl"
                 style={{
-                  backgroundColor: COLORS.surfaceSolid,
+                  backgroundColor: COLORS.surfaceElevated,
                   borderWidth: 1,
                   borderColor: COLORS.glassBorder,
-                  color: COLORS.text,
+                  color: COLORS.textPrimary,
                 }}
               />
               <TouchableOpacity
                 onPress={updateCommission}
                 className="px-5 py-2.5 rounded-xl"
                 style={{
-                  backgroundColor: COLORS.green,
-                  shadowColor: COLORS.green,
+                  backgroundColor: COLORS.primary,
+                  shadowColor: COLORS.primary,
                   shadowOffset: { width: 0, height: 2 },
                   shadowOpacity: 0.3,
                   shadowRadius: 4,
@@ -748,7 +741,7 @@ export default function ProfileSecurityLogout() {
               >
                 <Text 
                   className="font-bold text-sm"
-                  style={{ color: COLORS.text }}
+                  style={{ color: COLORS.textPrimary }}
                 >
                   Save
                 </Text>
@@ -761,14 +754,14 @@ export default function ProfileSecurityLogout() {
           <View 
             className="p-3 rounded-xl mt-4 mb-3"
             style={{
-              backgroundColor: COLORS.surface,
+              backgroundColor: COLORS.surfaceGlass,
               borderWidth: 1,
               borderColor: COLORS.glassBorder,
             }}
           >
             <Text 
               className="text-xs"
-              style={{ color: COLORS.textMuted }}
+              style={{ color: COLORS.textSecondary }}
             >
               You are registered as a <Text className="font-semibold">Rental Barber</Text>.
             </Text>
@@ -788,19 +781,19 @@ export default function ProfileSecurityLogout() {
       >
         <View
           className="flex-1 items-center justify-center p-4"
-          style={{ backgroundColor: COLORS.modalOverlay }}
+          style={{ backgroundColor: ACCENT_COLORS.modalOverlay }}
         >
           <View
             className="w-full max-w-md rounded-2xl p-6"
             style={{
-              backgroundColor: COLORS.modalBg,
+              backgroundColor: ACCENT_COLORS.modalBg,
               borderWidth: 1,
               borderColor: COLORS.glassBorder,
             }}
           >
             {/* Header */}
             <View className="flex-row items-center justify-between mb-4">
-              <Text className="text-xl font-bold" style={{ color: COLORS.text }}>
+              <Text className="text-xl font-bold" style={{ color: COLORS.textPrimary }}>
                 Update Email
               </Text>
               <TouchableOpacity
@@ -809,13 +802,13 @@ export default function ProfileSecurityLogout() {
                   setEmailVerificationCode('');
                 }}
               >
-                <Text className="text-2xl" style={{ color: COLORS.textMuted }}>×</Text>
+                <Text className="text-2xl" style={{ color: COLORS.textSecondary }}>×</Text>
               </TouchableOpacity>
             </View>
 
             {/* Email Input */}
             <View className="mb-4">
-              <Text className="text-sm font-medium mb-2" style={{ color: COLORS.textMuted }}>
+              <Text className="text-sm font-medium mb-2" style={{ color: COLORS.textSecondary }}>
                 Email Address
               </Text>
               <TextInput
@@ -825,19 +818,19 @@ export default function ProfileSecurityLogout() {
                 autoCapitalize="none"
                 className="px-3 py-3 rounded-xl"
                 style={{
-                  backgroundColor: COLORS.surfaceSolid,
+                  backgroundColor: COLORS.surfaceElevated,
                   borderWidth: 1,
                   borderColor: COLORS.glassBorder,
-                  color: COLORS.text,
+                  color: COLORS.textPrimary,
                 }}
                 placeholder="Enter email address"
-                placeholderTextColor={COLORS.textMuted}
+                placeholderTextColor={COLORS.textSecondary}
               />
             </View>
 
             {/* Current Status */}
             <View className="flex-row items-center gap-2 mb-4">
-              <Text className="text-sm" style={{ color: COLORS.textMuted }}>
+              <Text className="text-sm" style={{ color: COLORS.textSecondary }}>
                 Current Status:
               </Text>
               <VerificationBadge verified={profile.email_verified} type="email" />
@@ -848,12 +841,12 @@ export default function ProfileSecurityLogout() {
               <View
                 className="p-4 rounded-xl mb-4"
                 style={{
-                  backgroundColor: COLORS.surfaceSolid,
+                  backgroundColor: COLORS.surfaceElevated,
                   borderWidth: 1,
                   borderColor: COLORS.glassBorder,
                 }}
               >
-                <Text className="text-sm font-medium mb-3" style={{ color: COLORS.textMuted }}>
+                <Text className="text-sm font-medium mb-3" style={{ color: COLORS.textSecondary }}>
                   Verification Code
                 </Text>
                 <TextInput
@@ -863,13 +856,13 @@ export default function ProfileSecurityLogout() {
                   maxLength={6}
                   className="px-3 py-3 rounded-xl mb-3"
                   style={{
-                    backgroundColor: COLORS.surface,
+                    backgroundColor: COLORS.surfaceGlass,
                     borderWidth: 1,
                     borderColor: COLORS.glassBorder,
-                    color: COLORS.text,
+                    color: COLORS.textPrimary,
                   }}
                   placeholder="Enter 6-digit code"
-                  placeholderTextColor={COLORS.textMuted}
+                  placeholderTextColor={COLORS.textSecondary}
                 />
                 <View className="flex-row gap-2">
                   <TouchableOpacity
@@ -877,16 +870,16 @@ export default function ProfileSecurityLogout() {
                     disabled={isSendingEmailCode}
                     className="flex-1 px-3 py-3 rounded-xl items-center"
                     style={{
-                      backgroundColor: COLORS.amberBg,
+                      backgroundColor: ACCENT_COLORS.amberBg,
                       borderWidth: 1,
-                      borderColor: COLORS.amberBorder,
+                      borderColor: ACCENT_COLORS.amberBorder,
                       opacity: isSendingEmailCode ? 0.5 : 1,
                     }}
                   >
                     {isSendingEmailCode ? (
-                      <ActivityIndicator size="small" color={COLORS.amber} />
+                      <ActivityIndicator size="small" color={ACCENT_COLORS.amber} />
                     ) : (
-                      <Text className="text-sm font-semibold" style={{ color: COLORS.amber }}>
+                      <Text className="text-sm font-semibold" style={{ color: ACCENT_COLORS.amber }}>
                         Send Code
                       </Text>
                     )}
@@ -896,16 +889,16 @@ export default function ProfileSecurityLogout() {
                     disabled={isVerifyingEmail || !emailVerificationCode.trim()}
                     className="flex-1 px-3 py-3 rounded-xl items-center"
                     style={{
-                      backgroundColor: COLORS.greenBg,
+                      backgroundColor: ACCENT_COLORS.greenBg,
                       borderWidth: 1,
-                      borderColor: COLORS.greenBorder,
+                      borderColor: ACCENT_COLORS.greenBorder,
                       opacity: (isVerifyingEmail || !emailVerificationCode.trim()) ? 0.5 : 1,
                     }}
                   >
                     {isVerifyingEmail ? (
-                      <ActivityIndicator size="small" color={COLORS.green} />
+                      <ActivityIndicator size="small" color={COLORS.primary} />
                     ) : (
-                      <Text className="text-sm font-semibold" style={{ color: COLORS.green }}>
+                      <Text className="text-sm font-semibold" style={{ color: COLORS.primary }}>
                         Verify
                       </Text>
                     )}
@@ -929,19 +922,19 @@ export default function ProfileSecurityLogout() {
       >
         <View
           className="flex-1 items-center justify-center p-4"
-          style={{ backgroundColor: COLORS.modalOverlay }}
+          style={{ backgroundColor: ACCENT_COLORS.modalOverlay }}
         >
           <View
             className="w-full max-w-md rounded-2xl p-6"
             style={{
-              backgroundColor: COLORS.modalBg,
+              backgroundColor: ACCENT_COLORS.modalBg,
               borderWidth: 1,
               borderColor: COLORS.glassBorder,
             }}
           >
             {/* Header */}
             <View className="flex-row items-center justify-between mb-4">
-              <Text className="text-xl font-bold" style={{ color: COLORS.text }}>
+              <Text className="text-xl font-bold" style={{ color: COLORS.textPrimary }}>
                 Update Phone Number
               </Text>
               <TouchableOpacity
@@ -950,13 +943,13 @@ export default function ProfileSecurityLogout() {
                   setPhoneVerificationCode('');
                 }}
               >
-                <Text className="text-2xl" style={{ color: COLORS.textMuted }}>×</Text>
+                <Text className="text-2xl" style={{ color: COLORS.textSecondary }}>×</Text>
               </TouchableOpacity>
             </View>
 
             {/* Phone Input */}
             <View className="mb-4">
-              <Text className="text-sm font-medium mb-2" style={{ color: COLORS.textMuted }}>
+              <Text className="text-sm font-medium mb-2" style={{ color: COLORS.textSecondary }}>
                 Phone Number
               </Text>
               <TextInput
@@ -966,20 +959,20 @@ export default function ProfileSecurityLogout() {
                 maxLength={16}
                 className="px-3 py-3 rounded-xl"
                 style={{
-                  backgroundColor: COLORS.surfaceSolid,
+                  backgroundColor: COLORS.surfaceElevated,
                   borderWidth: 1,
                   borderColor: COLORS.glassBorder,
-                  color: COLORS.text,
+                  color: COLORS.textPrimary,
                 }}
                 placeholder="1 (647) 470-0164"
-                placeholderTextColor={COLORS.textMuted}
+                placeholderTextColor={COLORS.textSecondary}
               />
             </View>
 
             {/* Current Status */}
             {profile.phone && (
               <View className="flex-row items-center gap-2 mb-4">
-                <Text className="text-sm" style={{ color: COLORS.textMuted }}>
+                <Text className="text-sm" style={{ color: COLORS.textSecondary }}>
                   Current Status:
                 </Text>
                 <VerificationBadge verified={profile.phone_verified} type="phone" />
@@ -991,12 +984,12 @@ export default function ProfileSecurityLogout() {
               <View
                 className="p-3 rounded-xl mb-4"
                 style={{
-                  backgroundColor: COLORS.roseBg,
+                  backgroundColor: ACCENT_COLORS.roseBg,
                   borderWidth: 1,
-                  borderColor: COLORS.roseBorder,
+                  borderColor: ACCENT_COLORS.roseBorder,
                 }}
               >
-                <Text className="text-sm" style={{ color: COLORS.rose }}>
+                <Text className="text-sm" style={{ color: ACCENT_COLORS.rose }}>
                   Phone number is required for SMS marketing features
                 </Text>
               </View>
@@ -1006,12 +999,12 @@ export default function ProfileSecurityLogout() {
             <View
               className="p-4 rounded-xl"
               style={{
-                backgroundColor: COLORS.surfaceSolid,
+                backgroundColor: COLORS.surfaceElevated,
                 borderWidth: 1,
                 borderColor: COLORS.glassBorder,
               }}
             >
-              <Text className="text-sm font-medium mb-3" style={{ color: COLORS.textMuted }}>
+              <Text className="text-sm font-medium mb-3" style={{ color: COLORS.textSecondary }}>
                 Verification Code
               </Text>
               <TextInput
@@ -1021,13 +1014,13 @@ export default function ProfileSecurityLogout() {
                 maxLength={6}
                 className="px-3 py-3 rounded-xl mb-3"
                 style={{
-                  backgroundColor: COLORS.surface,
+                  backgroundColor: COLORS.surfaceGlass,
                   borderWidth: 1,
                   borderColor: COLORS.glassBorder,
-                  color: COLORS.text,
+                  color: COLORS.textPrimary,
                 }}
                 placeholder="Enter 6-digit code"
-                placeholderTextColor={COLORS.textMuted}
+                placeholderTextColor={COLORS.textSecondary}
               />
               <View className="flex-row gap-2">
                 <TouchableOpacity
@@ -1035,16 +1028,16 @@ export default function ProfileSecurityLogout() {
                   disabled={isSendingPhoneCode || getRawPhoneNumber(editedPhone).length < 10}
                   className="flex-1 px-3 py-3 rounded-xl items-center"
                   style={{
-                    backgroundColor: COLORS.greenBg,
+                    backgroundColor: ACCENT_COLORS.greenBg,
                     borderWidth: 1,
-                    borderColor: COLORS.greenBorder,
+                    borderColor: ACCENT_COLORS.greenBorder,
                     opacity: (isSendingPhoneCode || getRawPhoneNumber(editedPhone).length < 10) ? 0.5 : 1,
                   }}
                 >
                   {isSendingPhoneCode ? (
-                    <ActivityIndicator size="small" color={COLORS.green} />
+                    <ActivityIndicator size="small" color={COLORS.primary} />
                   ) : (
-                    <Text className="text-sm font-semibold" style={{ color: COLORS.green }}>
+                    <Text className="text-sm font-semibold" style={{ color: COLORS.primary }}>
                       Send Code
                     </Text>
                   )}
@@ -1054,16 +1047,16 @@ export default function ProfileSecurityLogout() {
                   disabled={isVerifyingPhone || !phoneVerificationCode.trim()}
                   className="flex-1 px-3 py-3 rounded-xl items-center"
                   style={{
-                    backgroundColor: COLORS.greenBg,
+                    backgroundColor: ACCENT_COLORS.greenBg,
                     borderWidth: 1,
-                    borderColor: COLORS.greenBorder,
+                    borderColor: ACCENT_COLORS.greenBorder,
                     opacity: (isVerifyingPhone || !phoneVerificationCode.trim()) ? 0.5 : 1,
                   }}
                 >
                   {isVerifyingPhone ? (
-                    <ActivityIndicator size="small" color={COLORS.green} />
+                    <ActivityIndicator size="small" color={COLORS.primary} />
                   ) : (
-                    <Text className="text-sm font-semibold" style={{ color: COLORS.green }}>
+                    <Text className="text-sm font-semibold" style={{ color: COLORS.primary }}>
                       Verify
                     </Text>
                   )}

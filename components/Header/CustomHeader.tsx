@@ -1,19 +1,21 @@
 // app/components/Header/CustomHeader.tsx
 
+import { COLORS } from '@/constants/design-system';
 import AuthLoadingSplash from '@/components/AuthLoadingSpash';
 import CreditsModal from '@/components/Header/CreditsModal';
 import FAQModal from '@/components/Header/FAQModal';
 import NewFeaturesModal from '@/components/Header/FeatureUpdatesModal';
-import HamburgerMenuModal from '@/components/Header/HamburgerMenuModal';
 import NotificationsDropdown from '@/components/Header/NotificationsDropdown';
+import ProfileDrawer from '@/components/Navigation/ProfileDrawer';
 import { supabase } from '@/utils/supabaseClient';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { LinearGradient } from 'expo-linear-gradient';
-import { CalendarRange, Menu } from 'lucide-react-native';
+import { CalendarRange } from 'lucide-react-native';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Dimensions,
+  Image,
   Text,
   TouchableOpacity,
   View,
@@ -21,22 +23,17 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DayPicker from './DayPicker';
 
+// Get initials from name for avatar fallback
+function getInitials(name?: string): string {
+  if (!name) return '?';
+  const parts = name.trim().split(' ');
+  if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+}
+
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-const COLORS = {
-  background: '#181818',
-  cardBg: '#1a1a1a',
-  surface: 'rgba(37, 37, 37, 0.6)',
-  surfaceSolid: '#252525',
-  glassBorder: 'rgba(255, 255, 255, 0.1)',
-  glassHighlight: 'rgba(255, 255, 255, 0.05)',
-  text: '#F7F7F7',
-  textMuted: 'rgba(247, 247, 247, 0.5)',
-  green: '#8bcf68ff',
-  greenLight: '#beb348ff',
-  yellow: '#FFEB3B',
-  red: '#ef4444',
-};
+
 
 const MONTHS = [
   'January',
@@ -151,7 +148,8 @@ export function CustomHeader({
           .maybeSingle();
 
         if (profileError) throw profileError;
-        setProfile(profileData);
+        // Add email from auth user to profile data
+        setProfile({ ...profileData, email: user.email });
       } catch (err: any) {
         console.error(err);
       } finally {
@@ -499,8 +497,8 @@ export function CustomHeader({
         className="flex-1 justify-center items-center"
         style={{ backgroundColor: COLORS.background }}
       >
-        <ActivityIndicator size="large" color={COLORS.green} />
-        <Text className="mt-4" style={{ color: COLORS.text }}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+        <Text className="mt-4" style={{ color: COLORS.textPrimary }}>
           Loading header...
         </Text>
       </View>
@@ -562,45 +560,75 @@ export function CustomHeader({
               onPress={handleOpenDatePicker}
               className="flex-row items-center gap-2 px-3 py-3 rounded-full"
               style={{
-                backgroundColor: COLORS.surfaceSolid,
+                backgroundColor: COLORS.surfaceElevated,
                 borderWidth: 1,
                 borderColor: COLORS.glassBorder,
               }}
             >
-              <CalendarRange size={18} color={COLORS.green} />
+              <CalendarRange size={18} color={COLORS.primary} />
               <Text
                 className="font-semibold text-sm"
-                style={{ color: COLORS.text }}
+                style={{ color: COLORS.textPrimary }}
               >
                 {getDateLabel()}
               </Text>
             </TouchableOpacity>
           )}
           
+          {/* Profile Avatar Button */}
           <TouchableOpacity 
             onPress={() => setShowSidebar(true)}
             className="relative"
           >
-            <Menu size={24} color={COLORS.text} />
+            <View
+              className="w-9 h-9 rounded-full items-center justify-center"
+              style={{
+                backgroundColor: COLORS.primaryMuted,
+                borderWidth: 1.5,
+                borderColor: COLORS.primary,
+              }}
+            >
+              {profile?.avatar_url ? (
+                <Image
+                  source={{ uri: profile.avatar_url }}
+                  className="w-full h-full rounded-full"
+                />
+              ) : (
+                <Text
+                  className="text-sm font-bold"
+                  style={{ color: COLORS.primary }}
+                >
+                  {getInitials(profile?.full_name)}
+                </Text>
+              )}
+            </View>
             {showHamburgerBadge && (
               <View
-                className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full"
-                style={{ backgroundColor: COLORS.red }}
+                className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full border-2"
+                style={{ 
+                  backgroundColor: COLORS.negative,
+                  borderColor: COLORS.surface,
+                }}
               />
             )}
           </TouchableOpacity>
         </View>
       </View>
 
-      {/* Hamburger Menu Modal */}
-      <HamburgerMenuModal
+      {/* Profile Drawer */}
+      <ProfileDrawer
         visible={showSidebar}
         onClose={() => setShowSidebar(false)}
+        profile={{
+          user_id: profile?.user_id,
+          full_name: profile?.full_name,
+          email: profile?.email,
+          avatar_url: profile?.avatar_url,
+        }}
         onCreditsPress={() => setShowCreditsModal(true)}
         onNotificationsPress={() => setShowNotificationsModal(true)}
         onFeaturesPress={() => setShowFeaturesModal(true)}
         onFAQPress={() => setShowFAQModal(true)}
-        userId={profile?.user_id}
         hasNewFeatures={hasNewFeatures}
         unreadNotificationsCount={unreadNotificationsCount}
       />

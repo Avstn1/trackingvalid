@@ -1,35 +1,30 @@
+import { COLORS } from '@/constants/design-system';
+import { ClientListSkeleton } from '@/components/UI/SkeletonLoader';
 import { supabase } from '@/utils/supabaseClient';
-import { ChevronDown, ChevronUp, Filter, Mail, Phone, User, X } from 'lucide-react-native';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { ChevronDown, ChevronRight, ChevronUp, Filter, Phone, Search, User, X } from 'lucide-react-native';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  ActivityIndicator,
+  FlatList,
   Modal,
   Pressable,
   RefreshControl,
   ScrollView,
   Text,
+  TextInput,
   TouchableOpacity,
   View
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import type { ActiveFilter } from './ClientSheetsFilterModal';
 import ClientSheetsFilterModal from './ClientSheetsFilterModal';
 
-const COLORS = {
-  background: '#181818',
-  surface: 'rgba(37, 37, 37, 0.6)',
-  glassBorder: 'rgba(255, 255, 255, 0.1)',
-  card: '#1f1f1f',
-  text: {
-    primary: '#ffffff',
-    secondary: '#bdbdbd',
-    muted: '#8a8a8a',
-  },
+// Component-specific accent colors
+const ACCENT_COLORS = {
   lime: '#bef264',
-  red: '#f87171',
 };
 
-type ClientRow = {
+export type ClientRow = {
   client_id: string;
   first_name: string | null;
   last_name: string | null;
@@ -54,14 +49,17 @@ type SortField =
   | 'total_appointments'
   | 'date_last_sms_sent';
 
-const FILTERS_STORAGE_KEY = 'clientSheetsFilters';
-
 export default function ClientSheets() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const [clients, setClients] = useState<ClientRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Search state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
 
   const [sortField, setSortField] = useState<SortField>('last_appt');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
@@ -78,6 +76,15 @@ export default function ClientSheets() {
   const [user, setUser] = useState<any>(null);
 
   const requestSeq = useRef(0);
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setPage(1); // Reset to first page on search
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -127,6 +134,14 @@ export default function ClientSheets() {
         .from('acuity_clients')
         .select('*', { count: 'exact' })
         .eq('user_id', user.id);
+
+      // Apply search query (searches name, phone, email)
+      if (debouncedSearch.trim()) {
+        const searchTerm = debouncedSearch.trim().toLowerCase();
+        query = query.or(
+          `first_name.ilike.%${searchTerm}%,last_name.ilike.%${searchTerm}%,phone.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`
+        );
+      }
 
       // Apply filters
       activeFilters.forEach((filter) => {
@@ -216,7 +231,7 @@ export default function ClientSheets() {
 
   useEffect(() => {
     fetchClients();
-  }, [sortField, sortDir, page, limit, activeFilters, user]);
+  }, [sortField, sortDir, page, limit, activeFilters, user, debouncedSearch]);
 
   const handleRefresh = () => {
     fetchClients(true);
@@ -227,7 +242,9 @@ export default function ClientSheets() {
     setPage(1);
   };
 
-  const displayClients = useMemo(() => clients, [clients]);
+  const handleClientPress = (clientId: string) => {
+    router.push(`/client/${clientId}` as any);
+  };
 
   const capitalizeName = (name: string | null | undefined) => {
     if (!name) return '';
@@ -237,300 +254,345 @@ export default function ClientSheets() {
       .join(' ');
   };
 
-  const formatDate = (d: string | null | undefined) => {
+  const formatDateShort = (d: string | null | undefined) => {
     if (!d) return '—';
     const [year, month, day] = d.split('-').map(Number);
     if (!year || !month || !day) return '—';
     const dateObj = new Date(year, month - 1, day);
     if (Number.isNaN(dateObj.getTime())) return '—';
     return dateObj.toLocaleDateString('en-US', {
-      year: 'numeric',
       month: 'short',
       day: 'numeric',
-      timeZone: 'America/Toronto',
     });
   };
 
   const pageStart = total === 0 ? 0 : (page - 1) * limit + 1;
   const pageEnd = Math.min(page * limit, total);
 
-  return (
-    <View className="flex-1" style={{ backgroundColor: COLORS.background }}>
-      <View className="flex-1">
-        {/* Header with Filters & Sort */}
-        <View className="mt-3 mb-3">
-          {/* Action Buttons */}
-          <View className="flex-row gap-2">
-            <TouchableOpacity
-              onPress={() => setIsFilterModalOpen(true)}
-              className="flex-1 bg-lime-300 rounded-xl py-3 px-4 flex-row items-center justify-center gap-2"
-            >
-              <Filter color="#000" size={18} />
-              <Text className="text-black text-base font-semibold">
-                Filters {activeFilters.length > 0 && `(${activeFilters.length})`}
-              </Text>
-            </TouchableOpacity>
+  // Render client card (simplified 2-line layout)
+  const renderClientCard = useCallback(({ item: client }: { item: ClientRow }) => {
+    const fullName =
+      `${capitalizeName(client.first_name)} ${capitalizeName(client.last_name)}`.trim() || 'Unknown';
+    const lastVisit = formatDateShort(client.last_appt);
+    const visitCount = client.total_appointments ?? 0;
 
-            <TouchableOpacity
-              onPress={() => setIsSortModalOpen(true)}
-              className="bg-white/10 rounded-xl py-3 px-4 flex-row items-center gap-2"
-            >
-              <ChevronDown color={COLORS.text.primary} size={18} />
-              <Text className="text-white text-base font-semibold">Sort</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => {
-                // Cycle through limits: 25 -> 50 -> 100 -> 25
-                const newLimit = limit === 25 ? 50 : limit === 50 ? 100 : 25;
-                setLimit(newLimit);
-                setPage(1);
-              }}
-              className="bg-white/10 rounded-xl py-3 px-4"
-            >
-              <Text className="text-white text-base font-semibold">{limit}</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Active Filters */}
-        {activeFilters.length > 0 && (
-          <View className="px-2">
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              className="mb-3"
-              contentContainerStyle={{ gap: 8 }}
-            >
-            {activeFilters.map((filter) => (
-              <View
-                key={filter.id}
-                className="px-3 py-2 rounded-full bg-lime-300/10 border border-lime-300/30 flex-row items-center gap-2"
+    return (
+      <TouchableOpacity
+        onPress={() => handleClientPress(client.client_id)}
+        activeOpacity={0.7}
+        className="mb-2 rounded-xl px-4 py-3"
+        style={{
+          backgroundColor: COLORS.surface,
+          borderWidth: 1,
+          borderColor: COLORS.glassBorder,
+        }}
+      >
+        <View className="flex-row items-center">
+          {/* Left: Name and info */}
+          <View className="flex-1">
+            {/* Row 1: Name + Badge */}
+            <View className="flex-row items-center gap-2 mb-1">
+              <Text 
+                className="text-base font-semibold flex-shrink" 
+                style={{ color: COLORS.textPrimary }}
+                numberOfLines={1}
               >
-                <Text className="text-lime-300 text-sm font-medium">{filter.label}</Text>
-                <TouchableOpacity onPress={() => handleRemoveFilter(filter.id)}>
-                  <X size={14} color={COLORS.lime} />
-                </TouchableOpacity>
-              </View>
-            ))}
-            <TouchableOpacity
-              onPress={() => {
-                setActiveFilters([]);
-                setPage(1);
-              }}
-              className="px-3 py-2 rounded-full bg-red-500/10 border border-red-500/30"
-            >
-              <Text className="text-red-300 text-sm font-medium">Clear All</Text>
-            </TouchableOpacity>
-          </ScrollView>
-          </View>
-        )}
-
-        {/* Stats Bar */}
-        <View className="mb-3 px-2">
-          <View className="flex-row items-center justify-between flex-wrap gap-2">
-            <Text className="text-sm text-[#bdbdbd]">
-              Showing{' '}
-              <Text className="text-white font-semibold">
-                {pageStart}–{pageEnd}
-              </Text>{' '}
-              of <Text className="text-white font-semibold">{total}</Text>
-              {activeFilters.length > 0 && (
-                <Text className="text-[#a0a0a0]"> (filtered)</Text>
-              )}
-            </Text>
-            <View className="flex-row gap-3">
-              <Text className="text-sm text-[#e5e5e5]">
-                2+ visits:{' '}
-                <Text className="font-semibold">
-                  {displayClients.filter((c) => (c.total_appointments ?? 0) >= 2).length}
-                </Text>
+                {fullName}
               </Text>
-              <Text className="text-sm text-[#e5e5e5]">
-                10+ visits:{' '}
-                <Text className="font-semibold">
-                  {displayClients.filter((c) => (c.total_appointments ?? 0) >= 10).length}
-                </Text>
+              {client.visiting_type && (
+                <View 
+                  className="px-2 py-0.5 rounded-full"
+                  style={{ backgroundColor: COLORS.primaryMuted }}
+                >
+                  <Text 
+                    className="text-xs capitalize"
+                    style={{ color: COLORS.primary }}
+                  >
+                    {client.visiting_type.replace('-', ' ')}
+                  </Text>
+                </View>
+              )}
+            </View>
+
+            {/* Row 2: Phone + visits + last visit */}
+            <View className="flex-row items-center gap-3">
+              {client.phone && (
+                <View className="flex-row items-center gap-1">
+                  <Phone size={12} color={COLORS.textTertiary} />
+                  <Text className="text-xs" style={{ color: COLORS.textSecondary }}>
+                    {client.phone}
+                  </Text>
+                </View>
+              )}
+              <Text className="text-xs" style={{ color: COLORS.textTertiary }}>
+                {visitCount} visits
+              </Text>
+              <Text className="text-xs" style={{ color: COLORS.textTertiary }}>
+                Last: {lastVisit}
               </Text>
             </View>
           </View>
-        </View>
 
-        {/* Client Cards */}
+          {/* Right: Chevron */}
+          <ChevronRight size={20} color={COLORS.textTertiary} />
+        </View>
+      </TouchableOpacity>
+    );
+  }, []);
+
+  return (
+    <View className="flex-1" style={{ backgroundColor: COLORS.background }}>
+      {/* Search Bar */}
+      <View className="px-0 pt-2 pb-2">
+        <View 
+          className="flex-row items-center px-4 rounded-xl"
+          style={{ 
+            backgroundColor: COLORS.surface,
+            borderWidth: 1,
+            borderColor: COLORS.glassBorder,
+            minHeight: 52,
+          }}
+        >
+          <Search size={18} color={COLORS.textTertiary} />
+          <TextInput
+            className="flex-1 ml-3 text-base"
+            style={{ color: COLORS.textPrimary, paddingVertical: 14 }}
+            placeholder="Search by name, phone, email..."
+            placeholderTextColor={COLORS.textTertiary}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchQuery('')}>
+              <X size={18} color={COLORS.textTertiary} />
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+
+      {/* Filter & Sort Row */}
+      <View className="flex-row gap-2 mb-2">
+        <TouchableOpacity
+          onPress={() => setIsFilterModalOpen(true)}
+          className="flex-row items-center gap-2 px-4 py-2 rounded-xl"
+          style={{ 
+            backgroundColor: activeFilters.length > 0 ? COLORS.primaryMuted : COLORS.surface,
+            borderWidth: 1,
+            borderColor: activeFilters.length > 0 ? COLORS.primary : COLORS.glassBorder,
+          }}
+        >
+          <Filter size={16} color={activeFilters.length > 0 ? COLORS.primary : COLORS.textSecondary} />
+          <Text 
+            className="text-sm font-medium"
+            style={{ color: activeFilters.length > 0 ? COLORS.primary : COLORS.textPrimary }}
+          >
+            Filters {activeFilters.length > 0 && `(${activeFilters.length})`}
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => setIsSortModalOpen(true)}
+          className="flex-row items-center gap-2 px-4 py-2 rounded-xl"
+          style={{ 
+            backgroundColor: COLORS.surface,
+            borderWidth: 1,
+            borderColor: COLORS.glassBorder,
+          }}
+        >
+          <ChevronDown size={16} color={COLORS.textSecondary} />
+          <Text className="text-sm font-medium" style={{ color: COLORS.textPrimary }}>
+            Sort
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => {
+            const newLimit = limit === 25 ? 50 : limit === 50 ? 100 : 25;
+            setLimit(newLimit);
+            setPage(1);
+          }}
+          className="px-4 py-2 rounded-xl"
+          style={{ 
+            backgroundColor: COLORS.surface,
+            borderWidth: 1,
+            borderColor: COLORS.glassBorder,
+          }}
+        >
+          <Text className="text-sm font-medium" style={{ color: COLORS.textPrimary }}>
+            {limit}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Active Filters Pills */}
+      {activeFilters.length > 0 && (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          className="mb-2"
+          contentContainerStyle={{ gap: 8 }}
+        >
+          {activeFilters.map((filter) => (
+            <View
+              key={filter.id}
+              className="flex-row items-center gap-2 px-3 py-1.5 rounded-full"
+              style={{ 
+                backgroundColor: COLORS.primaryMuted,
+                borderWidth: 1,
+                borderColor: COLORS.primary,
+              }}
+            >
+              <Text className="text-xs" style={{ color: COLORS.primary }}>
+                {filter.label}
+              </Text>
+              <TouchableOpacity onPress={() => handleRemoveFilter(filter.id)}>
+                <X size={12} color={COLORS.primary} />
+              </TouchableOpacity>
+            </View>
+          ))}
+          <TouchableOpacity
+            onPress={() => {
+              setActiveFilters([]);
+              setPage(1);
+            }}
+            className="px-3 py-1.5 rounded-full"
+            style={{ 
+              backgroundColor: COLORS.negativeMuted,
+              borderWidth: 1,
+              borderColor: COLORS.negative,
+            }}
+          >
+            <Text className="text-xs" style={{ color: COLORS.negative }}>
+              Clear All
+            </Text>
+          </TouchableOpacity>
+        </ScrollView>
+      )}
+
+      {/* Results count */}
+      <View className="mb-2">
+        <Text className="text-xs" style={{ color: COLORS.textTertiary }}>
+          {total === 0 
+            ? 'No clients found' 
+            : `Showing ${pageStart}–${pageEnd} of ${total}${debouncedSearch ? ' (filtered)' : ''}`
+          }
+        </Text>
+      </View>
+
+      {/* Client List */}
+      <View className="flex-1">
         {loading && !refreshing ? (
-          <View className="flex-1 items-center justify-center">
-            <ActivityIndicator size="large" color={COLORS.lime} />
-            <Text className="text-[#bdbdbd] text-base mt-3">Loading clients…</Text>
-          </View>
+          <ClientListSkeleton itemCount={6} />
         ) : error ? (
           <View className="flex-1 items-center justify-center">
-            <Text className="text-red-300 text-base">{error}</Text>
+            <Text className="text-sm" style={{ color: COLORS.negative }}>{error}</Text>
           </View>
-        ) : displayClients.length === 0 ? (
-          <View className="flex-1 items-center justify-center">
-            <User size={48} color={COLORS.text.muted} />
-            <Text className="text-[#bdbdbd] text-base mt-3">
-              {activeFilters.length > 0
-                ? 'No clients match your filters.'
-                : 'No clients found.'}
+        ) : clients.length === 0 ? (
+          <View className="flex-1 items-center justify-center py-12">
+            <View 
+              className="w-16 h-16 rounded-full items-center justify-center mb-4"
+              style={{ backgroundColor: COLORS.primaryMuted }}
+            >
+              <User size={32} color={COLORS.primary} />
+            </View>
+            <Text className="text-base font-medium mb-1" style={{ color: COLORS.textPrimary }}>
+              {debouncedSearch || activeFilters.length > 0 ? 'No matches found' : 'No clients yet'}
             </Text>
-            {activeFilters.length > 0 && (
+            <Text className="text-sm text-center px-8" style={{ color: COLORS.textTertiary }}>
+              {debouncedSearch || activeFilters.length > 0
+                ? 'Try adjusting your search or filters'
+                : 'Clients will appear here after appointments sync'
+              }
+            </Text>
+            {(debouncedSearch || activeFilters.length > 0) && (
               <TouchableOpacity
                 onPress={() => {
+                  setSearchQuery('');
                   setActiveFilters([]);
                   setPage(1);
                 }}
-                className="mt-3"
+                className="mt-4 px-4 py-2 rounded-full"
+                style={{ backgroundColor: COLORS.primaryMuted }}
               >
-                <Text className="text-lime-300 text-sm underline">Clear filters</Text>
+                <Text className="text-sm font-medium" style={{ color: COLORS.primary }}>
+                  Clear filters
+                </Text>
               </TouchableOpacity>
             )}
           </View>
         ) : (
-          <View className="flex-1">
-            <ScrollView
-              showsVerticalScrollIndicator={false}
-              refreshControl={
-                <RefreshControl
-                  refreshing={refreshing}
-                  onRefresh={handleRefresh}
-                  tintColor={COLORS.lime}
-                />
-              }
-              contentContainerStyle={{ paddingBottom: Math.max(insets.bottom + 24, 24) }}
-            >
-            {displayClients.map((client) => {
-              const fullName =
-                `${capitalizeName(client.first_name)} ${capitalizeName(client.last_name)}`.trim() || 'Unknown';
-              const lastVisit = formatDate(client.last_appt);
-              const firstVisit = formatDate(client.first_appt);
-
-              return (
-                <View
-                  key={client.client_id}
-                  className="mb-2 rounded-lg p-3"
-                  style={{
-                    backgroundColor: COLORS.card,
-                    borderWidth: 1,
-                    borderColor: COLORS.glassBorder,
-                  }}
-                >
-                  {/* Client Name, Type & Visit Count */}
-                  <View className="flex-row items-center justify-between mb-2">
-                    <View className="flex-1 flex-row items-center gap-2">
-                      <Text className="text-white text-base font-semibold">
-                        {fullName}
-                      </Text>
-                      {client.visiting_type && (
-                        <View className="px-2 py-0.5 rounded-full bg-lime-300/10">
-                          <Text className="text-lime-300 text-sm capitalize">
-                            {client.visiting_type.replace('-', ' ')}
-                          </Text>
-                        </View>
-                      )}
-                    </View>
-                    <View className="items-end ml-2">
-                      <Text className="text-white text-base font-bold">
-                        {client.total_appointments ?? 0}
-                      </Text>
-                      <Text className="text-[#8a8a8a] text-sm">visits</Text>
-                    </View>
-                  </View>
-
-                  {/* Contact Info - Single Line */}
-                  {(client.phone || client.email) && (
-                    <View className="flex-row items-center gap-3 mb-2 flex-wrap">
-                      {client.phone && (
-                        <View className="flex-row items-center gap-1.5">
-                          <Phone size={14} color={COLORS.text.secondary} />
-                          <Text className="text-[#bdbdbd] text-sm">{client.phone}</Text>
-                        </View>
-                      )}
-                      {client.email && (
-                        <View className="flex-row items-center gap-1.5 flex-1">
-                          <Mail size={14} color={COLORS.text.secondary} />
-                          <Text className="text-[#bdbdbd] text-sm flex-1" numberOfLines={1}>
-                            {client.email}
-                          </Text>
-                        </View>
-                      )}
-                    </View>
-                  )}
-
-                  {/* Visit Dates & SMS Status */}
-                  <View className="flex-row items-center justify-between pt-2 border-t border-white/5">
-                    <View className="flex-1">
-                      <Text className="text-[#8a8a8a] text-sm">
-                        {firstVisit} → {lastVisit}
-                      </Text>
-                    </View>
-                    <View className="ml-2">
-                      <Text
-                        className="text-sm font-semibold"
-                        style={{ color: client.sms_subscribed ? COLORS.lime : COLORS.red }}
-                      >
-                        SMS: {client.sms_subscribed ? 'Yes' : 'No'}
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-              );
-            })}
-          </ScrollView>
-          </View>
-        )}
-
-        {/* Pagination */}
-        {!loading && displayClients.length > 0 && (
-          <View 
-            className="p-3 border-t border-white/10"
-            style={{ 
-              backgroundColor: COLORS.background,
-              marginBottom: Math.max(insets.bottom + 10, 20) // Higher above nav bar
-            }}
-          >
-            <View className="flex-row items-center justify-between">
-              <TouchableOpacity
-                disabled={page <= 1}
-                onPress={() => setPage((p) => Math.max(1, p - 1))}
-                className={`flex-1 mr-2 px-3 py-2 rounded-xl ${
-                  page <= 1 ? 'bg-white/5' : 'bg-white/10'
-                }`}
-              >
-                <Text
-                  className={`text-center text-base font-semibold ${
-                    page <= 1 ? 'text-white/30' : 'text-white'
-                  }`}
-                >
-                  Previous
-                </Text>
-              </TouchableOpacity>
-
-              <View className="px-3 py-2 rounded-xl bg-black/30 border border-white/10">
-                <Text className="text-white text-base">
-                  Page {page} / {totalPages}
-                </Text>
-              </View>
-
-              <TouchableOpacity
-                disabled={page >= totalPages}
-                onPress={() => setPage((p) => Math.min(totalPages, p + 1))}
-                className={`flex-1 ml-2 px-3 py-2 rounded-xl ${
-                  page >= totalPages ? 'bg-white/5' : 'bg-white/10'
-                }`}
-              >
-                <Text
-                  className={`text-center text-base font-semibold ${
-                    page >= totalPages ? 'text-white/30' : 'text-white'
-                  }`}
-                >
-                  Next
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
+          <FlatList
+            data={clients}
+            renderItem={renderClientCard}
+            keyExtractor={(item: ClientRow) => item.client_id}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
+                tintColor={COLORS.primary}
+              />
+            }
+            contentContainerStyle={{ paddingBottom: Math.max(insets.bottom + 140, 160) }}
+            showsVerticalScrollIndicator={false}
+          />
         )}
       </View>
+
+      {/* Pagination */}
+      {!loading && clients.length > 0 && (
+        <View 
+          className="absolute bottom-0 left-0 right-0 px-4 py-3 border-t"
+          style={{ 
+            backgroundColor: COLORS.background,
+            borderColor: COLORS.border,
+            paddingBottom: Math.max(insets.bottom + 24, 36),
+          }}
+        >
+          <View className="flex-row items-center justify-between">
+            <TouchableOpacity
+              disabled={page <= 1}
+              onPress={() => setPage((p) => Math.max(1, p - 1))}
+              className="flex-1 mr-2 py-2 rounded-xl items-center"
+              style={{
+                backgroundColor: page <= 1 ? COLORS.surfaceElevated : COLORS.surface,
+                opacity: page <= 1 ? 0.5 : 1,
+              }}
+            >
+              <Text
+                className="text-sm font-medium"
+                style={{ color: page <= 1 ? COLORS.textTertiary : COLORS.textPrimary }}
+              >
+                Previous
+              </Text>
+            </TouchableOpacity>
+
+            <View className="px-4 py-2 rounded-xl" style={{ backgroundColor: COLORS.surfaceElevated }}>
+              <Text className="text-sm" style={{ color: COLORS.textSecondary }}>
+                {page} / {totalPages}
+              </Text>
+            </View>
+
+            <TouchableOpacity
+              disabled={page >= totalPages}
+              onPress={() => setPage((p) => Math.min(totalPages, p + 1))}
+              className="flex-1 ml-2 py-2 rounded-xl items-center"
+              style={{
+                backgroundColor: page >= totalPages ? COLORS.surfaceElevated : COLORS.surface,
+                opacity: page >= totalPages ? 0.5 : 1,
+              }}
+            >
+              <Text
+                className="text-sm font-medium"
+                style={{ color: page >= totalPages ? COLORS.textTertiary : COLORS.textPrimary }}
+              >
+                Next
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
 
       {/* Filter Modal */}
       <ClientSheetsFilterModal
@@ -553,25 +615,28 @@ export default function ClientSheets() {
       >
         <Pressable
           className="flex-1 justify-end"
-          style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)' }}
+          style={{ backgroundColor: COLORS.overlay }}
           onPress={() => setIsSortModalOpen(false)}
         >
           <Pressable
             className="rounded-t-3xl p-6"
             style={{
-              backgroundColor: '#1f1f1f',
+              backgroundColor: COLORS.surface,
               borderTopWidth: 1,
               borderColor: COLORS.glassBorder,
             }}
             onPress={(e) => e.stopPropagation()}
           >
             <View className="flex-row justify-between items-center mb-6">
-              <Text className="text-white text-xl font-bold">Sort By</Text>
+              <Text className="text-lg font-semibold" style={{ color: COLORS.textPrimary }}>
+                Sort By
+              </Text>
               <TouchableOpacity
                 onPress={() => setIsSortModalOpen(false)}
-                className="w-10 h-10 bg-white/10 rounded-full items-center justify-center"
+                className="w-10 h-10 rounded-full items-center justify-center"
+                style={{ backgroundColor: COLORS.surfaceElevated }}
               >
-                <X color="#fff" size={20} />
+                <X size={20} color={COLORS.textPrimary} />
               </TouchableOpacity>
             </View>
 
@@ -599,35 +664,29 @@ export default function ClientSheets() {
                   setPage(1);
                   setIsSortModalOpen(false);
                 }}
-                className="py-4 px-4 rounded-xl mb-2"
+                className="py-3 px-4 rounded-xl mb-2"
                 style={{
-                  backgroundColor:
-                    sortField === option.value ? 'rgba(190, 242, 100, 0.1)' : COLORS.surface,
+                  backgroundColor: sortField === option.value ? COLORS.primaryMuted : COLORS.surfaceElevated,
                   borderWidth: 1,
-                  borderColor:
-                    sortField === option.value
-                      ? 'rgba(190, 242, 100, 0.3)'
-                      : COLORS.glassBorder,
+                  borderColor: sortField === option.value ? COLORS.primary : 'transparent',
                 }}
               >
                 <View className="flex-row items-center justify-between">
                   <Text
-                    className="text-base font-medium"
-                    style={{
-                      color: sortField === option.value ? COLORS.lime : COLORS.text.primary,
-                    }}
+                    className="text-sm font-medium"
+                    style={{ color: sortField === option.value ? COLORS.primary : COLORS.textPrimary }}
                   >
                     {option.label}
                   </Text>
                   {sortField === option.value && (
                     <View className="flex-row items-center gap-2">
-                      <Text className="text-lime-300 text-sm">
-                        {sortDir === 'asc' ? 'Ascending' : 'Descending'}
+                      <Text className="text-xs" style={{ color: COLORS.primary }}>
+                        {sortDir === 'asc' ? 'A → Z' : 'Z → A'}
                       </Text>
                       {sortDir === 'asc' ? (
-                        <ChevronUp size={16} color={COLORS.lime} />
+                        <ChevronUp size={14} color={COLORS.primary} />
                       ) : (
-                        <ChevronDown size={16} color={COLORS.lime} />
+                        <ChevronDown size={14} color={COLORS.primary} />
                       )}
                     </View>
                   )}

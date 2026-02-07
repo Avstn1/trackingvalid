@@ -1,6 +1,7 @@
 // app/(dashboard)/dashboard.tsx
 import AuthLoadingSplash from '@/components/AuthLoadingSpash';
 import Onboarding from '@/components/Onboarding/Onboarding';
+import { COLORS } from '@/constants/design-system';
 import { useFocusAnimation, useReducedMotionPreference } from '@/utils/motion';
 import { supabase } from "@/utils/supabaseClient";
 import React, { useEffect, useRef, useState } from "react";
@@ -19,18 +20,10 @@ import MonthlyDashboard from '@/components/Dashboard/Dashboards/MonthlyDashboard
 import YearlyDashboard from '@/components/Dashboard/Dashboards/YearlyDashboard';
 import { CustomHeader } from '@/components/Header/CustomHeader';
 
-// Color Palette
-const COLORS = {
-  background: '#181818',
-  surface: 'rgba(37, 37, 37, 0.6)',
-  surfaceSolid: '#252525',
-  glassBorder: 'rgba(255, 255, 255, 0.1)',
-  glassHighlight: 'rgba(255, 255, 255, 0.05)',
-  text: '#F7F7F7',
-  textMuted: 'rgba(247, 247, 247, 0.5)',
+// Component-specific accent colors
+const ACCENT_COLORS = {
   orange: '#2f3a2d',
   orangeGlow: '#55694b',
-  yellow: '#FFEB3B',
 };
 
 const MONTHS = [
@@ -217,36 +210,6 @@ export default function DashboardPage() {
     }
   };
 
-  // const handleDateChange = (event: any, date?: Date) => {
-  //   if (date) {
-  //     setTempDate(date);
-  //   }
-  // };
-
-  // const handleDateConfirm = () => {
-  //   setSelectedDate(tempDate);
-  //   setSelectedDay(tempDate.getDate());
-  //   setSelectedMonth(MONTHS[tempDate.getMonth()]);
-  //   setSelectedYear(tempDate.getFullYear());
-  //   setDashboardView(tempDashboardView);
-  //   setTimeframe(tempTimeframe);
-  //   setShowDatePicker(false);
-  // };
-
-  // const handleOpenPicker = () => {
-  //   setTempDate(selectedDate);
-  //   setTempDashboardView(dashboardView);
-  //   setTempTimeframe(timeframe);
-  //   setShowDatePicker(true);
-  // };
-
-  // const handleCancelPicker = () => {
-  //   setTempDate(selectedDate);
-  //   setTempDashboardView(dashboardView);
-  //   setTempTimeframe(timeframe);
-  //   setShowDatePicker(false);
-  // };
-
   const handleOnboardingComplete = async () => {
     setShowOnboarding(false);
     // Reload the dashboard after onboarding
@@ -301,7 +264,7 @@ export default function DashboardPage() {
           className="flex-1 px-4"
           contentContainerStyle={{ paddingBottom: 80 }}
           refreshControl={
-            <RefreshControl refreshing={isRefreshing} onRefresh={syncAcuityData} tintColor={COLORS.orange} />
+            <RefreshControl refreshing={isRefreshing} onRefresh={syncAcuityData} tintColor={ACCENT_COLORS.orange} />
           }
         >
           {/* HEADER */}

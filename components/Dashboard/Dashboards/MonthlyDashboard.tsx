@@ -8,25 +8,12 @@ import ProfitLossTrendChart from '@/components/Dashboard/Monthly/ProfitLossTrend
 import ProfitMarginPieChart from '@/components/Dashboard/Monthly/ProfitMarginPieChart';
 import ServiceBreakdownChart from '@/components/Dashboard/Monthly/ServiceBreakdownChart';
 import TopClientsCard from '@/components/Dashboard/Monthly/TopClientsCard';
+import { COLORS } from '@/constants/design-system';
+import { PageIndicator } from '@/components/UI/PageIndicator';
 import React, { useEffect, useRef, useState } from 'react';
 import { Dimensions, FlatList, NativeScrollEvent, NativeSyntheticEvent, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { getSpringFadeInDown, getStaggerDelay, useReducedMotionPreference } from '@/utils/motion';
-
-// Color Palette
-const COLORS = {
-  background: '#181818',
-  surface: 'rgba(37, 37, 37, 0.6)',
-  surfaceSolid: '#252525',
-  glassBorder: 'rgba(255, 255, 255, 0.1)',
-  glassHighlight: 'rgba(255, 255, 255, 0.05)',
-  text: '#F7F7F7',
-  textMuted: 'rgba(247, 247, 247, 0.5)',
-  green: '#8bcf68ff',
-  greenLight: '#beb348ff',
-  yellow: '#FFEB3B',
-  dotInactive: 'rgba(255, 255, 255, 0.2)',
-};
 
 interface MonthlyDashboardProps {
   userId: string;
@@ -264,29 +251,13 @@ export default function MonthlyDashboard({
           )}
         />
 
-        {/* Page Indicator Dots - Glassy style */}
-        <View 
-          className="flex-row justify-center items-center py-3 gap-2"
-          style={{  
-            marginBottom: 10
-          }}
-        >
-          {charts.map((_, index) => (
-            <View
-              key={index}
-              className="h-2 rounded-full"
-              style={{
-                width: index === activeChartIndex ? 24 : 8,
-                backgroundColor: index === activeChartIndex ? COLORS.green : COLORS.dotInactive,
-                shadowColor: index === activeChartIndex ? COLORS.green : 'transparent',
-                shadowOffset: { width: 0, height: 0 },
-                shadowOpacity: index === activeChartIndex ? 0.8 : 0,
-                shadowRadius: 6,
-                elevation: index === activeChartIndex ? 4 : 0,
-              }}
-            />
-          ))}
-        </View>
+        {/* Page Indicator Dots - Animated */}
+        <PageIndicator
+          count={charts.length}
+          activeIndex={activeChartIndex}
+          reduceMotion={reduceMotion}
+          style={{ marginBottom: 10 }}
+        />
       </Animated.View>
     </View>
   );

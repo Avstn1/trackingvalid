@@ -1,3 +1,4 @@
+import { COLORS } from '@/constants/design-system';
 import { supabase } from '@/utils/supabaseClient';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
@@ -16,14 +17,6 @@ interface MonthData {
   month: string;
   total_revenue: number;
 }
-
-// Color Palette
-const COLORS = {
-  green: '#8bcf68ff',
-  greenLight: '#beb348ff',
-  text: '#FFFFFF',
-  textMuted: 'rgba(255, 255, 255, 0.6)',
-};
 
 const MONTHS = [
   'January',
@@ -112,8 +105,8 @@ export default function QuarterlyRevenueChart({ userId, year, timeframe, refresh
   if (loading) {
     return (
       <View className="h-[280px] items-center justify-center">
-        <ActivityIndicator size="small" color={COLORS.green} />
-        <Text className="text-sm mt-2" style={{ color: COLORS.textMuted }}>
+        <ActivityIndicator size="small" color={COLORS.primary} />
+        <Text className="text-sm mt-2" style={{ color: COLORS.textSecondary }}>
           Loading...
         </Text>
       </View>
@@ -123,7 +116,7 @@ export default function QuarterlyRevenueChart({ userId, year, timeframe, refresh
   if (!data.length) {
     return (
       <View className="h-[280px] items-center justify-center">
-        <Text className="text-sm" style={{ color: COLORS.textMuted }}>
+        <Text className="text-sm" style={{ color: COLORS.textSecondary }}>
           No data available
         </Text>
       </View>
@@ -153,15 +146,15 @@ export default function QuarterlyRevenueChart({ userId, year, timeframe, refresh
   const barDataWithLabels = data.map((d) => ({
     value: d.total_revenue,
     label: d.month.slice(0, 3),
-    frontColor: COLORS.green,
-    gradientColor: COLORS.greenLight,
+    frontColor: COLORS.primary,
+    gradientColor: COLORS.primaryLight,
     spacing: 2,
     labelTextStyle: {
-      color: COLORS.textMuted,
+      color: COLORS.textSecondary,
       fontSize: 11,
     },
     topLabelComponent: () => (
-      <Text style={{ color: COLORS.text, fontSize: 10, marginBottom: 2 }}>
+      <Text style={{ color: COLORS.textPrimary, fontSize: 10, marginBottom: 2 }}>
         {formatTopLabel(d.total_revenue)}
       </Text>
     ),
@@ -175,7 +168,7 @@ export default function QuarterlyRevenueChart({ userId, year, timeframe, refresh
     <View className="flex-1">
       <Text 
         className="text-base font-semibold mb-3" 
-        style={{ color: COLORS.text, paddingRight: 110 }}
+        style={{ color: COLORS.textPrimary, paddingRight: 110 }}
       >
         {title}
       </Text>
@@ -185,13 +178,13 @@ export default function QuarterlyRevenueChart({ userId, year, timeframe, refresh
           barWidth={barWidth}
           noOfSections={4}
           barBorderRadius={6}
-          frontColor={COLORS.green}
-          gradientColor={COLORS.greenLight}
+          frontColor={COLORS.primary}
+          gradientColor={COLORS.primaryLight}
           showGradient
           yAxisThickness={0}
           xAxisThickness={0}
-          yAxisTextStyle={{ color: COLORS.textMuted, fontSize: 11 }}
-          xAxisLabelTextStyle={{ color: COLORS.textMuted, fontSize: timeframe === 'year' ? 8 : 11 }}
+          yAxisTextStyle={{ color: COLORS.textSecondary, fontSize: 11 }}
+          xAxisLabelTextStyle={{ color: COLORS.textSecondary, fontSize: timeframe === 'year' ? 8 : 11 }}
           maxValue={roundedMax}
           spacing={spacing}
           hideRules={false}

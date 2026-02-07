@@ -1,3 +1,4 @@
+import { COLORS } from '@/constants/design-system';
 import { supabase } from '@/utils/supabaseClient';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Dimensions, Text, TouchableOpacity, View } from 'react-native';
@@ -5,18 +6,7 @@ import { PieChart } from 'react-native-gifted-charts';
 
 const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get('window');
 
-// Color Palette - matching theme
-const COLORS_PALETTE = {
-  background: '#181818',
-  surface: 'rgba(37, 37, 37, 0.6)',
-  glassBorder: 'rgba(255, 255, 255, 0.1)',
-  glassHighlight: 'rgba(255, 255, 255, 0.05)',
-  text: '#F7F7F7',
-  textMuted: 'rgba(247, 247, 247, 0.5)',
-  green: '#8bcf68ff',
-  greenLight: '#beb348ff',
-};
-
+// Original pastel colors
 const PIE_COLORS = [
   '#F6E27F', '#E7B7A3', '#A7C7E7', '#C6D8A8', '#9AD1C9',
   '#B7A0E3', '#F5D6C6', '#F7C9D2', '#C9E5D3', '#D6D6D6',
@@ -51,10 +41,10 @@ const MONTHS_BY_QUARTER: Record<Exclude<Timeframe, 'year'>, string[]> = {
 // Center label component
 const CenterLabel = ({ totalBookings }: { totalBookings: number }) => (
   <View className="items-center justify-center">
-    <Text className="text-2xl font-bold" style={{ color: COLORS_PALETTE.text }}>
+    <Text className="text-2xl font-bold" style={{ color: COLORS.textPrimary }}>
       {totalBookings}
     </Text>
-    <Text className="text-sm" style={{ color: COLORS_PALETTE.textMuted }}>
+    <Text className="text-sm" style={{ color: COLORS.textSecondary }}>
       Total
     </Text>
   </View>
@@ -122,9 +112,9 @@ export default function YearlyServiceBreakdownChart({
       <View 
         className="rounded-xl overflow-hidden items-center justify-center"
         style={{ 
-          backgroundColor: COLORS_PALETTE.surface,
+          backgroundColor: COLORS.surfaceGlass,
           borderWidth: 1,
-          borderColor: COLORS_PALETTE.glassBorder,
+          borderColor: COLORS.glassBorder,
           height: SCREEN_HEIGHT * 0.35,
           width: SCREEN_WIDTH * 0.935,
           padding: 16,
@@ -134,8 +124,8 @@ export default function YearlyServiceBreakdownChart({
           elevation: 3,
         }}
       >
-        <ActivityIndicator color={COLORS_PALETTE.green} size="large" />
-        <Text className="text-sm mt-2" style={{ color: COLORS_PALETTE.textMuted }}>
+        <ActivityIndicator color={COLORS.primary} size="large" />
+        <Text className="text-sm mt-2" style={{ color: COLORS.textSecondary }}>
           Loading services...
         </Text>
       </View>
@@ -147,15 +137,15 @@ export default function YearlyServiceBreakdownChart({
       <View 
         className="rounded-xl overflow-hidden items-center justify-center"
         style={{ 
-          backgroundColor: COLORS_PALETTE.surface,
+          backgroundColor: COLORS.surfaceGlass,
           borderWidth: 1,
-          borderColor: COLORS_PALETTE.glassBorder,
+          borderColor: COLORS.glassBorder,
           height: SCREEN_HEIGHT * 0.35,
           width: SCREEN_WIDTH * 0.935,
           padding: 16,
         }}
       >
-        <Text className="text-sm" style={{ color: COLORS_PALETTE.textMuted }}>
+        <Text className="text-sm" style={{ color: COLORS.textSecondary }}>
           No service data yet!
         </Text>
       </View>
@@ -178,14 +168,23 @@ export default function YearlyServiceBreakdownChart({
     focused: selectedIndex === index,
   }));
 
-  if (otherServices.length > 0) {
+  // Handle remaining services - only group if 2+
+  if (otherServices.length === 1) {
+    // Just 1 extra service - show it by name
+    chartData.push({
+      value: otherServices[0].bookings,
+      color: PIE_COLORS[5 % PIE_COLORS.length],
+      label: otherServices[0].service_name,
+      focused: selectedIndex === 5,
+    });
+  } else if (otherServices.length > 1) {
+    // 2+ extra services - group into "Others"
     const othersTotal = otherServices.reduce((sum, item) => sum + item.bookings, 0);
-    const othersIndex = 5;
     chartData.push({
       value: othersTotal,
       color: PIE_COLORS[5 % PIE_COLORS.length],
-      label: `Others (${otherServices.length})`,
-      focused: selectedIndex === othersIndex,
+      label: `+${otherServices.length} more`,
+      focused: selectedIndex === 5,
     });
   }
 
@@ -202,9 +201,9 @@ export default function YearlyServiceBreakdownChart({
     <View 
       className="rounded-xl overflow-hidden"
       style={{
-        backgroundColor: COLORS_PALETTE.surface,
+        backgroundColor: COLORS.surfaceGlass,
         borderWidth: 1,
-        borderColor: COLORS_PALETTE.glassBorder,
+        borderColor: COLORS.glassBorder,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.15,
         shadowRadius: 8,
@@ -221,11 +220,11 @@ export default function YearlyServiceBreakdownChart({
           left: 0,
           right: 0,
           height: 1,
-          backgroundColor: COLORS_PALETTE.glassHighlight,
+          backgroundColor: COLORS.glassHighlight,
         }}
       />
 
-      <Text className="text-lg font-semibold mb-3" style={{ color: COLORS_PALETTE.green }}>
+      <Text className="text-base font-semibold mb-3" style={{ color: COLORS.primary }}>
         💈 Service Breakdown
       </Text>
 
@@ -235,15 +234,15 @@ export default function YearlyServiceBreakdownChart({
             data={chartData}
             radius={chartSize * 0.42}
             innerRadius={chartSize * 0.24}
-            innerCircleColor={COLORS_PALETTE.background}
+            innerCircleColor={COLORS.background}
             focusOnPress
             onPress={(item: { index: number }) => {
               setSelectedIndex(selectedIndex === item.index ? null : item.index);
             }}
-            textColor={COLORS_PALETTE.text}
+            textColor={COLORS.textPrimary}
             textSize={12}
             showText
-            textBackgroundColor={COLORS_PALETTE.background}
+            textBackgroundColor={COLORS.background}
             textBackgroundRadius={6}
             donut
             centerLabelComponent={() => <CenterLabel totalBookings={totalBookings} />}
@@ -285,13 +284,13 @@ export default function YearlyServiceBreakdownChart({
                     className="text-sm font-medium" 
                     numberOfLines={1}
                     style={{ 
-                      color: isSelected ? COLORS_PALETTE.green : COLORS_PALETTE.text,
+                      color: isSelected ? COLORS.primary : COLORS.textPrimary,
                       fontWeight: isSelected ? '700' : '500',
                     }}
                   >
                     {item.label}
                   </Text>
-                  <Text className="text-xs mt-1" style={{ color: COLORS_PALETTE.textMuted }}>
+                  <Text className="text-xs mt-0.5" style={{ color: COLORS.textSecondary }}>
                     {item.value} bookings ({item.percentage}%)
                   </Text>
                 </View>

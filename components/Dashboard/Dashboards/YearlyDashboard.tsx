@@ -5,25 +5,12 @@ import YearlyExpensesCard from '@/components/Dashboard/Yearly/YearlyExpensesCard
 import YearlyRevenueCard from '@/components/Dashboard/Yearly/YearlyRevenueCard';
 import YearlyServiceBreakdownChart from '@/components/Dashboard/Yearly/YearlyServiceBreakdownChart';
 import YearlyTopClientsCard from '@/components/Dashboard/Yearly/YearlyTopClientsCard';
+import { COLORS } from '@/constants/design-system';
+import { PageIndicator } from '@/components/UI/PageIndicator';
 import React, { useEffect, useRef, useState } from 'react';
 import { Dimensions, FlatList, NativeScrollEvent, NativeSyntheticEvent, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { getSpringFadeInDown, getStaggerDelay, useReducedMotionPreference } from '@/utils/motion';
-
-// Color Palette - matching Monthly dashboard
-const COLORS = {
-  background: '#181818',
-  surface: 'rgba(37, 37, 37, 0.6)',
-  surfaceSolid: '#252525',
-  glassBorder: 'rgba(255, 255, 255, 0.1)',
-  glassHighlight: 'rgba(255, 255, 255, 0.05)',
-  text: '#F7F7F7',
-  textMuted: 'rgba(247, 247, 247, 0.5)',
-  green: '#8bcf68ff',
-  greenLight: '#beb348ff',
-  yellow: '#FFEB3B',
-  dotInactive: 'rgba(255, 255, 255, 0.2)',
-};
 
 type Timeframe = 'year' | 'Q1' | 'Q2' | 'Q3' | 'Q4';
 
@@ -220,33 +207,19 @@ export default function YearlyDashboard({
         />
       </Animated.View>
 
-              {/* Page Indicator Dots - Glassy style */}
-      <View 
-        className="flex-row justify-center items-center gap-2"
-        style={{  
+      {/* Page Indicator Dots - Animated */}
+      <PageIndicator
+        count={charts.length}
+        activeIndex={activeChartIndex}
+        reduceMotion={reduceMotion}
+        style={{
           position: 'absolute',
           bottom: 0,
           left: 0,
           right: 0,
-          marginBottom: -30
+          marginBottom: -30,
         }}
-      >
-        {charts.map((_, index) => (
-          <View
-            key={index}
-            className="h-2 rounded-full"
-            style={{
-              width: index === activeChartIndex ? 24 : 8,
-              backgroundColor: index === activeChartIndex ? COLORS.green : COLORS.dotInactive,
-              shadowColor: index === activeChartIndex ? COLORS.green : 'transparent',
-              shadowOffset: { width: 0, height: 0 },
-              shadowOpacity: index === activeChartIndex ? 0.8 : 0,
-              shadowRadius: 6,
-              elevation: index === activeChartIndex ? 4 : 0,
-            }}
-          />
-        ))}
-      </View>
+      />
     </View>
   );
 }

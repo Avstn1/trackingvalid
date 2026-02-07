@@ -1,3 +1,4 @@
+import { COLORS } from '@/constants/design-system';
 import React, { useEffect, useRef } from 'react';
 import {
   Animated,
@@ -11,25 +12,14 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Acuity from './Acuity';
 import Billing from './Billing';
-import Logout from './Logout';
 import Security from './Security';
 
 
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-// Color Palette
-const COLORS = {
-  background: '#181818',
-  cardBg: '#1a1a1a',
-  surface: 'rgba(37, 37, 37, 0.6)',
-  surfaceSolid: '#252525',
-  glassBorder: 'rgba(255, 255, 255, 0.1)',
-  glassHighlight: 'rgba(255, 255, 255, 0.05)',
-  text: '#F7F7F7',
-  textMuted: 'rgba(247, 247, 247, 0.5)',
-  green: '#8bcf68ff',
-  greenGlow: '#5b8f52ff',
+// Component-specific accent colors not in design system
+const ACCENT_COLORS = {
   purple: '#9C27B0',
   purpleGlow: 'rgba(156, 39, 176, 0.2)',
 };
@@ -150,7 +140,7 @@ export default function Settings({ onClose }: SettingsProps) {
           style={{
             paddingTop: insets.top + 12,
             paddingBottom: 16,
-            backgroundColor: COLORS.surface,
+            backgroundColor: COLORS.surfaceGlass,
             borderBottomWidth: 1,
             borderBottomColor: COLORS.glassBorder,
           }}
@@ -160,13 +150,13 @@ export default function Settings({ onClose }: SettingsProps) {
             onPress={handleClose}
             className="flex-row items-center gap-2"
           >
-            <Text className="text-2xl" style={{ color: COLORS.green }}>←</Text>
-            <Text className="font-semibold" style={{ color: COLORS.green }}>
+            <Text className="text-2xl" style={{ color: COLORS.primary }}>←</Text>
+            <Text className="font-semibold" style={{ color: COLORS.primary }}>
               Back
             </Text>
           </TouchableOpacity>
 
-          <Text className="text-xl font-bold" style={{ color: COLORS.text }}>
+          <Text className="text-xl font-bold" style={{ color: COLORS.textPrimary }}>
             Settings
           </Text>
 
@@ -195,8 +185,8 @@ export default function Settings({ onClose }: SettingsProps) {
             <Security />
           </View>
 
+          {/* Logout is now handled via ProfileDrawer */}
           <View className="mb-4">
-            <Logout />
           </View>
         </ScrollView>
 

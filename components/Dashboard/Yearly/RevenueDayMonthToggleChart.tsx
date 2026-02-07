@@ -1,3 +1,4 @@
+import { COLORS } from '@/constants/design-system';
 import React, { useState } from 'react';
 import { Dimensions, Text, TouchableOpacity, View } from 'react-native';
 import QuarterlyRevenueChart from './QuarterlyRevenueChart';
@@ -16,20 +17,6 @@ interface Props {
 
 type ViewMode = 'weekday' | 'month';
 
-// Color Palette
-const COLORS = {
-  background: '#181818',
-  cardBg: '#1a1a1a',
-  surface: 'rgba(37, 37, 37, 0.6)',
-  glassBorder: 'rgba(255, 255, 255, 0.1)',
-  glassHighlight: 'rgba(255, 255, 255, 0.05)',
-  text: '#FFFFFF',
-  textMuted: 'rgba(255, 255, 255, 0.6)',
-  green: '#8bcf68ff',
-  greenLight: '#beb348ff',
-  greenDark: '#2f3a2d',
-};
-
 export default function RevenueDayMonthToggleChart({ userId, year, timeframe, refreshKey }: Props) {
   const [view, setView] = useState<ViewMode>('weekday');
 
@@ -37,7 +24,7 @@ export default function RevenueDayMonthToggleChart({ userId, year, timeframe, re
     <View 
       className="rounded-3xl overflow-hidden"
       style={{ 
-        backgroundColor: COLORS.cardBg,
+        backgroundColor: COLORS.surface,
         borderWidth: 1,
         borderColor: COLORS.glassBorder,
         height: SCREEN_HEIGHT * 0.35,
@@ -59,8 +46,8 @@ export default function RevenueDayMonthToggleChart({ userId, year, timeframe, re
           onPress={() => setView('weekday')}
           className="px-4 py-2 rounded-full"
           style={view === 'weekday' ? {
-            backgroundColor: COLORS.green,
-            shadowColor: COLORS.green,
+            backgroundColor: COLORS.primary,
+            shadowColor: COLORS.primary,
             shadowOffset: { width: 0, height: 0 },
             shadowOpacity: 0.5,
             shadowRadius: 8,
@@ -70,7 +57,7 @@ export default function RevenueDayMonthToggleChart({ userId, year, timeframe, re
           <Text
             className="text-xs font-bold"
             style={{ 
-              color: view === 'weekday' ? COLORS.text : COLORS.textMuted 
+              color: view === 'weekday' ? COLORS.textPrimary : COLORS.textSecondary 
             }}
           >
             Day
@@ -80,8 +67,8 @@ export default function RevenueDayMonthToggleChart({ userId, year, timeframe, re
           onPress={() => setView('month')}
           className="px-4 py-2 rounded-full"
           style={view === 'month' ? {
-            backgroundColor: COLORS.green,
-            shadowColor: COLORS.green,
+            backgroundColor: COLORS.primary,
+            shadowColor: COLORS.primary,
             shadowOffset: { width: 0, height: 0 },
             shadowOpacity: 0.5,
             shadowRadius: 8,
@@ -91,7 +78,7 @@ export default function RevenueDayMonthToggleChart({ userId, year, timeframe, re
           <Text
             className="text-xs font-bold"
             style={{ 
-              color: view === 'month' ? COLORS.text : COLORS.textMuted 
+              color: view === 'month' ? COLORS.textPrimary : COLORS.textSecondary 
             }}
           >
             Month

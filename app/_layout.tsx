@@ -2,44 +2,92 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { StripeProvider } from '@stripe/stripe-react-native';
 
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import '../global.css';
 
 import CustomSplash from '@/components/CustomSplash';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import React, { useEffect, useState } from 'react';
+import { supabase } from '@/utils/supabaseClient';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { useEffect, useRef, useState } from 'react';
 
 // Prevent the splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
-  const [appIsReady, setAppIsReady] = useState(false);
-  const [showCustomSplash, setShowCustomSplash] = useState(false);
+  const [showSplash, setShowSplash] = useState(true);
+  const [authReady, setAuthReady] = useState(false);
+  const [initialRoute, setInitialRoute] = useState<string | null>(null);
+  const router = useRouter();
+  const hasNavigated = useRef(false);
 
+  // Check auth status during splash animation
   useEffect(() => {
     async function prepare() {
       try {
-        // Just hide the native splash screen once, don't call it again
+        // Hide native splash immediately
         await SplashScreen.hideAsync();
+        
+        // Check if just logged out
+        const justLoggedOut = await AsyncStorage.getItem('just-logged-out');
+        if (justLoggedOut) {
+          await AsyncStorage.removeItem('just-logged-out');
+          setInitialRoute('/(auth)/login');
+          setAuthReady(true);
+          return;
+        }
+
+        // Check session
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('stripe_subscription_status')
+            .eq('user_id', session.user.id)
+            .single();
+          
+          const subStatus = profile?.stripe_subscription_status;
+          if (subStatus === 'active') {
+            setInitialRoute('/(dashboard)/dashboard');
+          } else {
+            setInitialRoute('/(paywall)/onboarding');
+          }
+        } else {
+          setInitialRoute('/(auth)/login');
+        }
       } catch (e) {
-        console.warn(e);
+        console.warn('Auth check error:', e);
+        setInitialRoute('/(auth)/login');
       } finally {
-        setAppIsReady(true);
+        setAuthReady(true);
       }
     }
 
     prepare();
   }, []);
 
+  // Handle splash finish and navigate
   const handleSplashFinish = () => {
-    setShowCustomSplash(false);
+    if (hasNavigated.current) return;
+    hasNavigated.current = true;
+    
+    setShowSplash(false);
+    
+    if (initialRoute) {
+      // Use setTimeout to ensure state update completes before navigation
+      setTimeout(() => {
+        router.replace(initialRoute as any);
+      }, 50);
+    }
   };
 
-  if (!appIsReady || showCustomSplash) {
-    return <CustomSplash onFinish={handleSplashFinish} />;
+  // Show splash until done
+  if (showSplash) {
+    return <CustomSplash onFinish={handleSplashFinish} isReady={authReady} />;
   }
 
   return (
@@ -49,6 +97,14 @@ export default function RootLayout() {
           <Stack.Screen name="(auth)" options={{ headerShown: false }} />
           <Stack.Screen name="(dashboard)" options={{ headerShown: false }} />
           <Stack.Screen name="(paywall)" options={{ headerShown: false }} />
+          <Stack.Screen 
+            name="client/[id]" 
+            options={{ 
+              headerShown: false,
+              presentation: 'card',
+              animation: 'slide_from_right',
+            }} 
+          />
         </Stack>
         <StatusBar style="auto" />
       </ThemeProvider>

@@ -1,3 +1,4 @@
+import { COLORS } from '@/constants/design-system';
 import { supabase } from '@/utils/supabaseClient';
 import { getFadeIn, getFadeInDown, useReducedMotionPreference } from '@/utils/motion';
 import { MessageSquare, Plus } from 'lucide-react-native';
@@ -30,7 +31,8 @@ const generateId = () => {
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-const COLORS = {
+// Component-specific accent colors for carousel dots
+const CAROUSEL_COLORS = {
   dotInactive: 'rgba(125, 211, 252, 0.3)',
   dotActive: '#7dd3fc',
 };
@@ -674,8 +676,8 @@ export default function SMSManager() {
                   style={{
                     width: index === activeMessageIndex ? 24 : 8,
                     backgroundColor:
-                      index === activeMessageIndex ? COLORS.dotActive : COLORS.dotInactive,
-                    shadowColor: index === activeMessageIndex ? COLORS.dotActive : 'transparent',
+                      index === activeMessageIndex ? CAROUSEL_COLORS.dotActive : CAROUSEL_COLORS.dotInactive,
+                    shadowColor: index === activeMessageIndex ? CAROUSEL_COLORS.dotActive : 'transparent',
                     shadowOffset: { width: 0, height: 0 },
                     shadowOpacity: index === activeMessageIndex ? 0.8 : 0,
                     shadowRadius: 6,

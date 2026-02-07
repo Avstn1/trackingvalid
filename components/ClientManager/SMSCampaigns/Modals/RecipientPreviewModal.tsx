@@ -1,3 +1,4 @@
+import { COLORS } from "@/constants/design-system";
 import { supabase } from "@/utils/supabaseClient";
 import {
   AlertCircle,
@@ -1804,7 +1805,7 @@ export default function RecipientPreviewModal({
             >
               <View className="flex-row items-start gap-4 mb-4">
                 <View className="w-12 h-12 rounded-full bg-red-500/20 items-center justify-center">
-                  <AlertCircle size={24} color="#f87171" />
+                  <AlertCircle size={24} color={COLORS.negative} />
                 </View>
                 <View className="flex-1">
                   <Text className="text-xl font-bold text-white mb-2">
@@ -1819,7 +1820,7 @@ export default function RecipientPreviewModal({
 
               <View className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg mb-4">
                 <View className="flex-row items-start gap-2">
-                  <AlertCircle size={16} color="#f87171" className="mt-0.5" />
+                  <AlertCircle size={16} color={COLORS.negative} />
                   <Text className="text-sm text-red-400 flex-1">
                     This action cannot be undone. All custom selections will be
                     cleared.

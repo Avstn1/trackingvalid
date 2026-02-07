@@ -1,194 +1,19 @@
+import { COLORS } from '@/constants/design-system';
 import { supabase } from '@/utils/supabaseClient';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import MaskedView from '@react-native-masked-view/masked-view';
 import * as Device from 'expo-device';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { Eye, EyeOff } from 'lucide-react-native';
-import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Animated, Image, Keyboard, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
-
-// Color Palette matching DailyRevenueCard
-const COLORS = {
-  background: '#181818',
-  cardBg: '#1a1a1a',
-  surface: 'rgba(37, 37, 37, 0.6)',
-  surfaceSolid: '#252525',
-  glassBorder: 'rgba(255, 255, 255, 0.1)',
-  text: '#FFFFFF',
-  textMuted: 'rgba(255, 255, 255, 0.6)',
-  green: '#73aa57ff',
-  greenLight: '#5b8f52ff',
-  greenGlow: 'rgba(139, 207, 104, 0.4)',
-};
-
-// Loading splash component
-function AuthLoadingSplash() {
-  const fadeAnim = React.useRef(new Animated.Value(0)).current;
-  const scaleAnim = React.useRef(new Animated.Value(0.8)).current;
-
-  useEffect(() => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 600,
-        useNativeDriver: true,
-      }),
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        tension: 50,
-        friction: 7,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, []);
-
-  return (
-    <View 
-      style={{ 
-        flex: 1, 
-        backgroundColor: COLORS.background, 
-        justifyContent: 'center', 
-        alignItems: 'center' 
-      }}
-    >
-      <Animated.View 
-        style={{ 
-          opacity: fadeAnim,
-          transform: [{ scale: scaleAnim }],
-          alignItems: 'center',
-        }}
-      >
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
-          <Image
-            source={require('@/assets/images/corvalogoTransparent.png')}
-            style={{
-              width: 48,
-              height: 48,
-              marginRight: -3, 
-            }}
-            resizeMode="contain"
-          />
-
-          <MaskedView
-            maskElement={
-              <Text
-                style={{
-                  fontSize: 36,
-                  fontWeight: 'bold',
-                  letterSpacing: -0.5,
-                  marginTop: 3,
-                  backgroundColor: 'transparent',
-                }}
-              >
-                orva
-              </Text>
-            }
-          >
-            <LinearGradient
-              colors={['#34D556', '#28C63E', '#34D556']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-            >
-              {/* This text only exists to size the gradient */}
-              <Text
-                style={{
-                  fontSize: 36,
-                  fontWeight: 'bold',
-                  letterSpacing: -0.5,
-                  marginTop: 3,
-                  opacity: 0,
-                }}
-              >
-                orva
-              </Text>
-            </LinearGradient>
-          </MaskedView>
-        </View>
-
-        <ActivityIndicator size="large" color={COLORS.green} />
-      </Animated.View>
-    </View>
-  );
-}
+import React, { useState } from 'react';
+import { ActivityIndicator, Alert, Image, Keyboard, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [checkingAuth, setCheckingAuth] = useState(true);
   const router = useRouter();
-
-  // Check if user is already logged in
-  useEffect(() => {
-    checkAuthStatus();
-  }, []);
-
-  const checkAuthStatus = async () => {
-    try {
-      const justLoggedOut = await AsyncStorage.getItem('just-logged-out')
-      if (justLoggedOut) {
-        await AsyncStorage.removeItem('just-logged-out')
-        setCheckingAuth(false)
-        return
-      }
-
-      const { data: { session } } = await supabase.auth.getSession();
-
-      if (session) {
-        const userId = session?.user?.id;
-
-        const { data: profile, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('user_id', userId)
-          .single()
-
-        if (error) {
-          console.log(error)
-        }
-
-        // Get the actual session UUID using the RPC function
-        const { data: sessionId, error: sessionError } = await supabase
-          .rpc('get_current_session_id')
-
-        console.log('Session ID from RPC:', sessionId)
-
-        await supabase.from('user_devices').upsert({
-          user_id: session.user.id,
-          device_type: 'mobile',
-          device_id: Device.osBuildId || 'unknown',
-          device_name: Device.modelName || 'Unknown Device',
-          session_id: sessionId || session.access_token, // Use session UUID from RPC
-          last_login: new Date().toISOString(),
-          last_active: new Date().toISOString(),
-        }, {
-          onConflict: 'user_id,device_id'
-        });
-
-        if (sessionError) {
-          console.log(sessionError)
-        }
-
-        const subStatus: string = profile.stripe_subscription_status
-        console.log(subStatus)
-
-        if (subStatus === "" || !subStatus) {
-          router.replace('/(paywall)/onboarding');
-          return
-        } else {
-          router.replace('/(dashboard)/dashboard');
-        }
-      } else {
-        // No active session, show login form
-        setCheckingAuth(false);
-      }
-    } catch (error) {
-      console.error('Auth check error:', error);
-      setCheckingAuth(false);
-    }
-  };
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -286,11 +111,6 @@ export default function LoginPage() {
     }
   };
 
-  // Show loading splash while checking auth
-  if (checkingAuth) {
-    return <AuthLoadingSplash />;
-  }
-
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View 
@@ -300,7 +120,7 @@ export default function LoginPage() {
         <View 
           className="w-full max-w-md rounded-3xl p-8 shadow-lg"
           style={{ 
-            backgroundColor: COLORS.cardBg,
+            backgroundColor: COLORS.surface,
             borderWidth: 1,
             borderColor: COLORS.glassBorder,
           }}
@@ -357,8 +177,8 @@ export default function LoginPage() {
             <View 
               className="h-1 w-16 rounded-full mt-2"
               style={{ 
-                backgroundColor: COLORS.green,
-                shadowColor: COLORS.green,
+                backgroundColor: COLORS.primary,
+                shadowColor: COLORS.primary,
                 shadowOffset: { width: 0, height: 0 },
                 shadowOpacity: 0.8,
                 shadowRadius: 8,
@@ -371,13 +191,13 @@ export default function LoginPage() {
             <TextInput
               className="w-full p-4 rounded-xl text-white"
               style={{
-                backgroundColor: COLORS.surfaceSolid,
+                backgroundColor: COLORS.surfaceElevated,
                 borderWidth: 1,
                 borderColor: COLORS.glassBorder,
-                color: COLORS.text,
+                color: COLORS.textPrimary,
               }}
               placeholder="Email"
-              placeholderTextColor={COLORS.textMuted}
+              placeholderTextColor={COLORS.textSecondary}
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
@@ -391,14 +211,14 @@ export default function LoginPage() {
               <TextInput
                 className="w-full p-4 rounded-xl text-white"
                 style={{
-                  backgroundColor: COLORS.surfaceSolid,
+                  backgroundColor: COLORS.surfaceElevated,
                   borderWidth: 1,
                   borderColor: COLORS.glassBorder,
-                  color: COLORS.text,
+                  color: COLORS.textPrimary,
                   paddingRight: 48,
                 }}
                 placeholder="Password"
-                placeholderTextColor={COLORS.textMuted}
+                placeholderTextColor={COLORS.textSecondary}
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
@@ -416,9 +236,9 @@ export default function LoginPage() {
                 disabled={loading}
               >
                 {showPassword ? (
-                  <EyeOff size={20} color={COLORS.textMuted} />
+                  <EyeOff size={20} color={COLORS.textSecondary} />
                 ) : (
-                  <Eye size={20} color={COLORS.textMuted} />
+                  <Eye size={20} color={COLORS.textSecondary} />
                 )}
               </TouchableOpacity>
             </View>
@@ -426,7 +246,7 @@ export default function LoginPage() {
             <TouchableOpacity
               className="w-full py-4 rounded-xl mt-2"
               style={{
-                backgroundColor: loading ? COLORS.surfaceSolid : COLORS.green,
+                backgroundColor: loading ? COLORS.surfaceElevated : COLORS.primary,
                 opacity: loading ? 0.5 : 1,
                 elevation: loading ? 0 : 8,
               }}
@@ -434,11 +254,11 @@ export default function LoginPage() {
               disabled={loading}
             >
               {loading ? (
-                <ActivityIndicator color={COLORS.text} />
+                <ActivityIndicator color={COLORS.textPrimary} />
               ) : (
                 <Text 
                   className="font-bold text-center text-base"
-                  style={{ color: COLORS.text }}
+                  style={{ color: COLORS.textPrimary }}
                 >
                   Log In
                 </Text>
@@ -447,10 +267,10 @@ export default function LoginPage() {
           </View>
 
           <View className="mt-6 items-center">
-            <Text style={{ color: COLORS.textMuted, fontSize: 14 }}>
+            <Text style={{ color: COLORS.textSecondary, fontSize: 14 }}>
               Need an account?{' '}
               <Text
-                style={{ color: COLORS.green, fontWeight: '600' }}
+                style={{ color: COLORS.primary, fontWeight: '600' }}
                 onPress={() => !loading && router.push('/(auth)/signup')}
               >
                 Sign up

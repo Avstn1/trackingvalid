@@ -1,20 +1,9 @@
+import { COLORS } from '@/constants/design-system';
 import { parseYMDToLocalDate } from '@/utils/date';
 import { supabase } from '@/utils/supabaseClient';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Dimensions, Text, View } from 'react-native';
 import { LineChart } from 'react-native-gifted-charts';
-
-// Color Palette - matching yearly green theme
-const COLORS_PALETTE = {
-  background: '#181818',
-  surface: 'rgba(37, 37, 37, 0.6)',
-  glassBorder: 'rgba(255, 255, 255, 0.1)',
-  glassHighlight: 'rgba(255, 255, 255, 0.05)',
-  text: '#F7F7F7',
-  textMuted: 'rgba(247, 247, 247, 0.5)',
-  green: '#8bcf68ff',
-  greenLight: '#beb348ff',
-};
 
 const CHART_COLORS = [
   '#F6E27F', '#E7B7A3', '#A7C7E7', '#C6D8A8', '#9AD1C9',
@@ -158,16 +147,16 @@ export default function ProfitLossTrendChart({
       <View 
         className="rounded-xl overflow-hidden items-center justify-center"
         style={{
-          backgroundColor: COLORS_PALETTE.surface,
+          backgroundColor: COLORS.surfaceGlass,
           borderWidth: 1,
-          borderColor: COLORS_PALETTE.glassBorder,
+          borderColor: COLORS.glassBorder,
           padding: 16,
           marginHorizontal: -14,
           minHeight: 280,
         }}
       >
-        <ActivityIndicator size="small" color={COLORS_PALETTE.green} />
-        <Text className="text-sm mt-2" style={{ color: COLORS_PALETTE.textMuted }}>
+        <ActivityIndicator size="small" color={COLORS.primary} />
+        <Text className="text-sm mt-2" style={{ color: COLORS.textSecondary }}>
           Loading...
         </Text>
       </View>
@@ -179,15 +168,15 @@ export default function ProfitLossTrendChart({
       <View 
         className="rounded-xl overflow-hidden items-center justify-center"
         style={{
-          backgroundColor: COLORS_PALETTE.surface,
+          backgroundColor: COLORS.surfaceGlass,
           borderWidth: 1,
-          borderColor: COLORS_PALETTE.glassBorder,
+          borderColor: COLORS.glassBorder,
           padding: 16,
           marginHorizontal: -14,
           minHeight: 280,
         }}
       >
-        <Text className="text-sm" style={{ color: COLORS_PALETTE.textMuted }}>
+        <Text className="text-sm" style={{ color: COLORS.textSecondary }}>
           No daily data yet for {selectedMonth}
         </Text>
       </View>
@@ -236,9 +225,9 @@ export default function ProfitLossTrendChart({
     <View 
       className="rounded-xl overflow-hidden"
       style={{
-        backgroundColor: COLORS_PALETTE.surface,
+        backgroundColor: COLORS.surfaceGlass,
         borderWidth: 1,
-        borderColor: COLORS_PALETTE.glassBorder,
+        borderColor: COLORS.glassBorder,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.15,
         shadowRadius: 8,
@@ -257,13 +246,13 @@ export default function ProfitLossTrendChart({
           left: 0,
           right: 0,
           height: 1,
-          backgroundColor: COLORS_PALETTE.glassHighlight,
+          backgroundColor: COLORS.glassHighlight,
         }}
       />
 
       <Text 
         className="text-lg font-semibold mb-3"
-        style={{ color: COLORS_PALETTE.green }}
+        style={{ color: COLORS.primary }}
       >
         📈 Profit/Loss Trend (Daily)
       </Text>
@@ -281,25 +270,25 @@ export default function ProfitLossTrendChart({
           thickness={2}
           thickness2={2}
           thickness3={2}
-          color1={COLORS_PALETTE.green}
-          color2={COLORS_PALETTE.greenLight}
+          color1={COLORS.primary}
+          color2={COLORS.primaryLight}
           color3="#FFEB3B"
           hideRules={false}
           rulesType="solid"
-          rulesColor={COLORS_PALETTE.glassBorder}
-          yAxisColor={COLORS_PALETTE.glassBorder}
-          xAxisColor={COLORS_PALETTE.glassBorder}
-          yAxisTextStyle={{ color: COLORS_PALETTE.textMuted, fontSize: 10 }}
-          xAxisLabelTextStyle={{ color: COLORS_PALETTE.textMuted, fontSize: 9 }}
+          rulesColor={COLORS.glassBorder}
+          yAxisColor={COLORS.glassBorder}
+          xAxisColor={COLORS.glassBorder}
+          yAxisTextStyle={{ color: COLORS.textSecondary, fontSize: 10 }}
+          xAxisLabelTextStyle={{ color: COLORS.textSecondary, fontSize: 9 }}
           maxValue={maxValue * 1.15}
           noOfSections={4}
           yAxisLabelWidth={yAxisWidth}
           areaChart
-          startFillColor1={COLORS_PALETTE.green}
+          startFillColor1={COLORS.primary}
           endFillColor1="transparent"
           startOpacity={0.25}
           endOpacity={0}
-          startFillColor2={COLORS_PALETTE.greenLight}
+          startFillColor2={COLORS.primaryLight}
           endFillColor2="transparent"
           startOpacity2={0.25}
           endOpacity2={0}
@@ -309,8 +298,8 @@ export default function ProfitLossTrendChart({
           endOpacity3={0}
           curved
           hideDataPoints={false}
-          dataPointsColor1={COLORS_PALETTE.green}
-          dataPointsColor2={COLORS_PALETTE.greenLight}
+          dataPointsColor1={COLORS.primary}
+          dataPointsColor2={COLORS.primaryLight}
           dataPointsColor3="#FFEB3B"
           dataPointsRadius={3}
           disableScroll={true}
@@ -325,18 +314,18 @@ export default function ProfitLossTrendChart({
         <View className="flex-row items-center gap-1.5">
           <View 
             className="w-2.5 h-2.5 rounded-full" 
-            style={{ backgroundColor: COLORS_PALETTE.green }} 
+            style={{ backgroundColor: COLORS.primary }} 
           />
-          <Text className="text-[10px]" style={{ color: COLORS_PALETTE.text }}>
+          <Text className="text-[10px]" style={{ color: COLORS.textPrimary }}>
             Revenue
           </Text>
         </View>
         <View className="flex-row items-center gap-1.5">
           <View 
             className="w-2.5 h-2.5 rounded-full" 
-            style={{ backgroundColor: COLORS_PALETTE.greenLight }} 
+            style={{ backgroundColor: COLORS.primaryLight }} 
           />
-          <Text className="text-[10px]" style={{ color: COLORS_PALETTE.text }}>
+          <Text className="text-[10px]" style={{ color: COLORS.textPrimary }}>
             Expenses
           </Text>
         </View>
@@ -345,7 +334,7 @@ export default function ProfitLossTrendChart({
             className="w-2.5 h-2.5 rounded-full" 
             style={{ backgroundColor: '#FFEB3B' }} 
           />
-          <Text className="text-[10px]" style={{ color: COLORS_PALETTE.text }}>
+          <Text className="text-[10px]" style={{ color: COLORS.textPrimary }}>
             Profit
           </Text>
         </View>

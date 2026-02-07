@@ -1,3 +1,4 @@
+import { COLORS } from '@/constants/design-system';
 import { AlertCircle } from 'lucide-react-native';
 import React from 'react';
 import { Text, TextInput, View } from 'react-native';
@@ -13,7 +14,7 @@ export function MessageContent({
   onUpdate,
 }: MessageContentProps) {
   const charCount = msg.message.length;
-  const charColor = charCount < 100 ? '#fbbf24' : charCount > 240 ? '#f87171' : '#bef264';
+  const charColor = charCount < 100 ? COLORS.warning : charCount > 240 ? COLORS.negative : COLORS.positive;
 
   return (
     <View className="gap-3">

@@ -1,22 +1,20 @@
-// app/(dashboard)/expenses.tsx
+// app/(dashboard)/finances.tsx
 import AuthLoadingSplash from '@/components/AuthLoadingSpash';
 import ExpensesViewer from '@/components/Finances/ExpensesViewer';
 import RecurringExpenses from '@/components/Finances/RecurringExpenses';
 import { CustomHeader } from '@/components/Header/CustomHeader';
+import { COLORS } from '@/constants/design-system';
 import { supabase } from '@/utils/supabaseClient';
 import { useFocusAnimation, useReducedMotionPreference } from '@/utils/motion';
 import * as ImagePicker from 'expo-image-picker';
-import { Image as ImageIcon, Plus, Trash2, X } from 'lucide-react-native';
+import { ChevronUp, Image as ImageIcon, Plus, Trash2, X } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
   Dimensions,
-  FlatList,
   Image,
   Modal,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
   ScrollView,
   Text,
   TextInput,
@@ -26,20 +24,9 @@ import {
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-// Color Palette
-const COLORS = {
-  background: '#181818',
-  cardBg: '#1a1a1a',
-  surface: 'rgba(37, 37, 37, 0.6)',
-  surfaceSolid: '#252525',
-  glassBorder: 'rgba(255, 255, 255, 0.1)',
-  glassHighlight: 'rgba(255, 255, 255, 0.05)',
-  text: '#F7F7F7',
-  textMuted: 'rgba(247, 247, 247, 0.5)',
-  green: '#8bcf68ff',
-  greenGlow: '#5b8f52ff',
-  red: '#f87171',
-  redGlow: 'rgba(248, 113, 113, 0.2)',
+// Component-specific accent colors
+const ACCENT_COLORS = {
+  redGlow: COLORS.negativeMuted,
 };
 
 const MONTHS = [
@@ -86,9 +73,8 @@ export default function FinancesPage() {
   const [viewerOpenedFromGallery, setViewerOpenedFromGallery] = useState(false);
   const [loadingImagePicker, setLoadingImagePicker] = useState(false);
 
-  // Swipeable view state
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const flatListRef = useRef<FlatList>(null);
+  // Section collapse states
+  const [showAddForm, setShowAddForm] = useState(false);
   const pickerTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [componentsReady, setComponentsReady] = useState(false);
@@ -382,42 +368,7 @@ export default function FinancesPage() {
     }, 300);
   };
 
-  // Swipeable scroll handler
-  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const scrollPosition = event.nativeEvent.contentOffset.x;
-    const index = Math.round(scrollPosition / (SCREEN_WIDTH - 32));
-    setCurrentIndex(index);
-  };
 
-  // Define swipeable views
-  const expenseViews = [
-    {
-      id: 'recurring-list',
-      title: '📋 Recurring Expenses',
-      component: (
-        <ExpensesViewer
-          key={`viewer-${refreshKey}`}
-          barberId={user?.id}
-          month={selectedMonth}
-          year={selectedYear.toString()}
-          onUpdate={fetchData}
-        />
-      ),
-    },
-    {
-      id: 'add-recurring',
-      title: '➕ Add Recurring',
-      component: (
-        <RecurringExpenses
-          key={`add-${refreshKey}`}
-          barberId={user?.id}
-          month={selectedMonth}
-          year={selectedYear}
-          onUpdate={fetchData}
-        />
-      ),
-    },
-  ];
 
   if (loading) {
     return <AuthLoadingSplash message="Loading expenses..." />;
@@ -426,7 +377,7 @@ export default function FinancesPage() {
   if (error) {
     return (
       <View className="flex-1 justify-center items-center" style={{ backgroundColor: COLORS.background }}>
-        <Text className="text-lg" style={{ color: COLORS.red }}>{error}</Text>
+        <Text className="text-lg" style={{ color: COLORS.negative }}>{error}</Text>
       </View>
     );
   }
@@ -441,7 +392,7 @@ export default function FinancesPage() {
         >
         {/* Header */}
         <View className="my-4">
-          <Text className="text-xs mb-3" style={{ color: COLORS.textMuted }}>
+          <Text className="text-xs mb-3" style={{ color: COLORS.textSecondary }}>
             Track your one-off and recurring expenses per month.
           </Text>
         </View>
@@ -467,10 +418,10 @@ export default function FinancesPage() {
                 backgroundColor: COLORS.glassHighlight,
               }}
             />
-            <Text className="text-xs mb-1" style={{ color: COLORS.textMuted }}>
+            <Text className="text-xs mb-1" style={{ color: COLORS.textSecondary }}>
               Current Total
             </Text>
-            <Text className="font-bold text-2xl" style={{ color: COLORS.text }}>
+            <Text className="font-bold text-2xl" style={{ color: COLORS.textPrimary }}>
               ${currentExpense.toFixed(2)}
             </Text>
           </View>
@@ -499,8 +450,8 @@ export default function FinancesPage() {
             />
             {loadingImagePicker ? (
               <View className="items-center justify-center">
-                <ActivityIndicator size="small" color={COLORS.green} />
-                <Text className="text-xs mt-2" style={{ color: COLORS.green }}>
+                <ActivityIndicator size="small" color={COLORS.primary} />
+                <Text className="text-xs mt-2" style={{ color: COLORS.primary }}>
                   Opening picker...
                 </Text>
               </View>
@@ -509,15 +460,15 @@ export default function FinancesPage() {
                 <View className="flex-row items-center gap-2 mb-2">
                   <View 
                     className="p-2 rounded-lg"
-                    style={{ backgroundColor: COLORS.greenGlow }}
+                    style={{ backgroundColor: COLORS.primaryGlow }}
                   >
-                    <ImageIcon size={18} color={COLORS.green} />
+                    <ImageIcon size={18} color={COLORS.primary} />
                   </View>
-                  <Text className="font-semibold text-base flex-1" style={{ color: COLORS.text }}>
+                  <Text className="font-semibold text-base flex-1" style={{ color: COLORS.textPrimary }}>
                     Receipts
                   </Text>
                 </View>
-                <Text className="text-xs" style={{ color: COLORS.textMuted }}>
+                <Text className="text-xs" style={{ color: COLORS.textSecondary }}>
                   {receipts.length} uploaded
                 </Text>
               </>
@@ -525,86 +476,116 @@ export default function FinancesPage() {
           </TouchableOpacity>
         </View>
 
-        {/* Swipeable Expense Views */}
-        <View 
-          className="rounded-2xl overflow-hidden"
-          style={{
-            backgroundColor: COLORS.surface,
-            borderWidth: 1,
-            borderColor: COLORS.glassBorder,
-            flex: 1,
-            marginBottom: 90, // Account for tab bar
-          }}
+        {/* Vertical Stacked Sections */}
+        <ScrollView 
+          className="flex-1"
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 100 }}
         >
+          {/* Recurring Expenses Section */}
           <View 
+            className="rounded-2xl overflow-hidden mb-4"
             style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              height: 1,
-              backgroundColor: COLORS.glassHighlight,
-              zIndex: 1,
+              backgroundColor: COLORS.surface,
+              borderWidth: 1,
+              borderColor: COLORS.glassBorder,
             }}
-          />
-          <FlatList
-            ref={flatListRef}
-            data={expenseViews}
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            onScroll={handleScroll}
-            scrollEventThrottle={16}
-            decelerationRate="fast"
-            snapToInterval={SCREEN_WIDTH - 32}
-            snapToAlignment="start"
-            keyExtractor={(item) => item.id}
-            renderItem={({ item, index }) => (
-              <View style={{ width: SCREEN_WIDTH - 32 }} className="p-4">
-                {index === 0 ? (
-                  // First view: Title with Add Button
-                  <View className="flex-row justify-between items-center mb-3">
-                    <Text className="text-lg font-semibold" style={{ color: COLORS.green }}>
-                      {item.title}
-                    </Text>
-                    <TouchableOpacity
-                        onPress={() => {
-                        flatListRef.current?.scrollToOffset({
-                          offset: SCREEN_WIDTH - 32,
-                          animated: true,
-                        });
-                      }}
-                      className="p-2 rounded-lg"
-                      style={{ backgroundColor: COLORS.green }}
-                    >
-                      <Plus size={20} color={COLORS.text} />
-                    </TouchableOpacity>
-                  </View>
-                ) : (
-                  // Other views: Normal title
-                  <Text className="text-lg font-semibold mb-3" style={{ color: COLORS.green }}>
-                    {item.title}
-                  </Text>
-                )}
-                {item.component}
-              </View>
-            )}
-          />
+          >
+            <View 
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: 1,
+                backgroundColor: COLORS.glassHighlight,
+                zIndex: 1,
+              }}
+            />
+            
+            {/* Section Header */}
+            <View className="flex-row justify-between items-center p-4 pb-0">
+              <Text className="text-lg font-semibold" style={{ color: COLORS.primary }}>
+                Recurring Expenses
+              </Text>
+              <TouchableOpacity
+                onPress={() => setShowAddForm(!showAddForm)}
+                className="p-2 rounded-lg flex-row items-center gap-2"
+                style={{ backgroundColor: COLORS.primary }}
+              >
+                <Plus size={18} color={COLORS.textInverse} />
+                <Text className="font-semibold text-sm" style={{ color: COLORS.textInverse }}>
+                  Add
+                </Text>
+              </TouchableOpacity>
+            </View>
+            
+            {/* Expenses List */}
+            <View className="p-4">
+              <ExpensesViewer
+                key={`viewer-${refreshKey}`}
+                barberId={user?.id}
+                month={selectedMonth}
+                year={selectedYear.toString()}
+                onUpdate={fetchData}
+              />
+            </View>
+          </View>
 
-          {/* Dots Indicator */}
-          <View className="flex-row justify-center items-center py-3 gap-2">
-            {expenseViews.map((_, index) => (
-              <View
-                key={index}
-                className="h-2 rounded-full"
+          {/* Add New Expense Section - Collapsible */}
+          {showAddForm && (
+            <View 
+              className="rounded-2xl overflow-hidden"
+              style={{
+                backgroundColor: COLORS.surface,
+                borderWidth: 1,
+                borderColor: COLORS.glassBorder,
+              }}
+            >
+              <View 
                 style={{
-                  width: index === currentIndex ? 24 : 8,
-                  backgroundColor: index === currentIndex ? COLORS.green : COLORS.surfaceSolid,
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: 1,
+                  backgroundColor: COLORS.glassHighlight,
+                  zIndex: 1,
                 }}
               />
-            ))}
-          </View>
-        </View>
+              
+              {/* Section Header */}
+              <TouchableOpacity 
+                onPress={() => setShowAddForm(false)}
+                className="flex-row justify-between items-center p-4 pb-0"
+              >
+                <Text className="text-lg font-semibold" style={{ color: COLORS.primary }}>
+                  Add New Expense
+                </Text>
+                <View 
+                  className="p-2 rounded-lg"
+                  style={{ backgroundColor: COLORS.surfaceElevated }}
+                >
+                  <ChevronUp size={18} color={COLORS.textSecondary} />
+                </View>
+              </TouchableOpacity>
+              
+              {/* Add Form */}
+              <View className="p-4">
+                <RecurringExpenses
+                  key={`add-${refreshKey}`}
+                  barberId={user?.id}
+                  month={selectedMonth}
+                  year={selectedYear}
+                  onUpdate={() => {
+                    fetchData();
+                    setShowAddForm(false);
+                  }}
+                />
+              </View>
+            </View>
+          )}
+        </ScrollView>
       </View>
 
       {/* Receipt Gallery Modal */}
@@ -627,7 +608,7 @@ export default function FinancesPage() {
             <View 
               className="rounded-3xl w-full max-w-md overflow-hidden"
               style={{ 
-                backgroundColor: COLORS.cardBg,
+                backgroundColor: COLORS.surface,
                 borderWidth: 1,
                 borderColor: COLORS.glassBorder,
                 minHeight: 700, 
@@ -646,13 +627,13 @@ export default function FinancesPage() {
                 <View className="flex-row items-center gap-3">
                   <View 
                     className="p-2 rounded-lg"
-                    style={{ backgroundColor: COLORS.greenGlow }}
+                    style={{ backgroundColor: COLORS.primaryGlow }}
                   >
-                    <ImageIcon size={20} color={COLORS.green} />
+                    <ImageIcon size={20} color={COLORS.primary} />
                   </View>
                   <View>
-                    <Text className="text-lg font-bold" style={{ color: COLORS.text }}>Receipt Gallery</Text>
-                    <Text className="text-xs" style={{ color: COLORS.textMuted }}>
+                    <Text className="text-lg font-bold" style={{ color: COLORS.textPrimary }}>Receipt Gallery</Text>
+                    <Text className="text-xs" style={{ color: COLORS.textSecondary }}>
                       {receipts.length} receipt{receipts.length !== 1 ? 's' : ''}
                     </Text>
                   </View>
@@ -660,9 +641,9 @@ export default function FinancesPage() {
                 <TouchableOpacity
                   onPress={() => setShowReceiptGallery(false)}
                   className="p-2 rounded-full"
-                  style={{ backgroundColor: COLORS.surfaceSolid }}
+                  style={{ backgroundColor: COLORS.surfaceElevated }}
                 >
-                  <X size={18} color={COLORS.text} />
+                  <X size={18} color={COLORS.textPrimary} />
                 </TouchableOpacity>
               </View>
 
@@ -675,14 +656,14 @@ export default function FinancesPage() {
                   >
                     <View 
                       className="p-4 rounded-full mb-4"
-                      style={{ backgroundColor: COLORS.surfaceSolid }}
+                      style={{ backgroundColor: COLORS.surfaceElevated }}
                     >
-                      <ImageIcon size={40} color={COLORS.textMuted} />
+                      <ImageIcon size={40} color={COLORS.textSecondary} />
                     </View>
-                    <Text className="text-base text-center mb-2" style={{ color: COLORS.textMuted }}>
+                    <Text className="text-base text-center mb-2" style={{ color: COLORS.textSecondary }}>
                       No receipts yet
                     </Text>
-                    <Text className="text-sm text-center" style={{ color: COLORS.textMuted }}>
+                    <Text className="text-sm text-center" style={{ color: COLORS.textSecondary }}>
                       Upload your first receipt below
                     </Text>
                   </View>
@@ -714,7 +695,7 @@ export default function FinancesPage() {
                             className="absolute bottom-0 left-0 right-0 p-2"
                             style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
                           >
-                            <Text className="font-semibold text-xs" numberOfLines={1} style={{ color: COLORS.text }}>
+                            <Text className="font-semibold text-xs" numberOfLines={1} style={{ color: COLORS.textPrimary }}>
                               {r.label}
                             </Text>
                           </View>
@@ -726,12 +707,12 @@ export default function FinancesPage() {
                           }}
                           disabled={loadingDelete === r.id}
                           className="absolute top-2 right-2 p-1.5 rounded-full"
-                          style={{ backgroundColor: COLORS.red }}
+                          style={{ backgroundColor: COLORS.negative }}
                         >
                           {loadingDelete === r.id ? (
-                            <ActivityIndicator size="small" color={COLORS.text} />
+                            <ActivityIndicator size="small" color={COLORS.textPrimary} />
                           ) : (
-                            <Trash2 size={12} color={COLORS.text} />
+                            <Trash2 size={12} color={COLORS.textPrimary} />
                           )}
                         </TouchableOpacity>
                       </TouchableOpacity>
@@ -752,16 +733,16 @@ export default function FinancesPage() {
                   onPress={handleUploadFromGallery}
                   className="py-3.5 rounded-xl flex-row items-center justify-center gap-2"
                   style={{
-                    backgroundColor: COLORS.green,
-                    shadowColor: COLORS.green,
+                    backgroundColor: COLORS.primary,
+                    shadowColor: COLORS.primary,
                     shadowOffset: { width: 0, height: 0 },
                     shadowOpacity: 0.4,
                     shadowRadius: 12,
                     elevation: 5,
                   }}
                 >
-                  <Plus size={20} color={COLORS.text} />
-                  <Text className="font-bold text-base" style={{ color: COLORS.text }}>Upload Receipt</Text>
+                  <Plus size={20} color={COLORS.textPrimary} />
+                  <Text className="font-bold text-base" style={{ color: COLORS.textPrimary }}>Upload Receipt</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -780,7 +761,7 @@ export default function FinancesPage() {
           <View 
             className="rounded-2xl p-6 w-full max-w-md overflow-hidden"
             style={{
-              backgroundColor: COLORS.cardBg,
+              backgroundColor: COLORS.surface,
               borderWidth: 1,
               borderColor: COLORS.glassBorder,
             }}
@@ -795,21 +776,21 @@ export default function FinancesPage() {
                 backgroundColor: COLORS.glassHighlight,
               }}
             />
-            <Text className="text-lg font-semibold mb-2" style={{ color: COLORS.text }}>
+            <Text className="text-lg font-semibold mb-2" style={{ color: COLORS.textPrimary }}>
               Label your receipt
             </Text>
-            <Text className="text-sm mb-4" style={{ color: COLORS.textMuted }}>
+            <Text className="text-sm mb-4" style={{ color: COLORS.textSecondary }}>
               Leave blank to default to today&apos;s date.
             </Text>
             <TextInput
               value={receiptLabel}
               onChangeText={setReceiptLabel}
               placeholder="Enter receipt label"
-              placeholderTextColor={COLORS.textMuted}
+              placeholderTextColor={COLORS.textSecondary}
               className="px-4 py-3 rounded-xl mb-6"
               style={{
-                backgroundColor: COLORS.surfaceSolid,
-                color: COLORS.text,
+                backgroundColor: COLORS.surfaceElevated,
+                color: COLORS.textPrimary,
                 borderWidth: 1,
                 borderColor: COLORS.glassBorder,
               }}
@@ -819,19 +800,19 @@ export default function FinancesPage() {
                 onPress={handleUploadCancel}
                 className="flex-1 py-3 rounded-full"
                 style={{
-                  backgroundColor: COLORS.surfaceSolid,
+                  backgroundColor: COLORS.surfaceElevated,
                   borderWidth: 1,
                   borderColor: COLORS.glassBorder,
                 }}
               >
-                <Text className="text-center font-semibold" style={{ color: COLORS.text }}>Cancel</Text>
+                <Text className="text-center font-semibold" style={{ color: COLORS.textPrimary }}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={handleUploadConfirm}
                 className="flex-1 py-3 rounded-full"
-                style={{ backgroundColor: COLORS.green }}
+                style={{ backgroundColor: COLORS.primary }}
               >
-                <Text className="text-center font-semibold" style={{ color: COLORS.text }}>Upload</Text>
+                <Text className="text-center font-semibold" style={{ color: COLORS.textPrimary }}>Upload</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -879,12 +860,12 @@ export default function FinancesPage() {
                   <View 
                     className="px-6 py-3 rounded-full mt-4 self-center"
                     style={{
-                      backgroundColor: COLORS.surfaceSolid,
+                      backgroundColor: COLORS.surfaceElevated,
                       borderWidth: 1,
                       borderColor: COLORS.glassBorder,
                     }}
                   >
-                    <Text className="font-semibold text-center text-base" style={{ color: COLORS.text }}>
+                    <Text className="font-semibold text-center text-base" style={{ color: COLORS.textPrimary }}>
                       {selectedReceipt.label}
                     </Text>
                   </View>

@@ -485,7 +485,9 @@ export function CustomHeader({
   };
 
   const getDateLabel = () => {
-    return `${MONTHS[localSelectedDate.getMonth()]} ${localSelectedDate.getFullYear()}`;
+    const month = localSelectedDate.toLocaleDateString('en-US', { month: 'short' });
+    const year = String(localSelectedDate.getFullYear()).slice(-2);
+    return `${month} '${year}`;
   };
 
   const unreadNotificationsCount = notifications.filter((n) => !n.is_read).length;

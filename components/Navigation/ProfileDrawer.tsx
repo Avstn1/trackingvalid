@@ -240,13 +240,8 @@ export default function ProfileDrawer({
         const targetRoute = pendingRouteRef.current;
         pendingRouteRef.current = null;
         
-        // First, replace to settings index to clear any stale stack state
-        router.replace('/(dashboard)/settings' as any);
-        
-        // Then push the specific settings screen after a brief delay
-        setTimeout(() => {
-          router.push(targetRoute as any);
-        }, 50);
+        // Use replace for stable navigation - back goes to original tab
+        router.replace(targetRoute as any);
       }
     }, 200);
   };

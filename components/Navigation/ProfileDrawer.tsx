@@ -7,7 +7,8 @@
 
 import { COLORS, RADIUS, SPACING } from '@/constants/design-system';
 import { supabase } from '@/utils/supabaseClient';
-import { useRouter } from 'expo-router';
+import { CommonActions } from '@react-navigation/native';
+import { useNavigation, useRouter } from 'expo-router';
 import {
   Calendar,
   CircleHelp,
@@ -148,6 +149,7 @@ export default function ProfileDrawer({
 }: ProfileDrawerProps) {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const navigation = useNavigation();
   
   // Timeout refs to prevent stale callbacks
   const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -240,8 +242,32 @@ export default function ProfileDrawer({
         const targetRoute = pendingRouteRef.current;
         pendingRouteRef.current = null;
         
-        // Use replace for stable navigation - back goes to original tab
-        router.replace(targetRoute as any);
+        // Extract screen name from route (e.g., 'profile' from '/(dashboard)/settings/profile')
+        const screenName = targetRoute.split('/').pop() || 'index';
+        
+        // Reset the entire navigation state to ensure clean stack
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [
+              {
+                name: '(dashboard)',
+                state: {
+                  routes: [
+                    {
+                      name: 'settings',
+                      state: {
+                        routes: [{ name: screenName }],
+                        index: 0,
+                      },
+                    },
+                  ],
+                  index: 0,
+                },
+              },
+            ],
+          })
+        );
       }
     }, 200);
   };

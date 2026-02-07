@@ -20,6 +20,7 @@ interface WeeklyReportsProps {
   refresh?: number;
   filterMonth?: string;
   filterYear?: number | null;
+  reference?: string | null;
 }
 
 function getMondaysInMonth(month: string, year: number): Date[] {
@@ -96,6 +97,7 @@ export default function WeeklyReports({
   refresh,
   filterMonth,
   filterYear,
+  reference,
 }: WeeklyReportsProps) {
   const [reports, setReports] = useState<WeeklyReport[]>([]);
   const [selectedReport, setSelectedReport] = useState<WeeklyReport | null>(null);
@@ -110,6 +112,8 @@ export default function WeeklyReports({
         .select('*')
         .eq('user_id', userId)
         .eq('type', 'weekly')
+        .eq('month', filterMonth)
+        .eq('year', filterYear)
         .order('week_number', { ascending: true });
 
       if (error) {
@@ -124,6 +128,27 @@ export default function WeeklyReports({
           year: r.year || new Date().getFullYear(),
         }))
       );
+
+      if (reference) {
+        const { data: reportData, error } = await supabase
+          .from('reports')
+          .select('*')
+          .eq('id', reference)
+          .single();
+
+        if (error || !reportData) {
+          return;
+        }
+
+        handleOpenReport({
+          id: reportData.id,
+          month: reportData.month,
+          week_number: reportData.week_number,
+          title: reportData.title,
+          content: reportData.content || '',
+          year: reportData.year || new Date().getFullYear(),
+        });
+      }
     } catch (err) {
       console.error(err);
       setReports([]);

@@ -2,14 +2,12 @@
 import AuthLoadingSplash from '@/components/AuthLoadingSpash';
 import Onboarding from '@/components/Onboarding/Onboarding';
 import { COLORS } from '@/constants/design-system';
-import { supabase } from "@/utils/supabaseClient";
 import { useFocusAnimation, useReducedMotionPreference } from '@/utils/motion';
-import * as Device from 'expo-device';
+import { supabase } from "@/utils/supabaseClient";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Alert,
   Modal,
-  Platform,
   RefreshControl,
   ScrollView,
   Text,
@@ -21,8 +19,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import MonthlyDashboard from '@/components/Dashboard/Dashboards/MonthlyDashboard';
 import YearlyDashboard from '@/components/Dashboard/Dashboards/YearlyDashboard';
 import { CustomHeader } from '@/components/Header/CustomHeader';
-
-import { usePushNotifications } from '@/hooks/usePushNotifications';
 
 // Component-specific accent colors
 const ACCENT_COLORS = {
@@ -51,31 +47,31 @@ const getLocalMonthYear = () => {
 };
 
 export default function DashboardPage() {
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [tempDate, setTempDate] = useState(new Date());
+  const [tempDashboardView, setTempDashboardView] = useState<"monthly" | "yearly">("monthly");
+  const [tempTimeframe, setTempTimeframe] = useState<Timeframe>('year');
+
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState<string>(getLocalMonthYear().month);
   const [selectedYear, setSelectedYear] = useState<number>(getLocalMonthYear().year);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [dashboardView, setDashboardView] = useState<"monthly" | "yearly">("monthly");
   const [selectedDay, setSelectedDay] = useState<number>(new Date().getDate());
-  const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [tempDate, setTempDate] = useState(new Date());
   const [timeframe, setTimeframe] = useState<Timeframe>('year');
-  const [tempDashboardView, setTempDashboardView] = useState<"monthly" | "yearly">("monthly");
-  const [tempTimeframe, setTempTimeframe] = useState<Timeframe>('year');
+
   const [showOnboarding, setShowOnboarding] = useState(false);
   const reduceMotion = useReducedMotionPreference();
   const focusStyle = useFocusAnimation(reduceMotion);
 
   const hasSyncedInitially = useRef(false);
   const firstSyncAfterConnect = useRef(false);
-
-  const { expoPushToken } = usePushNotifications()
 
   // Check onboarding status FIRST
   useEffect(() => {
@@ -160,42 +156,6 @@ export default function DashboardPage() {
     syncAcuityData();
   }, [selectedMonth, selectedYear]);
 
-  useEffect(() => {
-    if (expoPushToken && user) {
-      console.log('Push Token:', expoPushToken);
-      saveTokenToDatabase(expoPushToken);
-    }
-  }, [expoPushToken, user]);
-
-  const saveTokenToDatabase = async (token: string) => {
-    if (!profile?.user_id) return;
-
-    try {
-      const deviceName = Device.deviceName || 'Unknown Device';
-      const deviceType = Platform.OS === 'ios' ? 'ios' : 'android';
-
-      const { error } = await supabase
-        .from('push_tokens')
-        .upsert({
-          user_id: profile.user_id,
-          token: token,
-          device_name: deviceName,
-          device_type: deviceType,
-          last_used_at: new Date().toISOString(),
-        }, {
-          onConflict: 'token',
-        });
-
-      if (error) {
-        console.error('Error saving push token:', error);
-      } else {
-        console.log('✅ Push token saved successfully');
-      }
-    } catch (err) {
-      console.error('Error saving push token:', err);
-    }
-  };
-
   const syncAcuityData = async () => {
     if (!user) return;
     setIsRefreshing(true);
@@ -248,36 +208,6 @@ export default function DashboardPage() {
     } finally {
       setIsRefreshing(false);
     }
-  };
-
-  const handleDateChange = (event: any, date?: Date) => {
-    if (date) {
-      setTempDate(date);
-    }
-  };
-
-  const handleDateConfirm = () => {
-    setSelectedDate(tempDate);
-    setSelectedDay(tempDate.getDate());
-    setSelectedMonth(MONTHS[tempDate.getMonth()]);
-    setSelectedYear(tempDate.getFullYear());
-    setDashboardView(tempDashboardView);
-    setTimeframe(tempTimeframe);
-    setShowDatePicker(false);
-  };
-
-  const handleOpenPicker = () => {
-    setTempDate(selectedDate);
-    setTempDashboardView(dashboardView);
-    setTempTimeframe(timeframe);
-    setShowDatePicker(true);
-  };
-
-  const handleCancelPicker = () => {
-    setTempDate(selectedDate);
-    setTempDashboardView(dashboardView);
-    setTempTimeframe(timeframe);
-    setShowDatePicker(false);
   };
 
   const handleOnboardingComplete = async () => {

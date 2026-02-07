@@ -5,7 +5,8 @@ import { CustomHeader } from '@/components/Header/CustomHeader';
 import SegmentedControl from '@/components/UI/SegmentedControl';
 import { COLORS } from '@/constants/design-system';
 import { getSpringFadeInDown, useFocusAnimation, useReducedMotionPreference } from '@/utils/motion';
-import React, { useState } from 'react';
+import { useLocalSearchParams } from 'expo-router';
+import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -18,9 +19,21 @@ const TAB_OPTIONS = [
 ];
 
 export default function ClientManagerScreen() {
+  const params = useLocalSearchParams<{
+    openComponent?: string;
+    reference?: string;
+  }>();
+
   const [activeTab, setActiveTab] = useState<string>('clients');
   const reduceMotion = useReducedMotionPreference();
   const focusStyle = useFocusAnimation(reduceMotion);
+
+  // Handle deep linking from notifications
+  useEffect(() => {
+    if (params.openComponent) {
+      setActiveTab(params.openComponent);
+    }
+  }, [params.openComponent]);
 
   const renderActiveView = () => {
     switch (activeTab) {
@@ -29,6 +42,8 @@ export default function ClientManagerScreen() {
       case 'appointments':
         return <AppointmentSheets />;
       case 'sms':
+      case 'campaigns':
+      case 'auto-nudge':
         return <SMSCampaigns />;
       default:
         return <ClientSheets />;

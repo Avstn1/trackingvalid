@@ -4,10 +4,11 @@ import { CustomHeader } from '@/components/Header/CustomHeader';
 import MonthlyReports from '@/components/Reports/MonthlyReports';
 import WeeklyComparisonReports from '@/components/Reports/WeeklyComparisonReports';
 import WeeklyReports from '@/components/Reports/WeeklyReports';
-import { ReportsPageSkeleton } from '@/components/UI/SkeletonLoader';
 import { COLORS } from '@/constants/design-system';
-import { supabase } from '@/utils/supabaseClient';
 import { useFocusAnimation, useReducedMotionPreference } from '@/utils/motion';
+import { supabase } from '@/utils/supabaseClient';
+import { useLocalSearchParams } from 'expo-router';
+import { Calendar, FileText, GitCompare } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
   RefreshControl,
@@ -17,7 +18,6 @@ import {
 } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Calendar, GitCompare, FileText } from 'lucide-react-native';
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
@@ -25,6 +25,12 @@ const MONTHS = [
 ];
 
 export default function ReportsPage() {
+  const params = useLocalSearchParams<{
+    reference?: string;
+  }>();
+
+  const reference = params.reference;
+
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);

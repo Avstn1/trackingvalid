@@ -11,7 +11,7 @@ export default function LogoutSettingsScreen() {
 
   useEffect(() => {
     // Redirect to settings index - logout is now in ProfileDrawer
-    router.replace('/(dashboard)/settings');
+    router.replace('/settings');
   }, []);
 
   return <View />;

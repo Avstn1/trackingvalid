@@ -1,4 +1,4 @@
-// app/(dashboard)/settings/index.tsx
+// app/settings/index.tsx
 
 import SettingsHeader from '@/components/Settings/SettingsHeader';
 import { COLORS, RADIUS, SPACING } from '@/constants/design-system';
@@ -17,13 +17,13 @@ const SETTINGS_SECTIONS = [
     items: [
       {
         label: 'Profile',
-        route: '/(dashboard)/settings/profile',
+        route: '/settings/profile',
         description: 'Name, avatar, and role',
         icon: User,
       },
       {
         label: 'Security',
-        route: '/(dashboard)/settings/security',
+        route: '/settings/security',
         description: 'Password and account protection',
         icon: Shield,
       },
@@ -34,7 +34,7 @@ const SETTINGS_SECTIONS = [
     items: [
       {
         label: 'Acuity Scheduling',
-        route: '/(dashboard)/settings/acuity',
+        route: '/settings/acuity',
         description: 'Connect your booking calendar',
         icon: Calendar,
       },
@@ -45,7 +45,7 @@ const SETTINGS_SECTIONS = [
     items: [
       {
         label: 'Billing',
-        route: '/(dashboard)/settings/billing',
+        route: '/settings/billing',
         description: 'Manage your plan and payments',
         icon: CreditCard,
       },

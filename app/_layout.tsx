@@ -98,6 +98,13 @@ export default function RootLayout() {
           <Stack.Screen name="(dashboard)" options={{ headerShown: false }} />
           <Stack.Screen name="(paywall)" options={{ headerShown: false }} />
           <Stack.Screen 
+            name="settings" 
+            options={{ 
+              headerShown: false,
+              animation: 'slide_from_right',
+            }} 
+          />
+          <Stack.Screen 
             name="client/[id]" 
             options={{ 
               headerShown: false,

@@ -7,8 +7,7 @@
 
 import { COLORS, RADIUS, SPACING } from '@/constants/design-system';
 import { supabase } from '@/utils/supabaseClient';
-import { CommonActions } from '@react-navigation/native';
-import { useNavigation, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import {
   Calendar,
   CircleHelp,
@@ -149,7 +148,6 @@ export default function ProfileDrawer({
 }: ProfileDrawerProps) {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const navigation = useNavigation();
   
   // Timeout refs to prevent stale callbacks
   const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -242,32 +240,8 @@ export default function ProfileDrawer({
         const targetRoute = pendingRouteRef.current;
         pendingRouteRef.current = null;
         
-        // Extract screen name from route (e.g., 'profile' from '/(dashboard)/settings/profile')
-        const screenName = targetRoute.split('/').pop() || 'index';
-        
-        // Reset the entire navigation state to ensure clean stack
-        navigation.dispatch(
-          CommonActions.reset({
-            index: 0,
-            routes: [
-              {
-                name: '(dashboard)',
-                state: {
-                  routes: [
-                    {
-                      name: 'settings',
-                      state: {
-                        routes: [{ name: screenName }],
-                        index: 0,
-                      },
-                    },
-                  ],
-                  index: 0,
-                },
-              },
-            ],
-          })
-        );
+        // Simple push - Settings is now at root level, so no stack issues
+        router.push(targetRoute as any);
       }
     }, 200);
   };
@@ -440,22 +414,22 @@ export default function ProfileDrawer({
                 <MenuItem
                   icon={<User size={18} color={COLORS.textSecondary} />}
                   label="Profile"
-                  onPress={() => navigateToSettings('/(dashboard)/settings/profile')}
+                  onPress={() => navigateToSettings('/settings/profile')}
                 />
                 <MenuItem
                   icon={<Shield size={18} color={COLORS.textSecondary} />}
                   label="Security"
-                  onPress={() => navigateToSettings('/(dashboard)/settings/security')}
+                  onPress={() => navigateToSettings('/settings/security')}
                 />
                 <MenuItem
                   icon={<Calendar size={18} color={COLORS.textSecondary} />}
                   label="Acuity Integration"
-                  onPress={() => navigateToSettings('/(dashboard)/settings/acuity')}
+                  onPress={() => navigateToSettings('/settings/acuity')}
                 />
                 <MenuItem
                   icon={<CreditCard size={18} color={COLORS.textSecondary} />}
                   label="Billing"
-                  onPress={() => navigateToSettings('/(dashboard)/settings/billing')}
+                  onPress={() => navigateToSettings('/settings/billing')}
                 />
               </View>
             </View>

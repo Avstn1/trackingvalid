@@ -363,14 +363,7 @@ export default function DashboardLayout() {
             }}
           />
 
-          {/* Settings is accessed via ProfileDrawer, not tab bar */}
-          <Tabs.Screen
-            name="settings"
-            options={{
-              href: null, // Hide from tab bar
-              headerShown: false,
-            }}
-          />
+
         </Tabs>
       </View>
 

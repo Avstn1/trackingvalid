@@ -8,12 +8,11 @@ import ProfitLossTrendChart from '@/components/Dashboard/Monthly/ProfitLossTrend
 import ProfitMarginPieChart from '@/components/Dashboard/Monthly/ProfitMarginPieChart';
 import ServiceBreakdownChart from '@/components/Dashboard/Monthly/ServiceBreakdownChart';
 import TopClientsCard from '@/components/Dashboard/Monthly/TopClientsCard';
-import { COLORS } from '@/constants/design-system';
-import { PageIndicator } from '@/components/UI/PageIndicator';
+import { PageIndicator } from '@/components/ui/PageIndicator';
+import { getSpringFadeInDown, getStaggerDelay, useReducedMotionPreference } from '@/utils/motion';
 import React, { useEffect, useRef, useState } from 'react';
 import { Dimensions, FlatList, NativeScrollEvent, NativeSyntheticEvent, View } from 'react-native';
 import Animated from 'react-native-reanimated';
-import { getSpringFadeInDown, getStaggerDelay, useReducedMotionPreference } from '@/utils/motion';
 
 interface MonthlyDashboardProps {
   userId: string;

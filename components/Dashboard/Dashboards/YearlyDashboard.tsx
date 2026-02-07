@@ -5,12 +5,11 @@ import YearlyExpensesCard from '@/components/Dashboard/Yearly/YearlyExpensesCard
 import YearlyRevenueCard from '@/components/Dashboard/Yearly/YearlyRevenueCard';
 import YearlyServiceBreakdownChart from '@/components/Dashboard/Yearly/YearlyServiceBreakdownChart';
 import YearlyTopClientsCard from '@/components/Dashboard/Yearly/YearlyTopClientsCard';
-import { COLORS } from '@/constants/design-system';
-import { PageIndicator } from '@/components/UI/PageIndicator';
+import { PageIndicator } from '@/components/ui/PageIndicator';
+import { getSpringFadeInDown, getStaggerDelay, useReducedMotionPreference } from '@/utils/motion';
 import React, { useEffect, useRef, useState } from 'react';
 import { Dimensions, FlatList, NativeScrollEvent, NativeSyntheticEvent, View } from 'react-native';
 import Animated from 'react-native-reanimated';
-import { getSpringFadeInDown, getStaggerDelay, useReducedMotionPreference } from '@/utils/motion';
 
 type Timeframe = 'year' | 'Q1' | 'Q2' | 'Q3' | 'Q4';
 

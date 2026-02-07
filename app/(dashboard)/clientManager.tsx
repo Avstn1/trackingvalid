@@ -2,12 +2,11 @@ import AppointmentSheets from '@/components/ClientManager/AppointmentSheets/Appo
 import ClientSheets from '@/components/ClientManager/ClientSheets/ClientSheets';
 import SMSCampaigns from '@/components/ClientManager/SMSCampaigns/SMSCampaigns';
 import { CustomHeader } from '@/components/Header/CustomHeader';
-import SegmentedControl from '@/components/UI/SegmentedControl';
+import SegmentedControl from '@/components/ui/SegmentedControl';
 import { COLORS } from '@/constants/design-system';
 import { getSpringFadeInDown, useFocusAnimation, useReducedMotionPreference } from '@/utils/motion';
 import { useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 

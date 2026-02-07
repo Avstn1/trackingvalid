@@ -1,8 +1,9 @@
+import { ClientListSkeleton } from '@/components/ui/SkeletonLoader';
 import { COLORS } from '@/constants/design-system';
-import { ClientListSkeleton } from '@/components/UI/SkeletonLoader';
 import { supabase } from '@/utils/supabaseClient';
+import { useRouter } from 'expo-router';
 import { ChevronDown, ChevronRight, ChevronUp, Filter, Phone, Search, User, X } from 'lucide-react-native';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   FlatList,
   Modal,
@@ -15,7 +16,6 @@ import {
   View
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
 import type { ActiveFilter } from './ClientSheetsFilterModal';
 import ClientSheetsFilterModal from './ClientSheetsFilterModal';
 

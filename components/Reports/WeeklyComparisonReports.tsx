@@ -1,6 +1,6 @@
+import { ReportItemSkeleton } from '@/components/ui/SkeletonLoader';
 import { COLORS } from '@/constants/design-system';
 import { supabase } from '@/utils/supabaseClient';
-import { ReportItemSkeleton } from '@/components/UI/SkeletonLoader';
 import { ChevronRight, GitCompare } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';

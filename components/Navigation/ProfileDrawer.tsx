@@ -214,16 +214,33 @@ export default function ProfileDrawer({
     setTimeout(action, 250);
   };
 
-  // Navigate to settings screen
+  // Navigate to settings screen - store pending route
+  const pendingRouteRef = useRef<string | null>(null);
+  
   const navigateToSettings = (route: string) => {
-    closeDrawer();
-    
+    // Cancel any pending timeouts
     if (navTimeoutRef.current) {
       clearTimeout(navTimeoutRef.current);
     }
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+    }
+    
+    // Store the route we want to navigate to
+    pendingRouteRef.current = route;
+    
+    // Start close animation
+    translateX.value = withSpring(DRAWER_WIDTH, SPRING_CONFIG);
+    backdropOpacity.value = withTiming(0, { duration: 200 });
+    
+    // Close and navigate after animation
     navTimeoutRef.current = setTimeout(() => {
-      router.push(route as any);
-    }, 250);
+      onClose();
+      if (pendingRouteRef.current) {
+        router.push(pendingRouteRef.current as any);
+        pendingRouteRef.current = null;
+      }
+    }, 200);
   };
   
   // Cleanup timeouts on unmount

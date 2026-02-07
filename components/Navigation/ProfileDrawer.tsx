@@ -18,7 +18,7 @@ import {
   User,
   X,
 } from 'lucide-react-native';
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   Alert,
   Dimensions,
@@ -149,6 +149,10 @@ export default function ProfileDrawer({
   const insets = useSafeAreaInsets();
   const router = useRouter();
   
+  // Timeout refs to prevent stale callbacks
+  const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const navTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  
   // Animation values
   const translateX = useSharedValue(DRAWER_WIDTH);
   const backdropOpacity = useSharedValue(0);
@@ -167,7 +171,11 @@ export default function ProfileDrawer({
   const closeDrawer = () => {
     translateX.value = withSpring(DRAWER_WIDTH, SPRING_CONFIG);
     backdropOpacity.value = withTiming(0, { duration: 200 });
-    setTimeout(onClose, 200);
+    
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+    }
+    closeTimeoutRef.current = setTimeout(onClose, 200);
   };
 
   // Swipe to close gesture
@@ -209,10 +217,22 @@ export default function ProfileDrawer({
   // Navigate to settings screen
   const navigateToSettings = (route: string) => {
     closeDrawer();
-    setTimeout(() => {
+    
+    if (navTimeoutRef.current) {
+      clearTimeout(navTimeoutRef.current);
+    }
+    navTimeoutRef.current = setTimeout(() => {
       router.push(route as any);
     }, 250);
   };
+  
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current);
+      if (navTimeoutRef.current) clearTimeout(navTimeoutRef.current);
+    };
+  }, []);
 
   // Logout handler
   const handleLogout = () => {

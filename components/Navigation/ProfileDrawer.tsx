@@ -9,10 +9,8 @@ import { COLORS, RADIUS, SPACING } from '@/constants/design-system';
 import { supabase } from '@/utils/supabaseClient';
 import { useRouter } from 'expo-router';
 import {
-  Bell,
   Calendar,
   CircleHelp,
-  Coins,
   CreditCard,
   LogOut,
   Shield,
@@ -61,13 +59,10 @@ interface ProfileDrawerProps {
     avatar_url?: string;
   } | null;
   // Quick action handlers
-  onCreditsPress: () => void;
-  onNotificationsPress: () => void;
   onFeaturesPress: () => void;
   onFAQPress: () => void;
   // Badge indicators
   hasNewFeatures?: boolean;
-  unreadNotificationsCount?: number;
 }
 
 // Get initials from name
@@ -147,12 +142,9 @@ export default function ProfileDrawer({
   visible,
   onClose,
   profile,
-  onCreditsPress,
-  onNotificationsPress,
   onFeaturesPress,
   onFAQPress,
   hasNewFeatures = false,
-  unreadNotificationsCount = 0,
 }: ProfileDrawerProps) {
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -363,17 +355,6 @@ export default function ProfileDrawer({
             <View className="flex-1 px-3">
               {/* Quick Actions */}
               <View className="mt-2">
-                <MenuItem
-                  icon={<Coins size={18} color={COLORS.textSecondary} />}
-                  label="Credits"
-                  onPress={() => handleItemPress(onCreditsPress)}
-                />
-                <MenuItem
-                  icon={<Bell size={18} color={COLORS.textSecondary} />}
-                  label="Notifications"
-                  onPress={() => handleItemPress(onNotificationsPress)}
-                  badge={unreadNotificationsCount}
-                />
                 <MenuItem
                   icon={<Sparkles size={18} color={COLORS.textSecondary} />}
                   label="What's New"

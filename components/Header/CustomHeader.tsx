@@ -10,7 +10,7 @@ import ProfileDrawer from '@/components/Navigation/ProfileDrawer';
 import { supabase } from '@/utils/supabaseClient';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { LinearGradient } from 'expo-linear-gradient';
-import { CalendarRange } from 'lucide-react-native';
+import { Bell, CalendarRange, Coins } from 'lucide-react-native';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -489,7 +489,6 @@ export function CustomHeader({
   };
 
   const unreadNotificationsCount = notifications.filter((n) => !n.is_read).length;
-  const showHamburgerBadge = unreadNotificationsCount > 0 || hasNewFeatures;
 
   if (loading) {
     return (
@@ -574,7 +573,32 @@ export function CustomHeader({
               </Text>
             </TouchableOpacity>
           )}
-          
+
+          {/* Credits Button */}
+          <TouchableOpacity
+            onPress={() => setShowCreditsModal(true)}
+            className="p-2"
+          >
+            <Coins size={22} color={COLORS.textPrimary} />
+          </TouchableOpacity>
+
+          {/* Notifications Button */}
+          <TouchableOpacity
+            onPress={() => setShowNotificationsModal(true)}
+            className="relative p-2"
+          >
+            <Bell size={22} color={COLORS.textPrimary} />
+            {unreadNotificationsCount > 0 && (
+              <View
+                className="absolute top-1 right-1 w-2.5 h-2.5 rounded-full border-2"
+                style={{
+                  backgroundColor: COLORS.negative,
+                  borderColor: COLORS.surface,
+                }}
+              />
+            )}
+          </TouchableOpacity>
+
           {/* Profile Avatar Button */}
           <TouchableOpacity 
             onPress={() => setShowSidebar(true)}
@@ -602,7 +626,7 @@ export function CustomHeader({
                 </Text>
               )}
             </View>
-            {showHamburgerBadge && (
+            {hasNewFeatures && (
               <View
                 className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full border-2"
                 style={{ 
@@ -625,12 +649,9 @@ export function CustomHeader({
           email: profile?.email,
           avatar_url: profile?.avatar_url,
         }}
-        onCreditsPress={() => setShowCreditsModal(true)}
-        onNotificationsPress={() => setShowNotificationsModal(true)}
         onFeaturesPress={() => setShowFeaturesModal(true)}
         onFAQPress={() => setShowFAQModal(true)}
         hasNewFeatures={hasNewFeatures}
-        unreadNotificationsCount={unreadNotificationsCount}
       />
 
       {showsDatePicker && (

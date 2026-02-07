@@ -237,8 +237,16 @@ export default function ProfileDrawer({
     navTimeoutRef.current = setTimeout(() => {
       onClose();
       if (pendingRouteRef.current) {
-        router.push(pendingRouteRef.current as any);
+        const targetRoute = pendingRouteRef.current;
         pendingRouteRef.current = null;
+        
+        // First, replace to settings index to clear any stale stack state
+        router.replace('/(dashboard)/settings' as any);
+        
+        // Then push the specific settings screen after a brief delay
+        setTimeout(() => {
+          router.push(targetRoute as any);
+        }, 50);
       }
     }, 200);
   };

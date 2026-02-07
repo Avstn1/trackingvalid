@@ -555,18 +555,18 @@ export function CustomHeader({
           </LinearGradient>
         </MaskedView>
 
-        <View className="flex-row items-center gap-2">
+        <View className="flex-row items-center" style={{ gap: 12 }}>
           {showsDatePicker && (
             <TouchableOpacity
               onPress={handleOpenDatePicker}
-              className="flex-row items-center gap-2 px-3 py-3 rounded-full"
+              className="flex-row items-center gap-1.5 px-2.5 py-2 rounded-full"
               style={{
                 backgroundColor: COLORS.surfaceElevated,
                 borderWidth: 1,
                 borderColor: COLORS.glassBorder,
               }}
             >
-              <CalendarRange size={18} color={COLORS.primary} />
+              <CalendarRange size={16} color={COLORS.primary} />
               <Text
                 className="font-semibold text-sm"
                 style={{ color: COLORS.textPrimary }}
@@ -579,7 +579,6 @@ export function CustomHeader({
           {/* Credits Button */}
           <TouchableOpacity
             onPress={() => setShowCreditsModal(true)}
-            className="p-2"
           >
             <Coins size={22} color={COLORS.textPrimary} />
           </TouchableOpacity>
@@ -587,12 +586,12 @@ export function CustomHeader({
           {/* Notifications Button */}
           <TouchableOpacity
             onPress={() => setShowNotificationsModal(true)}
-            className="relative p-2"
+            className="relative"
           >
             <Bell size={22} color={COLORS.textPrimary} />
             {unreadNotificationsCount > 0 && (
               <View
-                className="absolute top-1 right-1 w-2.5 h-2.5 rounded-full border-2"
+                className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full border-2"
                 style={{
                   backgroundColor: COLORS.negative,
                   borderColor: COLORS.surface,

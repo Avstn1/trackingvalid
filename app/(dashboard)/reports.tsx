@@ -4,37 +4,20 @@ import { CustomHeader } from '@/components/Header/CustomHeader';
 import MonthlyReports from '@/components/Reports/MonthlyReports';
 import WeeklyComparisonReports from '@/components/Reports/WeeklyComparisonReports';
 import WeeklyReports from '@/components/Reports/WeeklyReports';
+import { ReportsPageSkeleton } from '@/components/UI/SkeletonLoader';
+import { COLORS } from '@/constants/design-system';
 import { supabase } from '@/utils/supabaseClient';
 import { useFocusAnimation, useReducedMotionPreference } from '@/utils/motion';
 import React, { useEffect, useState } from 'react';
 import {
-  Dimensions,
+  RefreshControl,
+  ScrollView,
   Text,
   View
 } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
-
-// Color Palette
-const COLORS = {
-  background: '#181818',
-  cardBg: '#1a1a1a',
-  surface: 'rgba(37, 37, 37, 0.6)',
-  surfaceSolid: '#252525',
-  glassBorder: 'rgba(255, 255, 255, 0.1)',
-  glassHighlight: 'rgba(255, 255, 255, 0.05)',
-  text: '#F7F7F7',
-  textMuted: 'rgba(247, 247, 247, 0.5)',
-  orange: '#FF5722',
-  orangeLight: '#FF7849',
-  orangeGlow: 'rgba(255, 87, 34, 0.25)',
-  purple: '#673AB7',
-  yellow: '#FFEB3B',
-  green: '#8bcf68ff',
-  greenLight: '#beb348ff',
-};
+import { Calendar, GitCompare, FileText } from 'lucide-react-native';
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
@@ -44,6 +27,7 @@ const MONTHS = [
 export default function ReportsPage() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
   // Date selection - defaults to today
@@ -56,8 +40,6 @@ export default function ReportsPage() {
   const [refreshKey, setRefreshKey] = useState(0);
   const reduceMotion = useReducedMotionPreference();
   const focusStyle = useFocusAnimation(reduceMotion);
-
-  const [componentsReady, setComponentsReady] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -78,19 +60,19 @@ export default function ReportsPage() {
     fetchUser();
   }, []);
 
-  useEffect(() => {
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        setComponentsReady(true);
-      });
-    });
-  }, []);
-
   // Handle date change from CustomHeader
   const handleDateChange = (month: string, year: number) => {
     setSelectedMonth(month);
     setSelectedYear(year);
     setRefreshKey(prev => prev + 1);
+  };
+
+  // Handle pull-to-refresh
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    setRefreshKey(prev => prev + 1);
+    // Small delay for visual feedback
+    setTimeout(() => setRefreshing(false), 500);
   };
 
   if (loading) {
@@ -100,7 +82,7 @@ export default function ReportsPage() {
   if (error) {
     return (
       <View className="flex-1 justify-center items-center" style={{ backgroundColor: COLORS.background }}>
-        <Text className="text-lg" style={{ color: '#ef4444' }}>{error}</Text>
+        <Text className="text-lg" style={{ color: COLORS.negative }}>{error}</Text>
       </View>
     );
   }
@@ -110,118 +92,87 @@ export default function ReportsPage() {
       <Animated.View style={[{ flex: 1 }, focusStyle]}>
         <CustomHeader pageName="Reports" onDateChange={handleDateChange} />
 
-        {/* Main Content - No ScrollView */}
-        <View className="flex-1 px-4 pb-4">
-          {/* Reports Grid - Uses full remaining space */}
-          <View className="flex-1 gap-3">
-          
-          <View className="mb-3">
+        <ScrollView
+          className="flex-1"
+          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 32 }}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor={COLORS.primary}
+            />
+          }
+        >
+          {/* Weekly Reports Section */}
+          <View className="mb-8">
+            <SectionHeader 
+              title="Weekly Reports" 
+              icon={<Calendar size={16} color={COLORS.textSecondary} />} 
+            />
+            <WeeklyReports
+              key={`wreports-${refreshKey}-${selectedMonth}`}
+              userId={user.id}
+              refresh={refreshKey}
+              filterMonth={selectedMonth}
+              filterYear={selectedYear}
+            />
           </View>
 
-          {/* Weekly Reports - 56% of remaining */}
-          <View 
-            className="rounded-2xl p-3 overflow-hidden"
-            style={{
-              flex: 0.56,
-              backgroundColor: COLORS.surface,
-              borderWidth: 1,
-              borderColor: COLORS.glassBorder,
-            }}
-          >
-            <View 
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                height: 1,
-                backgroundColor: COLORS.glassHighlight,
-              }}
+          {/* Weekly Comparison Section */}
+          <View className="mb-8">
+            <SectionHeader 
+              title="Weekly Comparison" 
+              icon={<GitCompare size={16} color={COLORS.textSecondary} />} 
             />
-            <Text className="text-base font-semibold mb-2" style={{ color: COLORS.green }}>
-              📅 Weekly Reports
-            </Text>
-            <View className="flex-1">
-              <WeeklyReports
-                key={`wreports-${refreshKey}-${selectedMonth}`}
-                userId={user.id}
-                refresh={refreshKey}
-                filterMonth={selectedMonth}
-                filterYear={selectedYear}
-              />
-            </View>
+            <WeeklyComparisonReports
+              key={`wcompare-${refreshKey}-${selectedMonth}`}
+              userId={user.id}
+              refresh={refreshKey}
+              filterMonth={selectedMonth}
+              filterYear={selectedYear}
+            />
           </View>
 
-          {/* Weekly Comparison Reports - 19% of remaining */}
-          <View 
-            className="rounded-2xl p-3 overflow-hidden"
-            style={{
-              flex: 0.19,
-              backgroundColor: COLORS.surface,
-              borderWidth: 1,
-              borderColor: COLORS.glassBorder,
-            }}
-          >
-            <View 
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                height: 1,
-                backgroundColor: COLORS.glassHighlight,
-              }}
+          {/* Monthly Summary Section */}
+          <View className="mb-8">
+            <SectionHeader 
+              title="Monthly Summary" 
+              icon={<FileText size={16} color={COLORS.textSecondary} />} 
             />
-            <Text className="text-base font-semibold mb-2" style={{ color: COLORS.green }}>
-              🔄 Weekly Comparison
-            </Text>
-            <View className="flex-1">
-              <WeeklyComparisonReports
-                key={`wcompare-${refreshKey}-${selectedMonth}`}
-                userId={user.id}
-                refresh={refreshKey}
-                filterMonth={selectedMonth}
-                filterYear={selectedYear}
-              />
-            </View>
-          </View>
-
-          {/* Monthly Reports - 19% of remaining */}
-          <View 
-            className="rounded-2xl p-3 overflow-hidden"
-            style={{
-              flex: 0.19,
-              backgroundColor: COLORS.surface,
-              borderWidth: 1,
-              borderColor: COLORS.glassBorder,
-            }}
-          >
-            <View 
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                height: 1,
-                backgroundColor: COLORS.glassHighlight,
-              }}
+            <MonthlyReports
+              key={`mreports-${refreshKey}-${selectedMonth}`}
+              userId={user.id}
+              refresh={refreshKey}
+              filterMonth={selectedMonth}
+              filterYear={selectedYear}
             />
-            <Text className="text-base font-semibold mb-2" style={{ color: COLORS.green }}>
-              📄 Monthly Reports
-            </Text>
-            <View className="flex-1">
-              <MonthlyReports
-                key={`mreports-${refreshKey}-${selectedMonth}`}
-                userId={user.id}
-                refresh={refreshKey}
-                filterMonth={selectedMonth}
-                filterYear={selectedYear}
-              />
-            </View>
           </View>
-          </View>
-        </View>
+        </ScrollView>
       </Animated.View>
     </SafeAreaView>
+  );
+}
+
+/**
+ * Section header with icon and subtle divider line
+ */
+function SectionHeader({ title, icon }: { title: string; icon: React.ReactNode }) {
+  return (
+    <View className="flex-row items-center mb-5">
+      <View className="flex-row items-center gap-2">
+        {icon}
+        <Text 
+          className="text-sm font-bold uppercase tracking-wide"
+          style={{ color: COLORS.textSecondary }}
+        >
+          {title}
+        </Text>
+      </View>
+      <View 
+        className="flex-1 ml-3 h-px" 
+        style={{ backgroundColor: COLORS.border }} 
+      />
+    </View>
   );
 }

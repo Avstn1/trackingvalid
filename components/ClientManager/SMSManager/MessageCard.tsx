@@ -1,3 +1,4 @@
+import { COLORS } from '@/constants/design-system';
 import { supabase } from '@/utils/supabaseClient';
 import {
   Check,
@@ -187,7 +188,7 @@ export function MessageCard({
             onPress={() => onRemove(msg.id)}
             className="p-1.5 rounded-full bg-rose-500/10"
           >
-            <Trash2 color="#f87171" size={14} />
+            <Trash2 color={COLORS.negative} size={14} />
           </TouchableOpacity>
         </View>
 

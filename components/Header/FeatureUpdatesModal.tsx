@@ -1,3 +1,4 @@
+import { COLORS } from '@/constants/design-system';
 import { supabase } from '@/utils/supabaseClient';
 import {
   Bell,
@@ -35,15 +36,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const MODAL_HEIGHT = SCREEN_HEIGHT * 0.85;
 
-const COLORS = {
-  background: '#1a1f1b',
-  backgroundTo: '#2e3b2b',
-  border: '#55694b',
-  text: '#F1F5E9',
-  textMuted: '#9ca3af',
+// Component-specific accent colors
+const ACCENT_COLORS = {
   lime: '#bef264',
   amber: '#fbbf24',
-  surface: 'rgba(255, 255, 255, 0.05)',
   surfaceBorder: 'rgba(85, 105, 75, 0.3)',
 };
 
@@ -341,7 +337,7 @@ export default function NewFeaturesModal({
                 {
                   backgroundColor: COLORS.background,
                   borderTopWidth: 1,
-                  borderColor: COLORS.surfaceBorder,
+                  borderColor: ACCENT_COLORS.surfaceBorder,
                   height: MODAL_HEIGHT,
                 },
               ]}
@@ -356,7 +352,7 @@ export default function NewFeaturesModal({
                       style={{
                         width: 40,
                         height: 4,
-                        backgroundColor: COLORS.textMuted,
+                        backgroundColor: COLORS.textSecondary,
                         borderRadius: 2,
                         opacity: 0.3,
                       }}
@@ -366,16 +362,16 @@ export default function NewFeaturesModal({
                   {/* Header */}
                   <View
                     className="flex-row items-center justify-between px-6 pb-4"
-                    style={{ borderBottomWidth: 1, borderBottomColor: COLORS.surfaceBorder }}
+                    style={{ borderBottomWidth: 1, borderBottomColor: ACCENT_COLORS.surfaceBorder }}
                   >
                     <View className="flex-row items-center gap-3">
                       <View 
                         className="p-2 rounded-xl"
                         style={{ backgroundColor: 'rgba(251, 191, 36, 0.2)' }}
                       >
-                        <Bell size={24} color={COLORS.lime} />
+                        <Bell size={24} color={ACCENT_COLORS.lime} />
                       </View>
-                      <Text className="text-2xl font-bold" style={{ color: COLORS.lime }}>
+                      <Text className="text-2xl font-bold" style={{ color: ACCENT_COLORS.lime }}>
                         What's New
                       </Text>
                     </View>
@@ -417,7 +413,7 @@ export default function NewFeaturesModal({
                       )}
 
                       <TouchableOpacity onPress={closeModal} className="p-2 rounded-xl">
-                        <X size={24} color={COLORS.textMuted} />
+                        <X size={24} color={COLORS.textSecondary} />
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -432,18 +428,18 @@ export default function NewFeaturesModal({
               >
                 {loading ? (
                   <View className="items-center justify-center py-12">
-                    <ActivityIndicator size="large" color={COLORS.lime} />
-                    <Text className="mt-4" style={{ color: COLORS.textMuted }}>
+                    <ActivityIndicator size="large" color={ACCENT_COLORS.lime} />
+                    <Text className="mt-4" style={{ color: COLORS.textSecondary }}>
                       Loading features...
                     </Text>
                   </View>
                 ) : majorVersions.length === 0 ? (
                   <View className="items-center justify-center py-12">
-                    <Bell size={64} color={COLORS.textMuted} />
-                    <Text className="text-lg mt-4" style={{ color: COLORS.textMuted }}>
+                    <Bell size={64} color={COLORS.textSecondary} />
+                    <Text className="text-lg mt-4" style={{ color: COLORS.textSecondary }}>
                       No updates yet
                     </Text>
-                    <Text className="text-sm mt-2" style={{ color: COLORS.textMuted }}>
+                    <Text className="text-sm mt-2" style={{ color: COLORS.textSecondary }}>
                       Check back soon for new features!
                     </Text>
                   </View>
@@ -457,7 +453,7 @@ export default function NewFeaturesModal({
                         <View 
                           key={key} 
                           className="rounded-2xl overflow-hidden mb-4"
-                          style={{ borderWidth: 1, borderColor: COLORS.surfaceBorder }}
+                          style={{ borderWidth: 1, borderColor: ACCENT_COLORS.surfaceBorder }}
                         >
                           {/* Minor Version Header */}
                           <TouchableOpacity
@@ -466,7 +462,7 @@ export default function NewFeaturesModal({
                             style={{ backgroundColor: 'rgba(85, 105, 75, 0.1)' }}
                           >
                             <View className="flex-row items-center gap-3 flex-1">
-                              <Text className="text-lg font-bold" style={{ color: COLORS.text }}>
+                              <Text className="text-lg font-bold" style={{ color: COLORS.textPrimary }}>
                                 Version {currentGroup.majorVersion}.{minorGroup.minorVersion}
                               </Text>
                               <View 
@@ -486,16 +482,16 @@ export default function NewFeaturesModal({
                                     borderColor: 'rgba(190, 242, 100, 0.4)'
                                   }}
                                 >
-                                  <Text className="text-xs font-semibold" style={{ color: COLORS.lime }}>
+                                  <Text className="text-xs font-semibold" style={{ color: ACCENT_COLORS.lime }}>
                                     Latest
                                   </Text>
                                 </View>
                               )}
                             </View>
                             {isExpanded ? (
-                              <ChevronUp size={20} color={COLORS.textMuted} />
+                              <ChevronUp size={20} color={COLORS.textSecondary} />
                             ) : (
-                              <ChevronDown size={20} color={COLORS.textMuted} />
+                              <ChevronDown size={20} color={COLORS.textSecondary} />
                             )}
                           </TouchableOpacity>
 
@@ -512,7 +508,7 @@ export default function NewFeaturesModal({
                                     style={{ 
                                       backgroundColor: COLORS.surface,
                                       borderWidth: 1,
-                                      borderColor: COLORS.surfaceBorder
+                                      borderColor: ACCENT_COLORS.surfaceBorder
                                     }}
                                   >
                                     {/* Feature Header */}
@@ -525,7 +521,7 @@ export default function NewFeaturesModal({
                                           >
                                             <Text 
                                               className="text-[10px] font-mono"
-                                              style={{ color: COLORS.lime }}
+                                              style={{ color: ACCENT_COLORS.lime }}
                                             >
                                               v{feature.version}
                                             </Text>
@@ -554,18 +550,18 @@ export default function NewFeaturesModal({
                                                 borderColor: 'rgba(251, 191, 36, 0.4)'
                                               }}
                                             >
-                                              <Text className="text-[10px] font-semibold" style={{ color: COLORS.amber }}>
+                                              <Text className="text-[10px] font-semibold" style={{ color: ACCENT_COLORS.amber }}>
                                                 Draft
                                               </Text>
                                             </View>
                                           )}
                                         </View>
-                                        <Text className="text-sm font-bold" style={{ color: COLORS.text }}>
+                                        <Text className="text-sm font-bold" style={{ color: COLORS.textPrimary }}>
                                           {feature.title}
                                         </Text>
                                       </View>
                                       <View className="flex-col items-end gap-1 ml-3">
-                                        <Text className="text-[10px]" style={{ color: COLORS.textMuted }}>
+                                        <Text className="text-[10px]" style={{ color: COLORS.textSecondary }}>
                                           {new Date(feature.released_at).toLocaleDateString('en-US', {
                                             month: 'short',
                                             day: 'numeric',
@@ -573,7 +569,7 @@ export default function NewFeaturesModal({
                                           })}
                                         </Text>
                                         {viewMode === 'adminView' && (
-                                          <Text className="text-[10px]" style={{ color: COLORS.textMuted }}>
+                                          <Text className="text-[10px]" style={{ color: COLORS.textSecondary }}>
                                             {feature.platform === 'both' ? '🌐📱' : feature.platform === 'web' ? '🌐' : '📱'}
                                           </Text>
                                         )}
@@ -585,18 +581,18 @@ export default function NewFeaturesModal({
                                       <Markdown
                                         style={{
                                           body: { color: '#d1d5db', fontSize: 12, lineHeight: 18 },
-                                          heading1: { color: COLORS.text, fontSize: 18, fontWeight: 'bold', marginTop: 8, marginBottom: 4 },
-                                          heading2: { color: COLORS.text, fontSize: 16, fontWeight: 'bold', marginTop: 6, marginBottom: 4 },
-                                          heading3: { color: COLORS.text, fontSize: 14, fontWeight: 'bold', marginTop: 6, marginBottom: 2 },
+                                          heading1: { color: COLORS.textPrimary, fontSize: 18, fontWeight: 'bold', marginTop: 8, marginBottom: 4 },
+                                          heading2: { color: COLORS.textPrimary, fontSize: 16, fontWeight: 'bold', marginTop: 6, marginBottom: 4 },
+                                          heading3: { color: COLORS.textPrimary, fontSize: 14, fontWeight: 'bold', marginTop: 6, marginBottom: 2 },
                                           bullet_list: { marginVertical: 4 },
                                           ordered_list: { marginVertical: 4 },
                                           list_item: { color: '#d1d5db', fontSize: 12, marginVertical: 2 },
                                           paragraph: { color: '#d1d5db', fontSize: 12, marginVertical: 4 },
-                                          strong: { color: COLORS.text, fontWeight: '600' },
+                                          strong: { color: COLORS.textPrimary, fontWeight: '600' },
                                           em: { color: '#e5e7eb', fontStyle: 'italic' },
-                                          link: { color: COLORS.lime },
+                                          link: { color: ACCENT_COLORS.lime },
                                           code_inline: { 
-                                            color: COLORS.lime, 
+                                            color: ACCENT_COLORS.lime, 
                                             backgroundColor: '#2a2a2a', 
                                             paddingHorizontal: 4,
                                             paddingVertical: 2,
@@ -605,7 +601,7 @@ export default function NewFeaturesModal({
                                             fontFamily: 'monospace'
                                           },
                                           code_block: {
-                                            color: COLORS.lime,
+                                            color: ACCENT_COLORS.lime,
                                             backgroundColor: '#2a2a2a',
                                             padding: 8,
                                             borderRadius: 8,
@@ -623,7 +619,7 @@ export default function NewFeaturesModal({
                                     {feature.image_url && (
                                       <View 
                                         className="mt-3 rounded-xl overflow-hidden"
-                                        style={{ borderWidth: 1, borderColor: COLORS.surfaceBorder }}
+                                        style={{ borderWidth: 1, borderColor: ACCENT_COLORS.surfaceBorder }}
                                       >
                                         <Image 
                                           source={{ uri: feature.image_url }}
@@ -650,7 +646,7 @@ export default function NewFeaturesModal({
                   className="flex-row items-center justify-between px-4 pt-4"
                   style={{ 
                     borderTopWidth: 1,
-                    borderTopColor: COLORS.surfaceBorder,
+                    borderTopColor: ACCENT_COLORS.surfaceBorder,
                     backgroundColor: 'rgba(26, 31, 27, 0.5)',
                     paddingBottom: Math.max(insets.bottom + 16, 16)
                   }}
@@ -664,8 +660,8 @@ export default function NewFeaturesModal({
                       opacity: currentPage === 0 ? 0.3 : 1
                     }}
                   >
-                    <ChevronLeft size={20} color={COLORS.text} />
-                    <Text className="text-sm font-medium" style={{ color: COLORS.text }}>
+                    <ChevronLeft size={20} color={COLORS.textPrimary} />
+                    <Text className="text-sm font-medium" style={{ color: COLORS.textPrimary }}>
                       Next
                     </Text>
                   </TouchableOpacity>
@@ -687,7 +683,7 @@ export default function NewFeaturesModal({
                           width: index === currentPage ? 32 : 8,
                           height: 8,
                           borderRadius: 4,
-                          backgroundColor: index === currentPage ? COLORS.lime : '#4b5563',
+                          backgroundColor: index === currentPage ? ACCENT_COLORS.lime : '#4b5563',
                         }}
                       />
                     ))}
@@ -702,10 +698,10 @@ export default function NewFeaturesModal({
                       opacity: currentPage === majorVersions.length - 1 ? 0.3 : 1
                     }}
                   >
-                    <Text className="text-sm font-medium" style={{ color: COLORS.text }}>
+                    <Text className="text-sm font-medium" style={{ color: COLORS.textPrimary }}>
                       Previous
                     </Text>
-                    <ChevronRight size={20} color={COLORS.text} />
+                    <ChevronRight size={20} color={COLORS.textPrimary} />
                   </TouchableOpacity>
                 </View>
               )}

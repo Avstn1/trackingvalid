@@ -1,27 +1,10 @@
+import { COLORS } from '@/constants/design-system';
 import { supabase } from '@/utils/supabaseClient';
-import { ChevronRight, FileText } from 'lucide-react-native';
+import { ReportItemSkeleton } from '@/components/UI/SkeletonLoader';
+import { ChevronRight } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
 import ReportViewerModal from './ReportViewerModal';
-
-// Color Palette
-const COLORS = {
-  background: '#181818',
-  cardBg: '#1a1a1a',
-  surface: 'rgba(37, 37, 37, 0.6)',
-  surfaceSolid: '#252525',
-  glassBorder: 'rgba(255, 255, 255, 0.1)',
-  glassHighlight: 'rgba(255, 255, 255, 0.05)',
-  text: '#F7F7F7',
-  textMuted: 'rgba(247, 247, 247, 0.5)',
-  orange: '#FF5722',
-  orangeGlow: 'rgba(255, 87, 34, 0.2)',
-  purple: '#673AB7',
-  yellow: '#FFEB3B',
-  green: '#8bcf68ff',
-  greenLight: '#beb348ff',
-  greenGlow: 'rgba(139, 207, 104, 0.2)',
-};
 
 type WeeklyReport = {
   id: string;
@@ -90,9 +73,9 @@ function getCurrentWeekNumber(month: string, year: number): number {
   return mondays.length;
 }
 
-function formatDate(date: Date): string {
+function formatDateShort(date: Date): string {
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+  return `${months[date.getMonth()]} ${date.getDate()}`;
 }
 
 async function logWeeklyReportOpen(user_id: string, r: any) {
@@ -185,7 +168,6 @@ export default function WeeklyReports({
       const existingReport = filteredReports.find(r => r.week_number === weekNum);
       
       if (existingReport) {
-        // Only mark as not upcoming if the week has actually passed
         const isUpcoming = currentWeek !== -1 && weekNum >= currentWeek;
         allWeeks.push({ ...existingReport, isUpcoming });
       } else {
@@ -216,101 +198,108 @@ export default function WeeklyReports({
 
   const weeksList = generateWeeksList();
 
+  // Loading skeleton
   if (loading) {
     return (
-      <View className="items-center justify-center py-4">
-        <ActivityIndicator size="small" color={COLORS.green} />
+      <View>
+        <ReportItemSkeleton />
+        <ReportItemSkeleton />
+        <ReportItemSkeleton />
+      </View>
+    );
+  }
+
+  // Empty state
+  if (weeksList.length === 0) {
+    return (
+      <View 
+        className="py-8 items-center rounded-xl"
+        style={{ backgroundColor: COLORS.surface }}
+      >
+        <Text className="text-sm" style={{ color: COLORS.textTertiary }}>
+          No weekly reports for this period
+        </Text>
       </View>
     );
   }
 
   return (
     <>
-      <View className="flex-1 gap-2">
-        {weeksList.length > 0 ? (
-          weeksList.map((r: any) => {
-            const isUpcoming = r.isUpcoming;
-            
-            return (
-              <TouchableOpacity
-                key={r.id}
-                onPress={() => !isUpcoming && handleOpenReport(r)}
-                disabled={isUpcoming}
-                className="rounded-2xl p-4 overflow-hidden flex-1"
-                style={[
-                  {
-                    backgroundColor: isUpcoming ? 'rgba(37, 37, 37, 0.3)' : COLORS.cardBg,
-                    borderWidth: 1,
-                    borderColor: isUpcoming ? 'rgba(255, 255, 255, 0.05)' : COLORS.glassBorder,
-                    opacity: isUpcoming ? 0.5 : 1,
-                  },
-                  !isUpcoming && {
-                    shadowColor: COLORS.green,
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.15,
-                    shadowRadius: 8,
-                    elevation: 4,
-                  }
-                ]}
+      <View 
+        className="rounded-xl overflow-hidden"
+        style={{ 
+          backgroundColor: COLORS.surface,
+          borderWidth: 1,
+          borderColor: COLORS.glassBorder,
+        }}
+      >
+        {weeksList.map((r: any, index: number) => {
+          const isUpcoming = r.isUpcoming;
+          const isLast = index === weeksList.length - 1;
+          
+          return (
+            <TouchableOpacity
+              key={r.id}
+              onPress={() => !isUpcoming && handleOpenReport(r)}
+              disabled={isUpcoming}
+              className="flex-row items-center px-4 py-4"
+              style={{
+                opacity: isUpcoming ? 0.5 : 1,
+                borderBottomWidth: isLast ? 0 : 1,
+                borderBottomColor: COLORS.border,
+              }}
+              activeOpacity={0.7}
+            >
+              {/* Week number badge */}
+              <View 
+                className="w-12 h-12 rounded-xl items-center justify-center"
+                style={{
+                  backgroundColor: isUpcoming ? COLORS.surfaceElevated : COLORS.primaryMuted,
+                }}
               >
-                {/* Top highlight line */}
+                <Text 
+                  className="text-base font-bold"
+                  style={{ color: isUpcoming ? COLORS.textTertiary : COLORS.primary }}
+                >
+                  W{r.week_number}
+                </Text>
+              </View>
+              
+              {/* Content */}
+              <View className="flex-1 ml-4">
+                <Text 
+                  className="text-base font-medium"
+                  style={{ color: isUpcoming ? COLORS.textTertiary : COLORS.textPrimary }}
+                >
+                  Week {r.week_number}
+                </Text>
+                <Text 
+                  className="text-sm mt-0.5"
+                  style={{ color: COLORS.textTertiary }}
+                >
+                  {isUpcoming 
+                    ? `Releases ${formatDateShort(r.releaseDate)}`
+                    : `${r.month} ${r.year}`
+                  }
+                </Text>
+              </View>
+              
+              {/* Status / Arrow */}
+              {isUpcoming ? (
                 <View 
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    height: 1,
-                    backgroundColor: isUpcoming ? 'transparent' : COLORS.glassHighlight,
-                  }}
-                />
-
-                <View className="flex-row items-center gap-3 h-full">
-                  <View 
-                    className="p-2 rounded-xl"
-                    style={{
-                      backgroundColor: isUpcoming ? 'rgba(255, 255, 255, 0.05)' : COLORS.greenGlow,
-                    }}
-                  >
-                    <FileText 
-                      size={22} 
-                      color={isUpcoming ? COLORS.textMuted : COLORS.green} 
-                      strokeWidth={2.5} 
-                    />
-                  </View>
-                  <View className="flex-1">
-                    <Text 
-                      className="text-base font-bold mb-1"
-                      style={{ color: isUpcoming ? COLORS.textMuted : COLORS.text }}
-                      numberOfLines={1}
-                      adjustsFontSizeToFit
-                      minimumFontScale={0.8}
-                    >
-                      Week {r.week_number} - {r.month} {r.year}
-                    </Text>
-                    <Text 
-                      className="text-sm"
-                      style={{ color: isUpcoming ? 'rgba(247, 247, 247, 0.3)' : COLORS.green }}
-                      numberOfLines={1}
-                      adjustsFontSizeToFit
-                      minimumFontScale={0.8}
-                    >
-                      {isUpcoming 
-                        ? `Releasing on ${formatDate(r.releaseDate)}`
-                        : 'Tap to view report'
-                      }
-                    </Text>
-                  </View>
-                  {!isUpcoming && <ChevronRight size={20} color={COLORS.green} />}
+                  className="px-3 py-1.5 rounded-lg"
+                  style={{ backgroundColor: COLORS.surfaceElevated }}
+                >
+                  <Text className="text-xs font-medium" style={{ color: COLORS.textTertiary }}>
+                    Upcoming
+                  </Text>
                 </View>
-              </TouchableOpacity>
-            );
-          })
-        ) : (
-          <Text className="text-xs text-center py-2" style={{ color: COLORS.textMuted }}>
-            No weekly reports available for this month/year.
-          </Text>
-        )}
+              ) : (
+                <ChevronRight size={20} color={COLORS.textTertiary} />
+              )}
+            </TouchableOpacity>
+          );
+        })}
       </View>
 
       <ReportViewerModal

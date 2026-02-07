@@ -1,4 +1,5 @@
 // components/Header/DayPicker.tsx
+import { COLORS } from '@/constants/design-system';
 import { supabase } from '@/utils/supabaseClient';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -14,18 +15,7 @@ import {
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-const COLORS = {
-  background: '#181818',
-  cardBg: '#1a1a1a',
-  surface: 'rgba(37, 37, 37, 0.6)',
-  surfaceSolid: '#252525',
-  glassBorder: 'rgba(255, 255, 255, 0.1)',
-  glassHighlight: 'rgba(255, 255, 255, 0.05)',
-  text: '#F7F7F7',
-  textMuted: 'rgba(247, 247, 247, 0.5)',
-  green: '#8bcf68ff',
-  greenLight: '#beb348ff',
-};
+
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
@@ -197,13 +187,13 @@ export default function DayPicker({
                       end={{ x: 1, y: 0 }}
                       style={{ paddingVertical: 12 }}
                     >
-                      <Text className="text-center font-semibold text-sm" style={{ color: COLORS.text }}>
+                      <Text className="text-center font-semibold text-sm" style={{ color: COLORS.textPrimary }}>
                         Monthly
                       </Text>
                     </LinearGradient>
                   ) : (
                     <View style={{ paddingVertical: 12 }}>
-                      <Text className="text-center font-semibold text-sm" style={{ color: COLORS.textMuted }}>
+                      <Text className="text-center font-semibold text-sm" style={{ color: COLORS.textSecondary }}>
                         Monthly
                       </Text>
                     </View>
@@ -221,13 +211,13 @@ export default function DayPicker({
                       end={{ x: 1, y: 0 }}
                       style={{ paddingVertical: 12 }}
                     >
-                      <Text className="text-center font-semibold text-sm" style={{ color: COLORS.text }}>
+                      <Text className="text-center font-semibold text-sm" style={{ color: COLORS.textPrimary }}>
                         Yearly
                       </Text>
                     </LinearGradient>
                   ) : (
                     <View style={{ paddingVertical: 12 }}>
-                      <Text className="text-center font-semibold text-sm" style={{ color: COLORS.textMuted }}>
+                      <Text className="text-center font-semibold text-sm" style={{ color: COLORS.textSecondary }}>
                         Yearly
                       </Text>
                     </View>
@@ -239,14 +229,14 @@ export default function DayPicker({
               <View style={{ height: 280 }}>
                 {localDashboardView === "monthly" ? (
                   <>
-                    <Text className="text-xl font-semibold mb-4 text-center" style={{ color: COLORS.text }}>
+                    <Text className="text-xl font-semibold mb-4 text-center" style={{ color: COLORS.textPrimary }}>
                       Choose Date
                     </Text>
 
                     <View 
                       className="rounded-2xl overflow-hidden"
                       style={{ 
-                        backgroundColor: COLORS.cardBg,
+                        backgroundColor: COLORS.surface,
                         borderWidth: 1,
                         borderColor: COLORS.glassBorder,
                       }}
@@ -258,7 +248,7 @@ export default function DayPicker({
                         onChange={handleDateChange}
                         minimumDate={new Date(minYear, 0, 1)}
                         maximumDate={new Date()}
-                        textColor={COLORS.text}
+                        textColor={COLORS.textPrimary}
                         themeVariant="dark"
                         timeZoneName="America/Toronto"
                       />
@@ -266,7 +256,7 @@ export default function DayPicker({
                   </>
                 ) : (
                   <>
-                    <Text className="text-xl font-semibold mb-4 text-center" style={{ color: COLORS.text }}>
+                    <Text className="text-xl font-semibold mb-4 text-center" style={{ color: COLORS.textPrimary }}>
                       Choose Year & Timeframe
                     </Text>
 
@@ -281,20 +271,20 @@ export default function DayPicker({
                           }}
                           className="px-3 py-1.5 rounded-lg"
                           style={{ 
-                            backgroundColor: COLORS.cardBg,
+                            backgroundColor: COLORS.surface,
                             borderWidth: 1,
                             borderColor: COLORS.glassBorder,
                           }}
                           disabled={normalizedDate.getFullYear() <= minYear}
                         >
-                          <Text className="text-xl font-bold" style={{ color: normalizedDate.getFullYear() <= minYear ? COLORS.textMuted : COLORS.text }}>←</Text>
+                          <Text className="text-xl font-bold" style={{ color: normalizedDate.getFullYear() <= minYear ? COLORS.textSecondary : COLORS.textPrimary }}>←</Text>
                         </TouchableOpacity>
                         
                         <View 
                           className="px-6 py-2 rounded-lg overflow-hidden"
                           style={{ 
                             borderWidth: 1,
-                            borderColor: COLORS.green,
+                            borderColor: COLORS.primary,
                             minWidth: 100,
                           }}
                         >
@@ -311,7 +301,7 @@ export default function DayPicker({
                               opacity: 0.15,
                             }}
                           />
-                          <Text className="text-2xl font-bold text-center" style={{ color: COLORS.green }}>
+                          <Text className="text-2xl font-bold text-center" style={{ color: COLORS.primary }}>
                             {normalizedDate.getFullYear()}
                           </Text>
                         </View>
@@ -324,18 +314,18 @@ export default function DayPicker({
                           }}
                           className="px-3 py-1.5 rounded-lg"
                           style={{ 
-                            backgroundColor: COLORS.cardBg,
+                            backgroundColor: COLORS.surface,
                             borderWidth: 1,
                             borderColor: COLORS.glassBorder,
                           }}
                           disabled={normalizedDate.getFullYear() >= new Date().getFullYear()}
                         >
-                          <Text className="text-xl font-bold" style={{ color: normalizedDate.getFullYear() >= new Date().getFullYear() ? COLORS.textMuted : COLORS.text }}>→</Text>
+                          <Text className="text-xl font-bold" style={{ color: normalizedDate.getFullYear() >= new Date().getFullYear() ? COLORS.textSecondary : COLORS.textPrimary }}>→</Text>
                         </TouchableOpacity>
                       </View>
                     </View>
 
-                    <Text className="text-sm font-medium mb-3 mt-1 text-center" style={{ color: COLORS.textMuted }}>
+                    <Text className="text-sm font-medium mb-3 mt-1 text-center" style={{ color: COLORS.textSecondary }}>
                       Select Timeframe for {normalizedDate.getFullYear()}
                     </Text>
 
@@ -346,7 +336,7 @@ export default function DayPicker({
                         className="rounded-xl overflow-hidden"
                         style={{
                           borderWidth: 1,
-                          borderColor: localTimeframe === 'year' ? COLORS.green : COLORS.glassBorder,
+                          borderColor: localTimeframe === 'year' ? COLORS.primary : COLORS.glassBorder,
                         }}
                       >
                         {localTimeframe === 'year' && (
@@ -368,7 +358,7 @@ export default function DayPicker({
                           <Text 
                             className="text-base text-center"
                             style={{ 
-                              color: localTimeframe === 'year' ? COLORS.green : COLORS.text,
+                              color: localTimeframe === 'year' ? COLORS.primary : COLORS.textPrimary,
                               fontWeight: localTimeframe === 'year' ? 'bold' : 'normal'
                             }}
                           >
@@ -387,7 +377,7 @@ export default function DayPicker({
                             style={{
                               width: '48%',
                               borderWidth: 1,
-                              borderColor: localTimeframe === option.value ? COLORS.green : COLORS.glassBorder,
+                              borderColor: localTimeframe === option.value ? COLORS.primary : COLORS.glassBorder,
                             }}
                           >
                             {localTimeframe === option.value && (
@@ -409,7 +399,7 @@ export default function DayPicker({
                               <Text 
                                 className="text-base text-center"
                                 style={{ 
-                                  color: localTimeframe === option.value ? COLORS.green : COLORS.text,
+                                  color: localTimeframe === option.value ? COLORS.primary : COLORS.textPrimary,
                                   fontWeight: localTimeframe === option.value ? 'bold' : 'normal'
                                 }}
                               >
@@ -428,14 +418,14 @@ export default function DayPicker({
             <>
               {/* Regular date picker for Finances/Reports */}
               <View style={{ height: 280 }}>
-                <Text className="text-xl font-semibold mb-4 text-center" style={{ color: COLORS.text }}>
+                <Text className="text-xl font-semibold mb-4 text-center" style={{ color: COLORS.textPrimary }}>
                   Choose Month & Year
                 </Text>
 
                 <View 
                   className="rounded-2xl overflow-hidden"
                   style={{ 
-                    backgroundColor: COLORS.cardBg,
+                    backgroundColor: COLORS.surface,
                     borderWidth: 1,
                     borderColor: COLORS.glassBorder,
                   }}
@@ -447,13 +437,13 @@ export default function DayPicker({
                     onChange={handleDateChange}
                     minimumDate={new Date(minYear, 0, 1)}
                     maximumDate={new Date()}
-                    textColor={COLORS.text}
+                    textColor={COLORS.textPrimary}
                     themeVariant="dark"
                     timeZoneName="America/Toronto"
                   />
                 </View>
 
-                <Text className="text-sm text-center mt-3" style={{ color: COLORS.textMuted }}>
+                <Text className="text-sm text-center mt-3" style={{ color: COLORS.textSecondary }}>
                   Day will be set to 1st of selected month
                 </Text>
               </View>
@@ -461,7 +451,7 @@ export default function DayPicker({
           )}
 
           {minYear !== 2020 && (
-            <Text className="text-sm text-center mt-0" style={{ color: COLORS.textMuted }}>
+            <Text className="text-sm text-center mt-0" style={{ color: COLORS.textSecondary }}>
               Oldest appointment: {minYear}
             </Text>
           )}
@@ -471,12 +461,12 @@ export default function DayPicker({
               onPress={onClose}
               className="flex-1 py-3 rounded-full"
               style={{ 
-                backgroundColor: COLORS.cardBg,
+                backgroundColor: COLORS.surface,
                 borderWidth: 1,
                 borderColor: COLORS.glassBorder,
               }}
             >
-              <Text className="text-center font-semibold text-sm" style={{ color: COLORS.text }}>Cancel</Text>
+              <Text className="text-center font-semibold text-sm" style={{ color: COLORS.textPrimary }}>Cancel</Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={onConfirm}
@@ -488,7 +478,7 @@ export default function DayPicker({
                 end={{ x: 1, y: 0 }}
                 style={{ paddingVertical: 12 }}
               >
-                <Text className="text-center font-semibold text-sm" style={{ color: COLORS.text }}>Done</Text>
+                <Text className="text-center font-semibold text-sm" style={{ color: COLORS.textPrimary }}>Done</Text>
               </LinearGradient>
             </TouchableOpacity>
           </View>

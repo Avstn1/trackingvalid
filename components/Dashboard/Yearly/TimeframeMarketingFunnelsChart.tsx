@@ -1,3 +1,4 @@
+import { COLORS } from '@/constants/design-system';
 import { getStaggerDelay, SPRING, useReducedMotionPreference } from '@/utils/motion';
 import { supabase } from '@/utils/supabaseClient';
 import React, { useEffect, useState } from 'react';
@@ -7,18 +8,8 @@ import MarketingFunnelsDetailsModal from '../MarketingFunnelsDetailsModal';
 
 const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get('window');
 
-// Color Palette
-const COLORS_PALETTE = {
-  background: '#181818',
-  surface: 'rgba(37, 37, 37, 0.6)',
-  glassBorder: 'rgba(255, 255, 255, 0.1)',
-  glassHighlight: 'rgba(255, 255, 255, 0.05)',
-  text: '#F7F7F7',
-  textMuted: 'rgba(247, 247, 247, 0.5)',
-  green: '#8bcf68ff',
-};
-
-const COLORS = {
+// Chart-specific colors
+const CHART_COLORS = {
   newClients: '#9AC8CD',
   newClientsRetained: '#748E63',
   retention: '#B19470',
@@ -291,16 +282,16 @@ export default function TimeframeMarketingFunnelsChart({
       <View 
         className="rounded-xl overflow-hidden items-center justify-center"
         style={{ 
-          backgroundColor: COLORS_PALETTE.surface,
+          backgroundColor: COLORS.surfaceGlass,
           borderWidth: 1,
-          borderColor: COLORS_PALETTE.glassBorder,
+          borderColor: COLORS.glassBorder,
           height: SCREEN_HEIGHT * 0.38,
           width: SCREEN_WIDTH * 0.935,
           padding: 16,
         }}
       >
-        <ActivityIndicator size="small" color={COLORS_PALETTE.green} />
-        <Text className="text-sm mt-2" style={{ color: COLORS_PALETTE.textMuted }}>
+        <ActivityIndicator size="small" color={COLORS.primary} />
+        <Text className="text-sm mt-2" style={{ color: COLORS.textSecondary }}>
           Loading...
         </Text>
       </View>
@@ -312,15 +303,15 @@ export default function TimeframeMarketingFunnelsChart({
       <View 
         className="rounded-xl overflow-hidden items-center justify-center"
         style={{ 
-          backgroundColor: COLORS_PALETTE.surface,
+          backgroundColor: COLORS.surfaceGlass,
           borderWidth: 1,
-          borderColor: COLORS_PALETTE.glassBorder,
+          borderColor: COLORS.glassBorder,
           height: SCREEN_HEIGHT * 0.38,
           width: SCREEN_WIDTH * 0.935,
           padding: 16,
         }}
       >
-        <Text className="text-sm" style={{ color: COLORS_PALETTE.textMuted }}>
+        <Text className="text-sm" style={{ color: COLORS.textSecondary }}>
           No data to see here yet!
         </Text>
       </View>
@@ -334,9 +325,9 @@ export default function TimeframeMarketingFunnelsChart({
       <View 
         className="rounded-xl overflow-hidden"
         style={{ 
-          backgroundColor: COLORS_PALETTE.surface,
+          backgroundColor: COLORS.surfaceGlass,
           borderWidth: 1,
-          borderColor: COLORS_PALETTE.glassBorder,
+          borderColor: COLORS.glassBorder,
           shadowOffset: { width: 0, height: 4 },
           shadowOpacity: 0.15,
           shadowRadius: 8,
@@ -353,12 +344,12 @@ export default function TimeframeMarketingFunnelsChart({
             left: 0,
             right: 0,
             height: 1,
-            backgroundColor: COLORS_PALETTE.glassHighlight,
+            backgroundColor: COLORS.glassHighlight,
           }}
         />
 
         <View className="flex-row items-center justify-between mb-3">
-          <Text className="text-lg font-semibold" style={{ color: COLORS_PALETTE.green }}>
+          <Text className="text-lg font-semibold" style={{ color: COLORS.primary }}>
             📣 Marketing Funnels
           </Text>
 
@@ -375,16 +366,16 @@ export default function TimeframeMarketingFunnelsChart({
 
         <View className="flex-row items-center justify-end gap-2 mb-2">
           <View className="flex-row items-center gap-1">
-            <View className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS.newClients }} />
-            <Text className="text-[11px]" style={{ color: COLORS_PALETTE.text }}>New</Text>
+            <View className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: CHART_COLORS.newClients }} />
+            <Text className="text-[11px]" style={{ color: COLORS.textPrimary }}>New</Text>
           </View>
           <View className="flex-row items-center gap-1">
-            <View className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS.newClientsRetained }} />
-            <Text className="text-[11px]" style={{ color: COLORS_PALETTE.text }}>Retained</Text>
+            <View className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: CHART_COLORS.newClientsRetained }} />
+            <Text className="text-[11px]" style={{ color: COLORS.textPrimary }}>Retained</Text>
           </View>
           <View className="flex-row items-center gap-1">
-            <View className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS.retention }} />
-            <Text className="text-[11px]" style={{ color: COLORS_PALETTE.text }}>%</Text>
+            <View className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: CHART_COLORS.retention }} />
+            <Text className="text-[11px]" style={{ color: COLORS.textPrimary }}>%</Text>
           </View>
         </View>
 
@@ -405,7 +396,7 @@ export default function TimeframeMarketingFunnelsChart({
                 <Text 
                   className="text-[12px] font-semibold mb-1" 
                   numberOfLines={1}
-                  style={{ color: COLORS_PALETTE.text }}
+                  style={{ color: COLORS.textPrimary }}
                 >
                   {item.source}
                 </Text>
@@ -414,11 +405,11 @@ export default function TimeframeMarketingFunnelsChart({
                   <AnimatedBar
                     width={newWidth}
                     height={12}
-                    color={COLORS.newClients}
+                    color={CHART_COLORS.newClients}
                     delay={baseDelay}
                     reduceMotion={reduceMotion}
                   />
-                  <Text className="text-[11px] ml-2" style={{ color: COLORS_PALETTE.text }}>
+                  <Text className="text-[11px] ml-2" style={{ color: COLORS.textPrimary }}>
                     {newClients}
                   </Text>
                 </View>
@@ -427,11 +418,11 @@ export default function TimeframeMarketingFunnelsChart({
                   <AnimatedBar
                     width={retainedWidth}
                     height={12}
-                    color={COLORS.newClientsRetained}
+                    color={CHART_COLORS.newClientsRetained}
                     delay={baseDelay + 40}
                     reduceMotion={reduceMotion}
                   />
-                  <Text className="text-[11px] ml-2" style={{ color: COLORS_PALETTE.text }}>
+                  <Text className="text-[11px] ml-2" style={{ color: COLORS.textPrimary }}>
                     {newClientsRetained}
                   </Text>
                 </View>
@@ -440,11 +431,11 @@ export default function TimeframeMarketingFunnelsChart({
                   <AnimatedBar
                     width={retentionWidth}
                     height={8}
-                    color={COLORS.retention}
+                    color={CHART_COLORS.retention}
                     delay={baseDelay + 80}
                     reduceMotion={reduceMotion}
                   />
-                  <Text className="text-[11px] ml-2" style={{ color: COLORS_PALETTE.textMuted }}>
+                  <Text className="text-[11px] ml-2" style={{ color: COLORS.textSecondary }}>
                     {item.retention?.toFixed(0)}%
                   </Text>
                 </View>

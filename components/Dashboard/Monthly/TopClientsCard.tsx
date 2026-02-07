@@ -1,18 +1,7 @@
+import { COLORS } from '@/constants/design-system';
 import { supabase } from '@/utils/supabaseClient';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
-
-// Color Palette - matching yearly green theme
-const COLORS_PALETTE = {
-  background: '#181818',
-  surface: 'rgba(37, 37, 37, 0.6)',
-  glassBorder: 'rgba(255, 255, 255, 0.1)',
-  glassHighlight: 'rgba(255, 255, 255, 0.05)',
-  text: '#F7F7F7',
-  textMuted: 'rgba(247, 247, 247, 0.5)',
-  green: '#8bcf68ff',
-  yellow: '#FFEB3B',
-};
 
 interface TopClientsCardProps {
   userId?: string;
@@ -74,9 +63,9 @@ export default function TopClientsCard({ userId, selectedMonth, selectedYear }: 
     <View 
       className="rounded-xl overflow-hidden flex-1"
       style={{
-        backgroundColor: COLORS_PALETTE.surface,
+        backgroundColor: COLORS.surfaceGlass,
         borderWidth: 1,
-        borderColor: COLORS_PALETTE.glassBorder,
+        borderColor: COLORS.glassBorder,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.15,
         shadowRadius: 8,
@@ -94,24 +83,24 @@ export default function TopClientsCard({ userId, selectedMonth, selectedYear }: 
           left: 0,
           right: 0,
           height: 1,
-          backgroundColor: COLORS_PALETTE.glassHighlight,
+          backgroundColor: COLORS.glassHighlight,
         }}
       />
 
-      <Text className="text-lg font-semibold mb-3" style={{ color: COLORS_PALETTE.green }}>
+      <Text className="text-lg font-semibold mb-3" style={{ color: COLORS.primary }}>
         🏆 Top Clients
       </Text>
 
       {loading ? (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="small" color={COLORS_PALETTE.green} />
-          <Text className="text-sm mt-2" style={{ color: COLORS_PALETTE.textMuted }}>
+          <ActivityIndicator size="small" color={COLORS.primary} />
+          <Text className="text-sm mt-2" style={{ color: COLORS.textSecondary }}>
             Loading...
           </Text>
         </View>
       ) : clients.length === 0 ? (
         <View className="flex-1 items-center justify-center">
-          <Text className="text-sm text-center" style={{ color: COLORS_PALETTE.textMuted }}>
+          <Text className="text-sm text-center" style={{ color: COLORS.textSecondary }}>
             No data available for {selectedMonth} {selectedYear ?? ''}
           </Text>
         </View>
@@ -119,12 +108,12 @@ export default function TopClientsCard({ userId, selectedMonth, selectedYear }: 
         <View className="flex-1">
           <View 
             className="flex-row pb-2 mb-2"
-            style={{ borderBottomWidth: 1, borderBottomColor: COLORS_PALETTE.glassBorder }}
+            style={{ borderBottomWidth: 1, borderBottomColor: COLORS.glassBorder }}
           >
-            <Text className="font-semibold text-sm w-6" style={{ color: COLORS_PALETTE.text }}>#</Text>
-            <Text className="font-semibold text-sm flex-1" style={{ color: COLORS_PALETTE.text }}>Client</Text>
-            <Text className="font-semibold text-sm flex-1 text-right" style={{ color: COLORS_PALETTE.text }}>Total</Text>
-            <Text className="font-semibold text-sm flex-1 text-right" style={{ color: COLORS_PALETTE.text }}>Visits</Text>
+            <Text className="font-semibold text-sm w-6" style={{ color: COLORS.textPrimary }}>#</Text>
+            <Text className="font-semibold text-sm flex-1" style={{ color: COLORS.textPrimary }}>Client</Text>
+            <Text className="font-semibold text-sm flex-1 text-right" style={{ color: COLORS.textPrimary }}>Total</Text>
+            <Text className="font-semibold text-sm flex-1 text-right" style={{ color: COLORS.textPrimary }}>Visits</Text>
           </View>
 
           {clients.slice(0, 5).map((client, idx) => (
@@ -133,18 +122,18 @@ export default function TopClientsCard({ userId, selectedMonth, selectedYear }: 
               className="flex-row py-4 pr-3"
               style={{
                 borderBottomWidth: idx < clients.slice(0, 5).length - 1 ? 1 : 0,
-                borderBottomColor: COLORS_PALETTE.glassBorder,
+                borderBottomColor: COLORS.glassBorder,
                 backgroundColor: idx % 2 === 0 ? 'rgba(255, 255, 255, 0.02)' : 'transparent',
               }}
             >
-              <Text className="text-[15px] w-6" style={{ color: COLORS_PALETTE.text }}>{idx + 1}</Text>
-              <Text className="font-semibold text-[15px] flex-1" numberOfLines={1} style={{ color: COLORS_PALETTE.text }}>
+              <Text className="text-[15px] w-6" style={{ color: COLORS.textPrimary }}>{idx + 1}</Text>
+              <Text className="font-semibold text-[15px] flex-1" numberOfLines={1} style={{ color: COLORS.textPrimary }}>
                 {client.client_name ?? 'N/A'}
               </Text>
-              <Text className="font-semibold text-[15px] flex-1 text-right" style={{ color: COLORS_PALETTE.green }}>
+              <Text className="font-semibold text-[15px] flex-1 text-right" style={{ color: COLORS.primary }}>
                 ${client.total_paid?.toFixed(2) ?? '-'}
               </Text>
-              <Text className="font-semibold text-[15px] flex-1 text-right" style={{ color: COLORS_PALETTE.yellow }}>
+              <Text className="font-semibold text-[15px] flex-1 text-right" style={{ color: COLORS.warning }}>
                 {client.num_visits ?? '-'}
               </Text>
             </View>

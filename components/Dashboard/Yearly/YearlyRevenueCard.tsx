@@ -1,25 +1,10 @@
+import { COLORS } from '@/constants/design-system';
 import { useCountUp, useReducedMotionPreference } from '@/utils/motion';
 import { supabase } from '@/utils/supabaseClient';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
-
-// Color Palette
-const COLORS = {
-  background: '#181818',
-  cardBg: '#1a1a1a',
-  surface: 'rgba(37, 37, 37, 0.6)',
-  glassBorder: 'rgba(255, 255, 255, 0.1)',
-  glassHighlight: 'rgba(255, 255, 255, 0.08)',
-  text: '#FFFFFF',
-  textMuted: 'rgba(255, 255, 255, 0.6)',
-  green: '#54d33dff',
-  greenLight: '#5b8f52ff',
-  greenGlow: 'rgba(255, 87, 34, 0.25)',
-  purple: '#673AB7',
-  yellow: '#FFEB3B',
-};
 
 type Timeframe = 'year' | 'Q1' | 'Q2' | 'Q3' | 'Q4' | 'YTD';
 
@@ -168,7 +153,7 @@ export default function YearlyRevenueCard({
     <View
       style={{
         borderRadius: 24,
-        shadowColor: COLORS.green,
+        shadowColor: COLORS.primary,
         shadowOffset: { width: 0, height: 6 },
         shadowRadius: 16,
         elevation: 10,
@@ -188,7 +173,7 @@ export default function YearlyRevenueCard({
         <View
           style={{
             borderRadius: 22,
-            backgroundColor: COLORS.cardBg,
+            backgroundColor: COLORS.surface,
             overflow: 'hidden',
           }}
         >
@@ -203,7 +188,7 @@ export default function YearlyRevenueCard({
                 width: 120,
                 height: 120,
                 borderRadius: 60,
-                backgroundColor: COLORS.green,
+                backgroundColor: COLORS.primary,
                 opacity: 0.08,
               }}
             />
@@ -229,13 +214,13 @@ export default function YearlyRevenueCard({
               </MaskedView>
               <View
                 style={{
-                  backgroundColor: COLORS.green,
+                  backgroundColor: COLORS.primary,
                   paddingHorizontal: 12,
                   paddingVertical: 5,
                   borderRadius: 12,
                 }}
               >
-                <Text className="text-sm font-bold" style={{ color: COLORS.text }}>
+                <Text className="text-sm font-bold" style={{ color: COLORS.textPrimary }}>
                   {titleSuffix}
                 </Text>
               </View>
@@ -244,11 +229,11 @@ export default function YearlyRevenueCard({
             {/* Revenue amount */}
             <View className="min-h-[30px] justify-center">
               {loading ? (
-                <ActivityIndicator color={COLORS.green} size="large" />
+                <ActivityIndicator color={COLORS.primary} size="large" />
               ) : (
                 <Text
                   className="text-4xl font-bold"
-                  style={{ color: COLORS.text }}
+                  style={{ color: COLORS.textPrimary }}
                   numberOfLines={1}
                   adjustsFontSizeToFit
                 >
@@ -260,7 +245,7 @@ export default function YearlyRevenueCard({
 
           {/* Bottom accent line */}
           <LinearGradient
-            colors={['transparent', COLORS.greenGlow, 'transparent']}
+            colors={['transparent', COLORS.primaryGlow, 'transparent']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={{

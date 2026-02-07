@@ -1,3 +1,4 @@
+import { COLORS } from '@/constants/design-system'
 import ReportViewerModal from '@/components/Reports/ReportViewerModal'
 import { supabase } from '@/utils/supabaseClient'
 import { useRouter } from 'expo-router'
@@ -20,18 +21,7 @@ import Animated, {
 } from 'react-native-reanimated'
 import Toast from 'react-native-toast-message'
 
-// Color Palette
-const COLORS = {
-  background: '#181818',
-  surface: 'rgba(37, 37, 37, 0.6)',
-  surfaceSolid: '#252525',
-  glassBorder: 'rgba(255, 255, 255, 0.1)',
-  text: '#F7F7F7',
-  textMuted: 'rgba(247, 247, 247, 0.5)',
-  green: '#8bcf68ff',
-  greenGlow: '#beb348ff',
-  greenLight: '#48ad4d1a',
-}
+
 
 // Helper function to format relative time
 const getRelativeTime = (dateString: string): string => {
@@ -281,7 +271,7 @@ export default function NotificationsDropdown({
         <View className="mt-2">
           {notifications.length === 0 ? (
             <View className="py-4 items-center">
-              <Text className="text-xs" style={{ color: COLORS.textMuted }}>
+              <Text className="text-xs" style={{ color: COLORS.textSecondary }}>
                 No notifications
               </Text>
             </View>
@@ -298,15 +288,15 @@ export default function NotificationsDropdown({
                   activeOpacity={0.7}
                   className="px-3 py-2.5 rounded-lg mb-2"
                   style={{
-                    backgroundColor: !n.is_read ? COLORS.greenLight : COLORS.surface,
+                    backgroundColor: !n.is_read ? COLORS.primaryLight : COLORS.surface,
                     borderWidth: 1,
-                    borderColor: !n.is_read ? COLORS.green : COLORS.glassBorder,
+                    borderColor: !n.is_read ? COLORS.primary : COLORS.glassBorder,
                   }}
                 >
                   <Text 
                     className="text-xs mb-1"
                     style={{ 
-                      color: COLORS.text,
+                      color: COLORS.textPrimary,
                       fontWeight: !n.is_read ? '600' : '400'
                     }}
                   >
@@ -314,7 +304,7 @@ export default function NotificationsDropdown({
                   </Text>
                   <Text 
                     className="text-[10px] leading-4"
-                    style={{ color: COLORS.textMuted }}
+                    style={{ color: COLORS.textSecondary }}
                     numberOfLines={2}
                   >
                     {n.message}
@@ -322,7 +312,7 @@ export default function NotificationsDropdown({
                 </TouchableOpacity>
               ))}
               {notifications.length > 5 && (
-                <Text className="text-[10px] text-center mt-1" style={{ color: COLORS.textMuted }}>
+                <Text className="text-[10px] text-center mt-1" style={{ color: COLORS.textSecondary }}>
                   +{notifications.length - 5} more
                 </Text>
               )}
@@ -348,13 +338,13 @@ export default function NotificationsDropdown({
           className="relative p-2 rounded-full active:bg-white/10"
           onPress={() => setOpen(!open)}
         >
-          <Bell color={COLORS.text} size={24} />
+          <Bell color={COLORS.textPrimary} size={24} />
           {unreadCount > 0 && (
             <View 
               className="absolute -top-1 -right-1 w-5 h-5 rounded-full items-center justify-center"
               style={{ 
-                backgroundColor: COLORS.green,
-                shadowColor: COLORS.green,
+                backgroundColor: COLORS.primary,
+                shadowColor: COLORS.primary,
                 shadowOffset: { width: 0, height: 0 },
                 shadowOpacity: 0.5,
                 shadowRadius: 4,
@@ -387,7 +377,7 @@ export default function NotificationsDropdown({
                     style={[
                       animatedStyle,
                       { 
-                        backgroundColor: COLORS.surfaceSolid,
+                        backgroundColor: COLORS.surfaceElevated,
                         borderTopWidth: 1,
                         borderTopColor: COLORS.glassBorder,
                       }
@@ -410,12 +400,12 @@ export default function NotificationsDropdown({
                       >
                         {onBack && (
                           <TouchableOpacity onPress={onBack} className="p-1 mr-2">
-                            <ArrowLeft size={24} color={COLORS.textMuted} />
+                            <ArrowLeft size={24} color={COLORS.textSecondary} />
                           </TouchableOpacity>
                         )}
                         <Text 
                           className="font-semibold text-base tracking-wide flex-1"
-                          style={{ color: COLORS.green }}
+                          style={{ color: COLORS.primary }}
                         >
                           Notifications
                         </Text>
@@ -426,7 +416,7 @@ export default function NotificationsDropdown({
                         >
                           <Text 
                             className="text-xs font-medium"
-                            style={{ color: COLORS.textMuted }}
+                            style={{ color: COLORS.textSecondary }}
                           >
                             Mark all read
                           </Text>
@@ -436,8 +426,8 @@ export default function NotificationsDropdown({
                       {/* Notifications list */}
                       {notifications.length === 0 ? (
                         <View className="p-12 items-center">
-                          <Bell color={COLORS.textMuted} size={32} strokeWidth={1.5} />
-                          <Text className="text-sm mt-3" style={{ color: COLORS.textMuted }}>
+                          <Bell color={COLORS.textSecondary} size={32} strokeWidth={1.5} />
+                          <Text className="text-sm mt-3" style={{ color: COLORS.textSecondary }}>
                             No notifications
                           </Text>
                         </View>
@@ -454,15 +444,15 @@ export default function NotificationsDropdown({
                               activeOpacity={0.7}
                               className="px-4 py-3.5 rounded-xl mb-2"
                               style={{
-                                backgroundColor: !n.is_read ? COLORS.greenLight : COLORS.surface,
+                                backgroundColor: !n.is_read ? COLORS.primaryLight : COLORS.surface,
                                 borderWidth: 1,
-                                borderColor: !n.is_read ? COLORS.green : COLORS.glassBorder,
+                                borderColor: !n.is_read ? COLORS.primary : COLORS.glassBorder,
                               }}
                             >
                               <Text 
                                 className="text-sm mb-1"
                                 style={{ 
-                                  color: COLORS.text,
+                                  color: COLORS.textPrimary,
                                   fontWeight: !n.is_read ? '600' : '400'
                                 }}
                               >
@@ -470,13 +460,13 @@ export default function NotificationsDropdown({
                               </Text>
                               <Text 
                                 className="text-xs mb-2 leading-5"
-                                style={{ color: COLORS.textMuted }}
+                                style={{ color: COLORS.textSecondary }}
                               >
                                 {n.message}
                               </Text>
                               <Text 
                                 className="text-[10px]"
-                                style={{ color: COLORS.textMuted, opacity: 0.7 }}
+                                style={{ color: COLORS.textSecondary, opacity: 0.7 }}
                               >
                                 {getRelativeTime(n.created_at)}
                               </Text>
@@ -491,7 +481,7 @@ export default function NotificationsDropdown({
                             >
                               <Text 
                                 className="text-sm font-semibold"
-                                style={{ color: COLORS.green }}
+                                style={{ color: COLORS.primary }}
                               >
                                 See more
                               </Text>

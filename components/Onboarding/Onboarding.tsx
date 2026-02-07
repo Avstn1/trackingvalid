@@ -1,3 +1,4 @@
+import { COLORS } from '@/constants/design-system';
 import { supabase } from '@/utils/supabaseClient';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
@@ -17,16 +18,10 @@ import {
   View
 } from 'react-native';
 
-import Logout from '../Profile/Settings/Logout';
 
-// Color Palette matching the dashboard
-const COLORS = {
-  background: '#181818',
-  surface: 'rgba(37, 37, 37, 0.6)',
-  surfaceSolid: '#252525',
-  glassBorder: 'rgba(255, 255, 255, 0.1)',
-  text: '#F7F7F7',
-  textMuted: 'rgba(247, 247, 247, 0.5)',
+
+// Component-specific accent colors (not in design system)
+const ACCENT_COLORS = {
   orange: '#FF5722',
   orangeGlow: 'rgba(255, 87, 34, 0.4)',
 };
@@ -54,13 +49,13 @@ function EditableAvatar({ avatarUrl, fullName, onPress, size = 120 }) {
           width: size,
           height: size,
           borderRadius: size / 2,
-          backgroundColor: COLORS.surfaceSolid,
+          backgroundColor: COLORS.surfaceElevated,
           borderWidth: 3,
-          borderColor: COLORS.orange,
+          borderColor: ACCENT_COLORS.orange,
           justifyContent: 'center',
           alignItems: 'center',
           overflow: 'hidden',
-          shadowColor: COLORS.orange,
+          shadowColor: ACCENT_COLORS.orange,
           shadowOffset: { width: 0, height: 4 },
           shadowOpacity: 0.4,
           shadowRadius: 12,
@@ -78,7 +73,7 @@ function EditableAvatar({ avatarUrl, fullName, onPress, size = 120 }) {
             style={{
               fontSize: size / 3,
               fontWeight: 'bold',
-              color: COLORS.orange,
+              color: ACCENT_COLORS.orange,
             }}
           >
             {initials || '?'}
@@ -90,7 +85,7 @@ function EditableAvatar({ avatarUrl, fullName, onPress, size = 120 }) {
           position: 'absolute',
           bottom: 0,
           right: 0,
-          backgroundColor: COLORS.orange,
+          backgroundColor: ACCENT_COLORS.orange,
           width: size / 3.5,
           height: size / 3.5,
           borderRadius: size / 7,
@@ -100,7 +95,7 @@ function EditableAvatar({ avatarUrl, fullName, onPress, size = 120 }) {
           borderColor: COLORS.background,
         }}
       >
-        <Text style={{ color: COLORS.text, fontSize: size / 6 }}>✏️</Text>
+        <Text style={{ color: COLORS.textPrimary, fontSize: size / 6 }}>✏️</Text>
       </View>
     </TouchableOpacity>
   );
@@ -263,7 +258,7 @@ export default function OnboardingPage({ onComplete }) {
               style={{
                 fontSize: 32,
                 fontWeight: 'bold',
-                color: COLORS.orange,
+                color: ACCENT_COLORS.orange,
                 marginBottom: 32,
                 textAlign: 'center',
               }}
@@ -273,7 +268,7 @@ export default function OnboardingPage({ onComplete }) {
 
             <View
               style={{
-                backgroundColor: COLORS.surface,
+                backgroundColor: COLORS.surfaceGlass,
                 borderWidth: 1,
                 borderColor: COLORS.glassBorder,
                 padding: 32,
@@ -297,7 +292,7 @@ export default function OnboardingPage({ onComplete }) {
             <View style={{ width: '100%', marginBottom: 16 }}>
               <Text
                 style={{
-                  color: COLORS.text,
+                  color: COLORS.textPrimary,
                   fontWeight: '600',
                   marginBottom: 8,
                   fontSize: 16,
@@ -310,14 +305,14 @@ export default function OnboardingPage({ onComplete }) {
                   width: '100%',
                   padding: 12,
                   borderRadius: 12,
-                  backgroundColor: COLORS.surfaceSolid,
+                  backgroundColor: COLORS.surfaceElevated,
                   borderWidth: 1,
                   borderColor: COLORS.glassBorder,
-                  color: COLORS.text,
+                  color: COLORS.textPrimary,
                   fontSize: 16,
                 }}
                 placeholder="Enter your full name"
-                placeholderTextColor={COLORS.textMuted}
+                placeholderTextColor={COLORS.textSecondary}
                 value={fullName}
                 onChangeText={setFullName}
                 editable={!loading}
@@ -329,7 +324,7 @@ export default function OnboardingPage({ onComplete }) {
             <View style={{ width: '100%', marginBottom: 16 }}>
               <Text
                 style={{
-                  color: COLORS.text,
+                  color: COLORS.textPrimary,
                   fontWeight: '600',
                   marginBottom: 8,
                   fontSize: 16,
@@ -340,7 +335,7 @@ export default function OnboardingPage({ onComplete }) {
               <View
                 style={{
                   borderRadius: 12,
-                  backgroundColor: COLORS.surfaceSolid,
+                  backgroundColor: COLORS.surfaceElevated,
                   borderWidth: 1,
                   borderColor: COLORS.glassBorder,
                   overflow: 'hidden', // Prevents background from leaking
@@ -355,7 +350,7 @@ export default function OnboardingPage({ onComplete }) {
                       borderBottomColor: COLORS.glassBorder,
                       backgroundColor:
                         selectedRole.label === roleOption.label
-                          ? COLORS.orangeGlow
+                          ? ACCENT_COLORS.orangeGlow
                           : 'transparent',
                     }}
                     onPress={() => setSelectedRole(roleOption)}
@@ -365,8 +360,8 @@ export default function OnboardingPage({ onComplete }) {
                       style={{
                         color:
                           selectedRole.label === roleOption.label
-                            ? COLORS.orange
-                            : COLORS.text,
+                            ? ACCENT_COLORS.orange
+                            : COLORS.textPrimary,
                         fontSize: 16,
                         fontWeight:
                           selectedRole.label === roleOption.label ? '600' : '400',
@@ -392,14 +387,14 @@ export default function OnboardingPage({ onComplete }) {
                 <>
                   <Text
                     style={{
-                      color: COLORS.text,
+                      color: COLORS.textPrimary,
                       fontWeight: '600',
                       marginBottom: 8,
                       fontSize: 16,
                     }}
                   >
                     Commission Rate (%)
-                    <Text style={{ color: COLORS.textMuted, fontSize: 14 }}>
+                    <Text style={{ color: COLORS.textSecondary, fontSize: 14 }}>
                       {' '}
                       (1 to 100)
                     </Text>
@@ -409,14 +404,14 @@ export default function OnboardingPage({ onComplete }) {
                       width: '100%',
                       padding: 12,
                       borderRadius: 12,
-                      backgroundColor: COLORS.surfaceSolid,
+                      backgroundColor: COLORS.surfaceElevated,
                       borderWidth: 1,
                       borderColor: COLORS.glassBorder,
-                      color: COLORS.text,
+                      color: COLORS.textPrimary,
                       fontSize: 16,
                     }}
                     placeholder="Enter commission rate"
-                    placeholderTextColor={COLORS.textMuted}
+                    placeholderTextColor={COLORS.textSecondary}
                     value={commissionRate}
                     onChangeText={setCommissionRate}
                     keyboardType="numeric"
@@ -433,9 +428,9 @@ export default function OnboardingPage({ onComplete }) {
                 width: '100%',
                 padding: 16,
                 borderRadius: 12,
-                backgroundColor: loading ? COLORS.surfaceSolid : COLORS.orange,
+                backgroundColor: loading ? COLORS.surfaceElevated : ACCENT_COLORS.orange,
                 opacity: loading ? 0.5 : 1,
-                shadowColor: COLORS.orange,
+                shadowColor: ACCENT_COLORS.orange,
                 shadowOffset: { width: 0, height: 4 },
                 shadowOpacity: loading ? 0 : 0.4,
                 shadowRadius: 12,
@@ -445,11 +440,11 @@ export default function OnboardingPage({ onComplete }) {
               disabled={loading}
             >
               {loading ? (
-                <ActivityIndicator color={COLORS.text} />
+                <ActivityIndicator color={COLORS.textPrimary} />
               ) : (
                 <Text
                   style={{
-                    color: COLORS.text,
+                    color: COLORS.textPrimary,
                     fontWeight: 'bold',
                     textAlign: 'center',
                     fontSize: 16,
@@ -462,8 +457,33 @@ export default function OnboardingPage({ onComplete }) {
           </View>
 
           
-          <View style={{ paddingTop: 20 }}>
-            <Logout />
+          {/* Logout button */}
+          <View style={{ paddingTop: 20, alignItems: 'center' }}>
+            <TouchableOpacity
+              onPress={() => {
+                Alert.alert('Log Out', 'Are you sure you want to log out?', [
+                  { text: 'Cancel', style: 'cancel' },
+                  {
+                    text: 'Log Out',
+                    style: 'destructive',
+                    onPress: async () => {
+                      await supabase.auth.signOut({ scope: 'local' });
+                      router.replace('/login');
+                    },
+                  },
+                ]);
+              }}
+              style={{
+                backgroundColor: COLORS.negativeMuted,
+                paddingHorizontal: 24,
+                paddingVertical: 12,
+                borderRadius: 12,
+              }}
+            >
+              <Text style={{ color: COLORS.negative, fontWeight: '600' }}>
+                Log Out
+              </Text>
+            </TouchableOpacity>
           </View>
         </ScrollView>
       </View>

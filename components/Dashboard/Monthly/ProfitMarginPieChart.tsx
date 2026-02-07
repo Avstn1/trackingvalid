@@ -1,20 +1,10 @@
+import { COLORS } from '@/constants/design-system';
 import { supabase } from '@/utils/supabaseClient';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Dimensions, Text, TouchableOpacity, View } from 'react-native';
 import { PieChart } from 'react-native-gifted-charts';
 
-// Color Palette - matching yearly green theme
-const COLORS_PALETTE = {
-  background: '#181818',
-  surface: 'rgba(37, 37, 37, 0.6)',
-  glassBorder: 'rgba(255, 255, 255, 0.1)',
-  glassHighlight: 'rgba(255, 255, 255, 0.05)',
-  text: '#F7F7F7',
-  textMuted: 'rgba(247, 247, 247, 0.5)',
-  green: '#8bcf68ff',
-  greenLight: '#beb348ff',
-};
-
+// Original pastel colors
 const CHART_COLORS = [
   '#F6E27F', '#E7B7A3', '#A7C7E7', '#C6D8A8', '#9AD1C9',
   '#B7A0E3', '#F5D6C6', '#F7C9D2', '#C9E5D3', '#D6D6D6',
@@ -32,13 +22,13 @@ const CenterLabel = ({ totalAmount }: { totalAmount: number }) => (
   <View className="items-center justify-center">
     <Text 
       className="text-2xl font-bold"
-      style={{ color: COLORS_PALETTE.text }}
+      style={{ color: COLORS.textPrimary }}
     >
       ${totalAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })}
     </Text>
     <Text 
       className="text-sm"
-      style={{ color: COLORS_PALETTE.textMuted }}
+      style={{ color: COLORS.textSecondary }}
     >
       Total
     </Text>
@@ -114,16 +104,16 @@ export default function ProfitMarginPieChart({
       <View 
         className="rounded-xl overflow-hidden justify-center items-center"
         style={{
-          backgroundColor: COLORS_PALETTE.surface,
+          backgroundColor: COLORS.surfaceGlass,
           borderWidth: 1,
-          borderColor: COLORS_PALETTE.glassBorder,
+          borderColor: COLORS.glassBorder,
           padding: 16,
           marginHorizontal: -14,
           minHeight: 320,
         }}
       >
-        <ActivityIndicator color={COLORS_PALETTE.green} size="large" />
-        <Text className="mt-2 text-xs" style={{ color: COLORS_PALETTE.textMuted }}>
+        <ActivityIndicator color={COLORS.primary} size="large" />
+        <Text className="mt-2 text-xs" style={{ color: COLORS.textSecondary }}>
           Loading...
         </Text>
       </View>
@@ -135,15 +125,15 @@ export default function ProfitMarginPieChart({
       <View 
         className="rounded-xl overflow-hidden justify-center items-center"
         style={{
-          backgroundColor: COLORS_PALETTE.surface,
+          backgroundColor: COLORS.surfaceGlass,
           borderWidth: 1,
-          borderColor: COLORS_PALETTE.glassBorder,
+          borderColor: COLORS.glassBorder,
           padding: 16,
           marginHorizontal: -14,
           minHeight: 320,
         }}
       >
-        <Text className="text-sm" style={{ color: COLORS_PALETTE.textMuted }}>
+        <Text className="text-sm" style={{ color: COLORS.textSecondary }}>
           No data yet for {selectedMonth}
         </Text>
       </View>
@@ -166,9 +156,9 @@ export default function ProfitMarginPieChart({
     <View 
       className="rounded-xl overflow-hidden"
       style={{
-        backgroundColor: COLORS_PALETTE.surface,
+        backgroundColor: COLORS.surfaceGlass,
         borderWidth: 1,
-        borderColor: COLORS_PALETTE.glassBorder,
+        borderColor: COLORS.glassBorder,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.15,
         shadowRadius: 8,
@@ -187,13 +177,13 @@ export default function ProfitMarginPieChart({
           left: 0,
           right: 0,
           height: 1,
-          backgroundColor: COLORS_PALETTE.glassHighlight,
+          backgroundColor: COLORS.glassHighlight,
         }}
       />
 
       <Text 
         className="text-lg font-semibold mb-3"
-        style={{ color: COLORS_PALETTE.green }}
+        style={{ color: COLORS.primary }}
       >
         🥧 Profit vs Expenses
       </Text>
@@ -205,15 +195,15 @@ export default function ProfitMarginPieChart({
             data={data}
             radius={chartSize * 0.44}
             innerRadius={chartSize * 0.26}
-            innerCircleColor={COLORS_PALETTE.background}
+            innerCircleColor={COLORS.background}
             focusOnPress
             onPress={(item: { index: number }) => {
               setSelectedIndex(selectedIndex === item.index ? null : item.index);
             }}
-            textColor={COLORS_PALETTE.text}
+            textColor={COLORS.textPrimary}
             textSize={12}
             showText
-            textBackgroundColor={COLORS_PALETTE.background}
+            textBackgroundColor={COLORS.background}
             textBackgroundRadius={6}
             donut
             centerLabelComponent={() => <CenterLabel totalAmount={totalAmount} />}
@@ -259,7 +249,7 @@ export default function ProfitMarginPieChart({
                     className="text-sm font-medium" 
                     numberOfLines={1}
                     style={{ 
-                      color: isSelected ? COLORS_PALETTE.green : COLORS_PALETTE.text,
+                      color: isSelected ? COLORS.primary : COLORS.textPrimary,
                       fontWeight: isSelected ? '700' : '500',
                     }}
                   >
@@ -267,7 +257,7 @@ export default function ProfitMarginPieChart({
                   </Text>
                   <Text 
                     className="text-xs mt-1"
-                    style={{ color: COLORS_PALETTE.textMuted }}
+                    style={{ color: COLORS.textSecondary }}
                   >
                     {formatCurrency(item.value)} ({item.percentage}%)
                   </Text>

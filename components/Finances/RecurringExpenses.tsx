@@ -1,4 +1,5 @@
 // components/Finances/RecurringExpenses.tsx
+import { COLORS } from '@/constants/design-system';
 import { formatDateToYMD } from '@/utils/date';
 import { supabase } from '@/utils/supabaseClient';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -15,21 +16,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-
-// Color Palette
-const COLORS = {
-  background: '#181818',
-  cardBg: '#1a1a1a',
-  surface: 'rgba(37, 37, 37, 0.6)',
-  surfaceSolid: '#252525',
-  glassBorder: 'rgba(255, 255, 255, 0.1)',
-  glassHighlight: 'rgba(255, 255, 255, 0.05)',
-  text: '#F7F7F7',
-  textMuted: 'rgba(247, 247, 247, 0.5)',
-  green: '#8bcf68ff',
-  greenGlow: '#5b8f52ff',
-  red: '#dc2626',
-};
 
 interface RecurringExpensesProps {
   barberId: string;
@@ -201,16 +187,16 @@ export default function RecurringExpenses({
       <View className="gap-4">
         {/* Label Input */}
         <View>
-          <Text className="text-xs mb-2" style={{ color: COLORS.textMuted }}>Expense Label</Text>
+          <Text className="text-xs mb-2" style={{ color: COLORS.textSecondary }}>Expense Label</Text>
           <TextInput
             value={label}
             onChangeText={setLabel}
             placeholder="e.g., Rent, Insurance"
-            placeholderTextColor={COLORS.textMuted}
+            placeholderTextColor={COLORS.textSecondary}
             className="px-4 py-3 rounded-xl"
             style={{
-              backgroundColor: COLORS.surfaceSolid,
-              color: COLORS.text,
+              backgroundColor: COLORS.surfaceElevated,
+              color: COLORS.textPrimary,
               borderWidth: 1,
               borderColor: COLORS.glassBorder,
             }}
@@ -219,7 +205,7 @@ export default function RecurringExpenses({
 
         {/* Amount Input */}
         <View>
-          <Text className="text-xs mb-2" style={{ color: COLORS.textMuted }}>Amount</Text>
+          <Text className="text-xs mb-2" style={{ color: COLORS.textSecondary }}>Amount</Text>
           <TextInput
             value={amount}
             onChangeText={(text) => {
@@ -228,12 +214,12 @@ export default function RecurringExpenses({
               }
             }}
             placeholder="0.00"
-            placeholderTextColor={COLORS.textMuted}
+            placeholderTextColor={COLORS.textSecondary}
             keyboardType="decimal-pad"
             className="px-4 py-3 rounded-xl"
             style={{
-              backgroundColor: COLORS.surfaceSolid,
-              color: COLORS.text,
+              backgroundColor: COLORS.surfaceElevated,
+              color: COLORS.textPrimary,
               borderWidth: 1,
               borderColor: COLORS.glassBorder,
             }}
@@ -242,7 +228,7 @@ export default function RecurringExpenses({
 
         {/* Frequency */}
         <View>
-          <Text className="text-xs mb-2" style={{ color: COLORS.textMuted }}>Frequency</Text>
+          <Text className="text-xs mb-2" style={{ color: COLORS.textSecondary }}>Frequency</Text>
           <View className="flex-row flex-wrap gap-2">
             {(['once', 'weekly', 'monthly', 'yearly'] as Frequency[]).map((freq) => (
               <TouchableOpacity
@@ -250,14 +236,14 @@ export default function RecurringExpenses({
                 onPress={() => setFrequency(freq)}
                 className="px-4 py-2 rounded-lg"
                 style={{
-                  backgroundColor: frequency === freq ? COLORS.greenGlow : COLORS.surfaceSolid,
+                  backgroundColor: frequency === freq ? COLORS.primaryGlow : COLORS.surfaceElevated,
                   borderWidth: 1,
-                  borderColor: frequency === freq ? COLORS.green : COLORS.glassBorder,
+                  borderColor: frequency === freq ? COLORS.primary : COLORS.glassBorder,
                 }}
               >
                 <Text
                   className="font-semibold"
-                  style={{ color: frequency === freq ? COLORS.green : COLORS.textMuted }}
+                  style={{ color: frequency === freq ? COLORS.primary : COLORS.textSecondary }}
                 >
                   {freq.charAt(0).toUpperCase() + freq.slice(1)}
                 </Text>
@@ -269,7 +255,7 @@ export default function RecurringExpenses({
         {/* Weekly Days */}
         {frequency === 'weekly' && (
           <View>
-            <Text className="text-xs mb-2" style={{ color: COLORS.textMuted }}>Select Days</Text>
+            <Text className="text-xs mb-2" style={{ color: COLORS.textSecondary }}>Select Days</Text>
             <View className="flex-row flex-wrap gap-2">
               {DAYS.map((day) => (
                 <TouchableOpacity
@@ -277,14 +263,14 @@ export default function RecurringExpenses({
                   onPress={() => handleDayToggle(day)}
                   className="px-3 py-2 rounded-lg"
                   style={{
-                    backgroundColor: selectedDays.includes(day) ? COLORS.greenGlow : COLORS.surfaceSolid,
+                    backgroundColor: selectedDays.includes(day) ? COLORS.primaryGlow : COLORS.surfaceElevated,
                     borderWidth: 1,
-                    borderColor: selectedDays.includes(day) ? COLORS.green : COLORS.glassBorder,
+                    borderColor: selectedDays.includes(day) ? COLORS.primary : COLORS.glassBorder,
                   }}
                 >
                   <Text
                     className="text-xs font-semibold"
-                    style={{ color: selectedDays.includes(day) ? COLORS.green : COLORS.textMuted }}
+                    style={{ color: selectedDays.includes(day) ? COLORS.primary : COLORS.textSecondary }}
                   >
                     {day}
                   </Text>
@@ -297,7 +283,7 @@ export default function RecurringExpenses({
         {/* Monthly Day */}
         {frequency === 'monthly' && (
           <View>
-            <Text className="text-xs mb-2" style={{ color: COLORS.textMuted }}>Day of Month</Text>
+            <Text className="text-xs mb-2" style={{ color: COLORS.textSecondary }}>Day of Month</Text>
             <TextInput
               value={monthlyDay}
               onChangeText={(text) => {
@@ -309,12 +295,12 @@ export default function RecurringExpenses({
                 }
               }}
               placeholder="1-31"
-              placeholderTextColor={COLORS.textMuted}
+              placeholderTextColor={COLORS.textSecondary}
               keyboardType="number-pad"
               className="px-4 py-3 rounded-xl w-24"
               style={{
-                backgroundColor: COLORS.surfaceSolid,
-                color: COLORS.text,
+                backgroundColor: COLORS.surfaceElevated,
+                color: COLORS.textPrimary,
                 borderWidth: 1,
                 borderColor: COLORS.glassBorder,
               }}
@@ -326,7 +312,7 @@ export default function RecurringExpenses({
         {frequency === 'yearly' && (
           <View className="gap-3">
             <View>
-              <Text className="text-xs mb-2" style={{ color: COLORS.textMuted }}>Month</Text>
+              <Text className="text-xs mb-2" style={{ color: COLORS.textSecondary }}>Month</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 <View className="flex-row gap-2">
                   {MONTHS.map((m, idx) => (
@@ -335,14 +321,14 @@ export default function RecurringExpenses({
                       onPress={() => setYearlyMonth(idx)}
                       className="px-3 py-2 rounded-lg"
                       style={{
-                        backgroundColor: yearlyMonth === idx ? COLORS.greenGlow : COLORS.surfaceSolid,
+                        backgroundColor: yearlyMonth === idx ? COLORS.primaryGlow : COLORS.surfaceElevated,
                         borderWidth: 1,
-                        borderColor: yearlyMonth === idx ? COLORS.green : COLORS.glassBorder,
+                        borderColor: yearlyMonth === idx ? COLORS.primary : COLORS.glassBorder,
                       }}
                     >
                       <Text
                         className="text-xs font-semibold"
-                        style={{ color: yearlyMonth === idx ? COLORS.green : COLORS.textMuted }}
+                        style={{ color: yearlyMonth === idx ? COLORS.primary : COLORS.textSecondary }}
                       >
                         {m.slice(0, 3)}
                       </Text>
@@ -352,7 +338,7 @@ export default function RecurringExpenses({
               </ScrollView>
             </View>
             <View>
-              <Text className="text-xs mb-2" style={{ color: COLORS.textMuted }}>Day of Month</Text>
+              <Text className="text-xs mb-2" style={{ color: COLORS.textSecondary }}>Day of Month</Text>
               <TextInput
                 value={yearlyDay}
                 onChangeText={(text) => {
@@ -364,12 +350,12 @@ export default function RecurringExpenses({
                   }
                 }}
                 placeholder="1-31"
-                placeholderTextColor={COLORS.textMuted}
+                placeholderTextColor={COLORS.textSecondary}
                 keyboardType="number-pad"
                 className="px-4 py-3 rounded-xl w-24"
                 style={{
-                  backgroundColor: COLORS.surfaceSolid,
-                  color: COLORS.text,
+                  backgroundColor: COLORS.surfaceElevated,
+                  color: COLORS.textPrimary,
                   borderWidth: 1,
                   borderColor: COLORS.glassBorder,
                 }}
@@ -380,18 +366,18 @@ export default function RecurringExpenses({
 
         {/* Start Date */}
         <View>
-          <Text className="text-xs mb-2" style={{ color: COLORS.textMuted }}>Start Date</Text>
+          <Text className="text-xs mb-2" style={{ color: COLORS.textSecondary }}>Start Date</Text>
           <TouchableOpacity
             onPress={() => setShowStartPicker(true)}
             className="flex-row items-center gap-2 px-4 py-3 rounded-xl"
             style={{
-              backgroundColor: COLORS.surfaceSolid,
+              backgroundColor: COLORS.surfaceElevated,
               borderWidth: 1,
               borderColor: COLORS.glassBorder,
             }}
           >
-            <Calendar size={16} color={COLORS.green} />
-            <Text className="font-medium" style={{ color: COLORS.text }}>
+            <Calendar size={16} color={COLORS.primary} />
+            <Text className="font-medium" style={{ color: COLORS.textPrimary }}>
               {startDate.toLocaleDateString()}
             </Text>
           </TouchableOpacity>
@@ -399,18 +385,18 @@ export default function RecurringExpenses({
 
         {/* End Date */}
         <View>
-          <Text className="text-xs mb-2" style={{ color: COLORS.textMuted }}>End Date (Optional)</Text>
+          <Text className="text-xs mb-2" style={{ color: COLORS.textSecondary }}>End Date (Optional)</Text>
           <TouchableOpacity
             onPress={() => setShowEndPicker(true)}
             className="flex-row items-center gap-2 px-4 py-3 rounded-xl"
             style={{
-              backgroundColor: COLORS.surfaceSolid,
+              backgroundColor: COLORS.surfaceElevated,
               borderWidth: 1,
               borderColor: COLORS.glassBorder,
             }}
           >
-            <Calendar size={16} color={COLORS.green} />
-            <Text className="font-medium" style={{ color: COLORS.text }}>
+            <Calendar size={16} color={COLORS.primary} />
+            <Text className="font-medium" style={{ color: COLORS.textPrimary }}>
               {endDate ? endDate.toLocaleDateString() : 'Not set'}
             </Text>
           </TouchableOpacity>
@@ -422,9 +408,9 @@ export default function RecurringExpenses({
           disabled={loading}
           className="py-3 rounded-xl mt-2"
           style={{
-            backgroundColor: COLORS.green,
+            backgroundColor: COLORS.primary,
             opacity: loading ? 0.6 : 1,
-            shadowColor: COLORS.green,
+            shadowColor: COLORS.primary,
             shadowOffset: { width: 0, height: 0 },
             shadowOpacity: 0.4,
             shadowRadius: 12,
@@ -432,9 +418,9 @@ export default function RecurringExpenses({
           }}
         >
           {loading ? (
-            <ActivityIndicator color={COLORS.text} />
+            <ActivityIndicator color={COLORS.textPrimary} />
           ) : (
-            <Text className="text-center font-bold" style={{ color: COLORS.text }}>
+            <Text className="text-center font-bold" style={{ color: COLORS.textPrimary }}>
               Add Recurring Expense
             </Text>
           )}
@@ -452,7 +438,7 @@ export default function RecurringExpenses({
           <View 
             className="rounded-2xl p-6 w-[90%] max-w-md overflow-hidden"
             style={{
-              backgroundColor: COLORS.cardBg,
+              backgroundColor: COLORS.surface,
               borderWidth: 1,
               borderColor: COLORS.glassBorder,
             }}
@@ -467,13 +453,13 @@ export default function RecurringExpenses({
                 backgroundColor: COLORS.glassHighlight,
               }}
             />
-            <Text className="text-lg font-semibold mb-4 text-center" style={{ color: COLORS.text }}>
+            <Text className="text-lg font-semibold mb-4 text-center" style={{ color: COLORS.textPrimary }}>
               Select Start Date
             </Text>
             <View 
               className="rounded-xl overflow-hidden"
               style={{
-                backgroundColor: COLORS.surfaceSolid,
+                backgroundColor: COLORS.surfaceElevated,
                 borderWidth: 1,
                 borderColor: COLORS.glassBorder,
               }}
@@ -492,20 +478,20 @@ export default function RecurringExpenses({
                 onPress={() => setShowStartPicker(false)}
                 className="flex-1 py-3 rounded-full"
                 style={{
-                  backgroundColor: COLORS.surfaceSolid,
+                  backgroundColor: COLORS.surfaceElevated,
                   borderWidth: 1,
                   borderColor: COLORS.glassBorder,
                 }}
               >
-                <Text className="text-center font-semibold" style={{ color: COLORS.text }}>Cancel</Text>
+                <Text className="text-center font-semibold" style={{ color: COLORS.textPrimary }}>Cancel</Text>
               </TouchableOpacity>
               {Platform.OS === 'ios' && (
                 <TouchableOpacity
                   onPress={confirmStartDate}
                   className="flex-1 py-3 rounded-full"
-                  style={{ backgroundColor: COLORS.green }}
+                  style={{ backgroundColor: COLORS.primary }}
                 >
-                  <Text className="text-center font-semibold" style={{ color: COLORS.text }}>Done</Text>
+                  <Text className="text-center font-semibold" style={{ color: COLORS.textPrimary }}>Done</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -524,7 +510,7 @@ export default function RecurringExpenses({
           <View 
             className="rounded-2xl p-6 w-[90%] max-w-md overflow-hidden"
             style={{
-              backgroundColor: COLORS.cardBg,
+              backgroundColor: COLORS.surface,
               borderWidth: 1,
               borderColor: COLORS.glassBorder,
             }}
@@ -539,13 +525,13 @@ export default function RecurringExpenses({
                 backgroundColor: COLORS.glassHighlight,
               }}
             />
-            <Text className="text-lg font-semibold mb-4 text-center" style={{ color: COLORS.text }}>
+            <Text className="text-lg font-semibold mb-4 text-center" style={{ color: COLORS.textPrimary }}>
               Select End Date
             </Text>
             <View 
               className="rounded-xl overflow-hidden"
               style={{
-                backgroundColor: COLORS.surfaceSolid,
+                backgroundColor: COLORS.surfaceElevated,
                 borderWidth: 1,
                 borderColor: COLORS.glassBorder,
               }}
@@ -564,28 +550,28 @@ export default function RecurringExpenses({
               <TouchableOpacity
                 onPress={clearEndDate}
                 className="flex-1 py-3 rounded-full"
-                style={{ backgroundColor: COLORS.red }}
+                style={{ backgroundColor: COLORS.negative }}
               >
-                <Text className="text-center font-semibold" style={{ color: COLORS.text }}>Clear</Text>
+                <Text className="text-center font-semibold" style={{ color: COLORS.textPrimary }}>Clear</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => setShowEndPicker(false)}
                 className="flex-1 py-3 rounded-full"
                 style={{
-                  backgroundColor: COLORS.surfaceSolid,
+                  backgroundColor: COLORS.surfaceElevated,
                   borderWidth: 1,
                   borderColor: COLORS.glassBorder,
                 }}
               >
-                <Text className="text-center font-semibold" style={{ color: COLORS.text }}>Cancel</Text>
+                <Text className="text-center font-semibold" style={{ color: COLORS.textPrimary }}>Cancel</Text>
               </TouchableOpacity>
               {Platform.OS === 'ios' && (
                 <TouchableOpacity
                   onPress={confirmEndDate}
                   className="flex-1 py-3 rounded-full"
-                  style={{ backgroundColor: COLORS.green }}
+                  style={{ backgroundColor: COLORS.primary }}
                 >
-                  <Text className="text-center font-semibold" style={{ color: COLORS.text }}>Done</Text>
+                  <Text className="text-center font-semibold" style={{ color: COLORS.textPrimary }}>Done</Text>
                 </TouchableOpacity>
               )}
             </View>

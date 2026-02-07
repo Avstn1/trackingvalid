@@ -1,26 +1,8 @@
+import { COLORS } from '@/constants/design-system';
 import { X } from 'lucide-react-native';
 import React from 'react';
 import { Modal, Pressable, Text, TouchableOpacity, View } from 'react-native';
 import WebView from 'react-native-webview';
-
-// Color Palette
-const COLORS = {
-  background: '#181818',
-  cardBg: '#1a1a1a',
-  surface: 'rgba(37, 37, 37, 0.6)',
-  surfaceSolid: '#252525',
-  glassBorder: 'rgba(255, 255, 255, 0.1)',
-  glassHighlight: 'rgba(255, 255, 255, 0.05)',
-  text: '#F7F7F7',
-  textMuted: 'rgba(247, 247, 247, 0.5)',
-  orange: '#FF5722',
-  orangeGlow: 'rgba(255, 87, 34, 0.2)',
-  purple: '#673AB7',
-  yellow: '#FFEB3B',
-  green: '#8bcf68ff',
-  greenLight: '#beb348ff',
-  greenGlow: 'rgba(139, 207, 104, 0.2)',
-};
 
 interface Report {
   id: string;
@@ -224,10 +206,10 @@ export default function ReportViewerModal({
           onPress={(e) => {}}
           className="w-full max-w-4xl h-[90%] rounded-3xl overflow-hidden"
           style={{
-            backgroundColor: COLORS.cardBg,
+            backgroundColor: COLORS.surface,
             borderWidth: 1,
             borderColor: COLORS.glassBorder,
-            shadowColor: COLORS.green,
+            shadowColor: COLORS.primary,
             shadowOffset: { width: 0, height: 0 },
             shadowOpacity: 0.2,
             shadowRadius: 24,
@@ -247,7 +229,7 @@ export default function ReportViewerModal({
               <View className="flex-1 pr-4">
                 <Text 
                   className="text-xl font-bold" 
-                  style={{ color: COLORS.text }}
+                  style={{ color: COLORS.textPrimary }}
                   numberOfLines={2}
                 >
                   {getHeaderTitle()}
@@ -259,10 +241,10 @@ export default function ReportViewerModal({
                 style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
-                <X size={20} color={COLORS.text} />
+                <X size={20} color={COLORS.textPrimary} />
               </TouchableOpacity>
             </View>
-            <Text className="text-sm" style={{ color: COLORS.green }} numberOfLines={1}>
+            <Text className="text-sm" style={{ color: COLORS.primary }} numberOfLines={1}>
               {getSubtitle()}
             </Text>
           </View>
@@ -301,15 +283,15 @@ export default function ReportViewerModal({
               onPress={onClose}
               className="rounded-full px-4 py-3"
               style={{
-                backgroundColor: COLORS.green,
-                shadowColor: COLORS.green,
+                backgroundColor: COLORS.primary,
+                shadowColor: COLORS.primary,
                 shadowOffset: { width: 0, height: 0 },
                 shadowOpacity: 0.4,
                 shadowRadius: 12,
                 elevation: 5,
               }}
             >
-              <Text className="text-center font-semibold" style={{ color: COLORS.text }}>Close</Text>
+              <Text className="text-center font-semibold" style={{ color: COLORS.textPrimary }}>Close</Text>
             </TouchableOpacity>
           </View>
         </Pressable>

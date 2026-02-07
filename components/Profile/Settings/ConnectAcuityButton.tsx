@@ -1,4 +1,5 @@
 // components/Settings/ConnectAcuityButton.tsx
+import { COLORS } from '@/constants/design-system'
 import { supabase } from '@/utils/supabaseClient'
 import * as WebBrowser from 'expo-web-browser'
 import { useEffect, useState } from 'react'
@@ -8,20 +9,6 @@ interface ConnectAcuityButtonProps {
   onConnectSuccess?: () => void
   onDisconnect?: () => void  // ADD: New callback for disconnect
   apiBaseUrl: string
-}
-
-// Color Palette
-const COLORS = {
-  background: '#181818',
-  cardBg: '#1a1a1a',
-  surface: 'rgba(37, 37, 37, 0.6)',
-  surfaceSolid: '#252525',
-  glassBorder: 'rgba(255, 255, 255, 0.1)',
-  glassHighlight: 'rgba(255, 255, 255, 0.05)',
-  text: '#F7F7F7',
-  textMuted: 'rgba(247, 247, 247, 0.5)',
-  green: '#8bcf68ff',
-  greenGlow: '#5b8f52ff',
 }
 
 export default function ConnectAcuityButton({ onConnectSuccess, onDisconnect, apiBaseUrl }: ConnectAcuityButtonProps) {
@@ -151,13 +138,13 @@ export default function ConnectAcuityButton({ onConnectSuccess, onDisconnect, ap
         disabled
         className="py-3 rounded-xl flex-row items-center justify-center"
         style={{
-          backgroundColor: COLORS.surfaceSolid,
+          backgroundColor: COLORS.surfaceElevated,
           borderWidth: 1,
           borderColor: COLORS.glassBorder,
         }}
       >
-        <ActivityIndicator size="small" color={COLORS.green} />
-        <Text className="ml-2 text-base" style={{ color: COLORS.textMuted }}>
+        <ActivityIndicator size="small" color={COLORS.primary} />
+        <Text className="ml-2 text-base" style={{ color: COLORS.textSecondary }}>
           Loading...
         </Text>
       </TouchableOpacity>
@@ -169,7 +156,7 @@ export default function ConnectAcuityButton({ onConnectSuccess, onDisconnect, ap
       onPress={handleDisconnect}
       className="py-3 rounded-xl"
       style={{
-        backgroundColor: COLORS.surfaceSolid,
+        backgroundColor: COLORS.surfaceElevated,
         borderWidth: 1,
         borderColor: '#DC2626',
       }}
@@ -186,12 +173,12 @@ export default function ConnectAcuityButton({ onConnectSuccess, onDisconnect, ap
       onPress={handleConnect}
       className="py-3 rounded-xl"
       style={{
-        backgroundColor: COLORS.green,
+        backgroundColor: COLORS.primary,
       }}
     >
       <Text 
         className="text-center font-bold text-base"
-        style={{ color: COLORS.text }}
+        style={{ color: COLORS.textPrimary }}
       >
         Connect to Acuity
       </Text>

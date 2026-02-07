@@ -1,4 +1,5 @@
 // components/Settings/AcuityTab.tsx
+import { COLORS } from '@/constants/design-system';
 import { getFadeInDown, useReducedMotionPreference } from '@/utils/motion';
 import { supabase } from '@/utils/supabaseClient';
 import React, { useEffect, useState } from 'react';
@@ -13,20 +14,6 @@ import {
 } from 'react-native';
 import Animated from 'react-native-reanimated';
 import ConnectAcuityButton from './ConnectAcuityButton';
-
-// Color Palette
-const COLORS = {
-  background: '#181818',
-  cardBg: '#1a1a1a',
-  surface: 'rgba(37, 37, 37, 0.6)',
-  surfaceSolid: '#252525',
-  glassBorder: 'rgba(255, 255, 255, 0.1)',
-  glassHighlight: 'rgba(255, 255, 255, 0.05)',
-  text: '#F7F7F7',
-  textMuted: 'rgba(247, 247, 247, 0.5)',
-  green: '#8bcf68ff',
-  greenGlow: '#5b8f52ff',
-};
 
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -211,7 +198,7 @@ export default function AcuityTab() {
   if (loading) {
     return (
       <View className="flex-1 justify-center items-center py-20">
-        <ActivityIndicator size="large" color={COLORS.green} />
+        <ActivityIndicator size="large" color={COLORS.primary} />
       </View>
     );
   }
@@ -223,7 +210,7 @@ export default function AcuityTab() {
       showsVerticalScrollIndicator={false}
     >
       <View>
-        <Text className="text-xl font-bold mb-6" style={{ color: COLORS.text }}>
+        <Text className="text-xl font-bold mb-6" style={{ color: COLORS.textPrimary }}>
           Acuity Integration
         </Text>
 
@@ -238,7 +225,7 @@ export default function AcuityTab() {
 
         {/* Calendar Selection Row */}
         <View className="mb-4">
-        <Text className="text-base font-semibold mb-2" style={{ color: COLORS.textMuted }}>
+        <Text className="text-base font-semibold mb-2" style={{ color: COLORS.textSecondary }}>
           Calendar
         </Text>
           
@@ -246,12 +233,12 @@ export default function AcuityTab() {
             <View 
               className="rounded-xl p-4"
               style={{
-                backgroundColor: COLORS.surfaceSolid,
+                backgroundColor: COLORS.surfaceElevated,
                 borderWidth: 1,
                 borderColor: COLORS.glassBorder,
               }}
             >
-              <Text className="text-base" style={{ color: COLORS.textMuted }}>
+              <Text className="text-base" style={{ color: COLORS.textSecondary }}>
                 Acuity calendar not available. Make sure that your acuity account is connected.
               </Text>
             </View>
@@ -263,26 +250,26 @@ export default function AcuityTab() {
               }}
               className="flex-row items-center justify-between rounded-xl px-4 py-3"
               style={{
-                backgroundColor: COLORS.surfaceSolid,
+                backgroundColor: COLORS.surfaceElevated,
                 borderWidth: 1,
                 borderColor: COLORS.glassBorder,
               }}
             >
               <Text 
                 className="flex-1 text-base"
-                style={{ color: selectedCalendar ? COLORS.text : COLORS.textMuted }}
+                style={{ color: selectedCalendar ? COLORS.textPrimary : COLORS.textSecondary }}
                 numberOfLines={1}
               >
                 {selectedCalendar || 'Select a calendar to enable syncing'}
               </Text>
-              <Text style={{ color: COLORS.green, fontSize: 18 }}>▼</Text>
+              <Text style={{ color: COLORS.primary, fontSize: 18 }}>▼</Text>
             </TouchableOpacity>
           )}
         </View>
 
         {/* Year Selection Row */}
         <View className="mb-6">
-        <Text className="text-base font-semibold mb-2" style={{ color: COLORS.textMuted }}>
+        <Text className="text-base font-semibold mb-2" style={{ color: COLORS.textSecondary }}>
           Year
         </Text>
           
@@ -291,16 +278,16 @@ export default function AcuityTab() {
             disabled={!isConnected}
             className="flex-row items-center justify-between rounded-xl px-4 py-3"
             style={{
-              backgroundColor: COLORS.surfaceSolid,
+              backgroundColor: COLORS.surfaceElevated,
               borderWidth: 1,
               borderColor: COLORS.glassBorder,
               opacity: isConnected ? 1 : 0.5,
             }}
           >
-            <Text className="text-base" style={{ color: COLORS.text }}>
+            <Text className="text-base" style={{ color: COLORS.textPrimary }}>
               {year}
             </Text>
-            <Text style={{ color: COLORS.green, fontSize: 18 }}>▼</Text>
+            <Text style={{ color: COLORS.primary, fontSize: 18 }}>▼</Text>
           </TouchableOpacity>
         </View>
 
@@ -311,18 +298,18 @@ export default function AcuityTab() {
             disabled={syncingAppointments || !isConnected || !selectedCalendar}
             className="py-3 rounded-xl"
             style={{
-              backgroundColor: COLORS.surfaceSolid,
+              backgroundColor: COLORS.surfaceElevated,
               borderWidth: 1,
-              borderColor: syncingAppointments || !isConnected || !selectedCalendar ? COLORS.glassBorder : COLORS.green,
+              borderColor: syncingAppointments || !isConnected || !selectedCalendar ? COLORS.glassBorder : COLORS.primary,
               opacity: syncingAppointments || !isConnected || !selectedCalendar ? 0.5 : 1,
             }}
           >
             {syncingAppointments ? (
-              <ActivityIndicator color={COLORS.green} />
+              <ActivityIndicator color={COLORS.primary} />
             ) : (
               <Text 
                 className="text-center text-base font-semibold"
-                style={{ color: COLORS.green }}
+                style={{ color: COLORS.primary }}
               >
                 Sync All Appointments and Clients for {year}
               </Text>
@@ -342,7 +329,7 @@ export default function AcuityTab() {
           <View 
             className="rounded-2xl w-full max-w-sm overflow-hidden"
             style={{
-              backgroundColor: COLORS.cardBg,
+              backgroundColor: COLORS.surface,
               borderWidth: 1,
               borderColor: COLORS.glassBorder,
             }}
@@ -355,7 +342,7 @@ export default function AcuityTab() {
                 borderBottomColor: COLORS.glassBorder,
               }}
             >
-              <Text className="text-lg font-bold text-center" style={{ color: COLORS.text }}>
+              <Text className="text-lg font-bold text-center" style={{ color: COLORS.textPrimary }}>
                 Select Calendar
               </Text>
             </View>
@@ -364,7 +351,7 @@ export default function AcuityTab() {
             <ScrollView style={{ maxHeight: 300 }}>
               {calendars.length === 0 ? (
                 <View className="p-4">
-                  <Text className="text-center" style={{ color: COLORS.textMuted }}>
+                  <Text className="text-center" style={{ color: COLORS.textSecondary }}>
                     No calendars found. Connect to Acuity first.
                   </Text>
                 </View>
@@ -375,19 +362,19 @@ export default function AcuityTab() {
                     onPress={() => setTempCalendar(cal.name)}
                     className="flex-row items-center justify-between px-4 py-3"
                     style={{
-                      backgroundColor: tempCalendar === cal.name ? COLORS.greenGlow : 'transparent',
+                      backgroundColor: tempCalendar === cal.name ? COLORS.primaryGlow : 'transparent',
                       borderBottomWidth: 1,
                       borderBottomColor: COLORS.glassBorder,
                     }}
                   >
                     <Text 
                       className="text-base"
-                      style={{ color: tempCalendar === cal.name ? COLORS.green : COLORS.text }}
+                      style={{ color: tempCalendar === cal.name ? COLORS.primary : COLORS.textPrimary }}
                     >
                       {cal.name}
                     </Text>
                     {tempCalendar === cal.name && (
-                      <Text style={{ color: COLORS.green }}>✓</Text>
+                      <Text style={{ color: COLORS.primary }}>✓</Text>
                     )}
                   </TouchableOpacity>
                 ))
@@ -406,12 +393,12 @@ export default function AcuityTab() {
                 onPress={() => setShowCalendarModal(false)}
                 className="flex-1 py-3 rounded-full"
                 style={{
-                  backgroundColor: COLORS.surfaceSolid,
+                  backgroundColor: COLORS.surfaceElevated,
                   borderWidth: 1,
                   borderColor: COLORS.glassBorder,
                 }}
               >
-                <Text className="text-center font-semibold" style={{ color: COLORS.text }}>
+                <Text className="text-center font-semibold" style={{ color: COLORS.textPrimary }}>
                   Cancel
                 </Text>
               </TouchableOpacity>
@@ -420,11 +407,11 @@ export default function AcuityTab() {
                 disabled={!tempCalendar}
                 className="flex-1 py-3 rounded-full"
                 style={{
-                  backgroundColor: tempCalendar ? COLORS.green : COLORS.surfaceSolid,
+                  backgroundColor: tempCalendar ? COLORS.primary : COLORS.surfaceElevated,
                   opacity: tempCalendar ? 1 : 0.5,
                 }}
               >
-                <Text className="text-center font-bold" style={{ color: COLORS.text }}>
+                <Text className="text-center font-bold" style={{ color: COLORS.textPrimary }}>
                   Save
                 </Text>
               </TouchableOpacity>
@@ -444,7 +431,7 @@ export default function AcuityTab() {
           <View 
             className="rounded-2xl w-full max-w-sm overflow-hidden"
             style={{
-              backgroundColor: COLORS.cardBg,
+              backgroundColor: COLORS.surface,
               borderWidth: 1,
               borderColor: COLORS.glassBorder,
             }}
@@ -457,7 +444,7 @@ export default function AcuityTab() {
                 borderBottomColor: COLORS.glassBorder,
               }}
             >
-              <Text className="text-lg font-bold text-center" style={{ color: COLORS.text }}>
+              <Text className="text-lg font-bold text-center" style={{ color: COLORS.textPrimary }}>
                 Select Year
               </Text>
             </View>
@@ -473,19 +460,19 @@ export default function AcuityTab() {
                   }}
                   className="flex-row items-center justify-between px-4 py-4"
                   style={{
-                    backgroundColor: year === y ? COLORS.greenGlow : 'transparent',
+                    backgroundColor: year === y ? COLORS.primaryGlow : 'transparent',
                     borderBottomWidth: 1,
                     borderBottomColor: COLORS.glassBorder,
                   }}
                 >
                   <Text 
                     className="text-lg font-semibold"
-                    style={{ color: year === y ? COLORS.green : COLORS.text }}
+                    style={{ color: year === y ? COLORS.primary : COLORS.textPrimary }}
                   >
                     {y}
                   </Text>
                   {year === y && (
-                    <Text style={{ color: COLORS.green }}>✓</Text>
+                    <Text style={{ color: COLORS.primary }}>✓</Text>
                   )}
                 </TouchableOpacity>
               ))}
@@ -497,12 +484,12 @@ export default function AcuityTab() {
                 onPress={() => setShowYearModal(false)}
                 className="py-3 rounded-full"
                 style={{
-                  backgroundColor: COLORS.surfaceSolid,
+                  backgroundColor: COLORS.surfaceElevated,
                   borderWidth: 1,
                   borderColor: COLORS.glassBorder,
                 }}
               >
-                <Text className="text-center font-semibold" style={{ color: COLORS.text }}>
+                <Text className="text-center font-semibold" style={{ color: COLORS.textPrimary }}>
                   Close
                 </Text>
               </TouchableOpacity>

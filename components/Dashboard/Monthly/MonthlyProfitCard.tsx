@@ -1,23 +1,10 @@
+import { COLORS } from '@/constants/design-system';
 import { useCountUp, useReducedMotionPreference } from '@/utils/motion';
 import { supabase } from '@/utils/supabaseClient';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
-
-// Color Palette
-const COLORS = {
-  background: '#181818',
-  surface: 'rgba(37, 37, 37, 0.6)',
-  glassBorder: 'rgba(255, 255, 255, 0.1)',
-  glassHighlight: 'rgba(255, 255, 255, 0.05)',
-  text: '#F7F7F7',
-  textMuted: 'rgba(247, 247, 247, 0.5)',
-  orange: '#55694b',
-  orangeGlow: '#2f3a2d',
-  purple: '#673AB7',
-  yellow: '#FFEB3B',
-};
 
 interface MonthlyProfitCardProps {
   userId: string;
@@ -174,12 +161,12 @@ export default function MonthlyProfitCard({
 
       <View className="min-h-[40px] justify-center">
         {loading ? (
-          <ActivityIndicator color={COLORS.orange} size="small" />
+          <ActivityIndicator color={COLORS.primary} size="small" />
         ) : (
           <View className="flex-row items-baseline gap-2">
             <Text 
               className="text-xl font-bold" 
-              style={{ color: COLORS.text }}
+              style={{ color: COLORS.textPrimary }}
               numberOfLines={1} 
               adjustsFontSizeToFit
             >
@@ -189,7 +176,7 @@ export default function MonthlyProfitCard({
             {change !== null && (
               <Text
                 className="text-xs font-semibold"
-                style={{ color: change > 0 ? '#4ade80' : change < 0 ? '#f87171' : COLORS.textMuted }}
+                style={{ color: change > 0 ? COLORS.positive : change < 0 ? COLORS.negative : COLORS.textSecondary }}
               >
                 ({change > 0 ? '+' : ''}{change.toFixed(1)}%)
               </Text>

@@ -1,29 +1,32 @@
+/**
+ * CustomSplash - Clean, simple loading animation
+ * 
+ * Based on the original login.tsx AuthLoadingSplash that looked good.
+ * Logo + "orva" gradient text + spinner. No fancy glow effects.
+ */
+
+import { COLORS } from '@/constants/design-system';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef } from 'react';
-import { Animated, Image, Text, View } from 'react-native';
-
-const COLORS = {
-  background: '#181818',
-  text: '#FFFFFF',
-  green: '#8bcf68ff',
-};
+import { ActivityIndicator, Animated, Image, StyleSheet, Text, View } from 'react-native';
 
 interface CustomSplashProps {
   onFinish: () => void;
+  isReady?: boolean;
 }
 
-export default function CustomSplash({ onFinish }: CustomSplashProps) {
+export default function CustomSplash({ onFinish, isReady = false }: CustomSplashProps) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
-  const underlineAnim = useRef(new Animated.Value(0)).current;
+  const hasFinished = useRef(false);
 
+  // Entrance animation
   useEffect(() => {
-    // Initial animations
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 800,
+        duration: 600,
         useNativeDriver: true,
       }),
       Animated.spring(scaleAnim, {
@@ -32,65 +35,49 @@ export default function CustomSplash({ onFinish }: CustomSplashProps) {
         friction: 7,
         useNativeDriver: true,
       }),
-    ]).start(() => {
-      // Animate underline
-      Animated.timing(underlineAnim, {
-        toValue: 1,
-        duration: 400,
-        useNativeDriver: true,
-      }).start(() => {
-        // Wait a moment, then fade out
-        setTimeout(() => {
-          Animated.timing(fadeAnim, {
-            toValue: 0,
-            duration: 500,
-            useNativeDriver: true,
-          }).start(() => onFinish());
-        }, 800);
-      });
-    });
+    ]).start();
   }, []);
 
+  // Exit when ready
+  useEffect(() => {
+    if (isReady && !hasFinished.current) {
+      hasFinished.current = true;
+      
+      // Small delay then fade out
+      setTimeout(() => {
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }).start(() => {
+          onFinish();
+        });
+      }, 300);
+    }
+  }, [isReady]);
+
   return (
-    <View 
-      style={{ 
-        flex: 1, 
-        backgroundColor: COLORS.background, 
-        justifyContent: 'center', 
-        alignItems: 'center' 
-      }}
-    >
+    <View style={styles.container}>
       <Animated.View 
-        style={{ 
-          opacity: fadeAnim,
-          transform: [{ scale: scaleAnim }],
-          alignItems: 'center',
-        }}
+        style={[
+          styles.content,
+          { 
+            opacity: fadeAnim,
+            transform: [{ scale: scaleAnim }],
+          }
+        ]}
       >
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
+        {/* Logo Row */}
+        <View style={styles.logoRow}>
           <Image
             source={require('@/assets/images/corvalogoTransparent.png')}
-            style={{
-              width: 48,
-              height: 48,
-              marginRight: -3, 
-            }}
+            style={styles.logo}
             resizeMode="contain"
           />
 
           <MaskedView
             maskElement={
-              <Text
-                style={{
-                  fontSize: 36,
-                  fontWeight: 'bold',
-                  letterSpacing: -0.5,
-                  marginTop: 3,
-                  backgroundColor: 'transparent',
-                }}
-              >
-                orva
-              </Text>
+              <Text style={styles.brandText}>orva</Text>
             }
           >
             <LinearGradient
@@ -98,40 +85,45 @@ export default function CustomSplash({ onFinish }: CustomSplashProps) {
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
             >
-              {/* This text only exists to size the gradient */}
-              <Text
-                style={{
-                  fontSize: 36,
-                  fontWeight: 'bold',
-                  letterSpacing: -0.5,
-                  marginTop: 3,
-                  opacity: 0,
-                }}
-              >
-                orva
-              </Text>
+              <Text style={[styles.brandText, { opacity: 0 }]}>orva</Text>
             </LinearGradient>
           </MaskedView>
         </View>
 
-        <Animated.View
-          style={{
-            height: 4,
-            width: 60,
-            backgroundColor: COLORS.green,
-            borderRadius: 2,
-            marginTop: 12,
-            opacity: underlineAnim,
-            transform: [{
-              scaleX: underlineAnim,
-            }],
-            shadowColor: COLORS.green,
-            shadowOffset: { width: 0, height: 0 },
-            shadowOpacity: 0.8,
-            shadowRadius: 8,
-          }}
-        />
+        <ActivityIndicator size="large" color={COLORS.primary} style={styles.spinner} />
       </Animated.View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  content: {
+    alignItems: 'center',
+  },
+  logoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  logo: {
+    width: 48,
+    height: 48,
+    marginRight: -3,
+  },
+  brandText: {
+    fontSize: 36,
+    fontWeight: 'bold',
+    letterSpacing: -0.5,
+    marginTop: 3,
+    backgroundColor: 'transparent',
+  },
+  spinner: {
+    marginTop: 4,
+  },
+});

@@ -1,3 +1,4 @@
+import { COLORS } from '@/constants/design-system';
 import { getFadeInDown, useReducedMotionPreference } from '@/utils/motion';
 import React, { useState } from 'react';
 import {
@@ -9,14 +10,8 @@ import {
 } from 'react-native';
 import Animated from 'react-native-reanimated';
 
-// Match the palette you use in Profile/Settings
-const COLORS = {
-  background: '#181818',
-  surface: 'rgba(37, 37, 37, 0.6)',
-  surfaceSolid: '#252525',
-  glassBorder: 'rgba(255, 255, 255, 0.1)',
-  text: '#F7F7F7',
-  textMuted: 'rgba(247, 247, 247, 0.6)',
+// Component-specific accent colors not in design system
+const ACCENT_COLORS = {
   textSubtle: 'rgba(247, 247, 247, 0.45)',
   green: '#b9ff3b',
   greenSoft: '#8bcf68ff',
@@ -72,7 +67,7 @@ export default function Billing() {
       {/* Section heading */}
       <Text
         className="text-lg font-bold mb-3"
-        style={{ color: COLORS.text }}
+        style={{ color: COLORS.textPrimary }}
       >
         Billing
       </Text>
@@ -81,21 +76,21 @@ export default function Billing() {
       <View
         className="rounded-2xl mb-3 px-4 py-3"
         style={{
-          backgroundColor: COLORS.surfaceSolid,
+          backgroundColor: COLORS.surfaceElevated,
           borderWidth: 1,
           borderColor: COLORS.glassBorder,
         }}
       >
         <Text
           className="text-sm font-semibold mb-1"
-          style={{ color: COLORS.textSubtle, textTransform: 'uppercase' }}
+          style={{ color: ACCENT_COLORS.textSubtle, textTransform: 'uppercase' }}
         >
           Current plan
         </Text>
 
         <Text
           className="text-base font-semibold"
-          style={{ color: COLORS.text }}
+          style={{ color: COLORS.textPrimary }}
         >
           {hasSubscription ? 'Corva Pro' : 'No active subscription'}
         </Text>
@@ -103,7 +98,7 @@ export default function Billing() {
         {hasSubscription && (
           <Text
             className="text-sm mt-1"
-            style={{ color: COLORS.textMuted }}
+            style={{ color: COLORS.textSecondary }}
           >
             1 active subscription
           </Text>
@@ -114,14 +109,14 @@ export default function Billing() {
       <View
         className="rounded-2xl mb-3 px-4 py-3"
         style={{
-          backgroundColor: COLORS.surfaceSolid,
+          backgroundColor: COLORS.surfaceElevated,
           borderWidth: 1,
           borderColor: COLORS.glassBorder,
         }}
       >
         <Text
           className="text-sm font-semibold mb-1"
-          style={{ color: COLORS.textSubtle, textTransform: 'uppercase' }}
+          style={{ color: ACCENT_COLORS.textSubtle, textTransform: 'uppercase' }}
         >
           Payment
         </Text>
@@ -129,7 +124,7 @@ export default function Billing() {
         {!hasSubscription ? (
             <Text
               className="text-base"
-              style={{ color: COLORS.textMuted }}
+              style={{ color: COLORS.textSecondary }}
             >
               You don't have an active subscription right now.
             </Text>
@@ -137,14 +132,14 @@ export default function Billing() {
           <>
             <Text
               className="text-base"
-              style={{ color: COLORS.textMuted }}
+              style={{ color: COLORS.textSecondary }}
             >
               {cancelAtPeriodEnd
                 ? 'Your plan will end on '
                 : 'Your plan will automatically renew on '}
               <Text
                 className="font-semibold"
-                style={{ color: COLORS.text }}
+                style={{ color: COLORS.textPrimary }}
               >
                 {renewDateText || 'the current period end date'}
               </Text>
@@ -155,12 +150,12 @@ export default function Billing() {
 
             <Text
               className="text-base mt-1.5"
-              style={{ color: COLORS.textMuted }}
+              style={{ color: COLORS.textSecondary }}
             >
               You&apos;ll be charged{' '}
               <Text
                 className="font-semibold"
-                style={{ color: COLORS.text }}
+                style={{ color: COLORS.textPrimary }}
               >
                 {amountText || 'the plan price'}
               </Text>{' '}
@@ -182,13 +177,13 @@ export default function Billing() {
         <View className="mb-3">
           <Text
             className="text-base font-semibold mb-1"
-            style={{ color: COLORS.text }}
+            style={{ color: COLORS.textPrimary }}
           >
             Manage subscription
           </Text>
           <Text
             className="text-sm"
-            style={{ color: COLORS.textMuted }}
+            style={{ color: COLORS.textSecondary }}
           >
             {!cancelAtPeriodEnd
               ? 'You can cancel your subscription at any time. Access will remain until the end of your current billing period.'
@@ -202,10 +197,10 @@ export default function Billing() {
           className="flex-row items-center justify-center rounded-full py-2.5"
           style={{
             backgroundColor: cancelAtPeriodEnd
-              ? COLORS.green
-              : COLORS.danger,
+              ? ACCENT_COLORS.green
+              : ACCENT_COLORS.danger,
             opacity: hasSubscription ? 1 : 0.5,
-            shadowColor: cancelAtPeriodEnd ? COLORS.greenSoft : COLORS.dangerSoft,
+            shadowColor: cancelAtPeriodEnd ? ACCENT_COLORS.greenSoft : ACCENT_COLORS.dangerSoft,
             shadowOffset: { width: 0, height: 2 },
             shadowOpacity: 0.35,
             shadowRadius: 6,
@@ -215,13 +210,13 @@ export default function Billing() {
           {loadingAction && (
             <ActivityIndicator
               size="small"
-              color={COLORS.black}
+              color={ACCENT_COLORS.black}
               style={{ marginRight: 6 }}
             />
           )}
           <Text
             className="text-base font-semibold"
-            style={{ color: COLORS.black }}
+            style={{ color: ACCENT_COLORS.black }}
           >
             {loadingAction
               ? 'Processing…'
@@ -233,7 +228,7 @@ export default function Billing() {
 
         <Text
           className="text-sm mt-2"
-          style={{ color: COLORS.textSubtle }}
+          style={{ color: ACCENT_COLORS.textSubtle }}
         >
           You can&apos;t change plans in the app yet. We know it&apos;s not
           ideal.
@@ -298,20 +293,20 @@ function ConfirmationModal({
           className="w-full rounded-2xl px-4 py-4"
           style={{
             maxWidth: 420,
-            backgroundColor: COLORS.surfaceSolid,
+            backgroundColor: COLORS.surfaceElevated,
             borderWidth: 1,
             borderColor: COLORS.glassBorder,
           }}
         >
           <Text
             className="text-base font-semibold mb-1"
-            style={{ color: COLORS.text }}
+            style={{ color: COLORS.textPrimary }}
           >
             {title}
           </Text>
           <Text
             className="text-base mb-4"
-            style={{ color: COLORS.textMuted }}
+            style={{ color: COLORS.textSecondary }}
           >
             {description}
           </Text>
@@ -328,7 +323,7 @@ function ConfirmationModal({
             >
               <Text
                 className="text-base"
-                style={{ color: COLORS.text }}
+                style={{ color: COLORS.textPrimary }}
               >
                 Never mind
               </Text>
@@ -339,19 +334,19 @@ function ConfirmationModal({
               onPress={onConfirm}
               className="flex-row items-center px-4 py-2 rounded-full"
               style={{
-                backgroundColor: COLORS.green,
+                backgroundColor: ACCENT_COLORS.green,
               }}
             >
               {loading && (
                 <ActivityIndicator
                   size="small"
-                  color={COLORS.black}
+                  color={ACCENT_COLORS.black}
                   style={{ marginRight: 6 }}
                 />
               )}
               <Text
                 className="text-base font-semibold"
-                style={{ color: COLORS.black }}
+                style={{ color: ACCENT_COLORS.black }}
               >
                 {confirmText}
               </Text>

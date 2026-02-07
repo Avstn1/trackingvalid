@@ -1,3 +1,4 @@
+import { COLORS } from '@/constants/design-system';
 import { X } from 'lucide-react-native';
 import React, { useState } from 'react';
 import {
@@ -48,10 +49,8 @@ interface ClientSheetsFilterModalProps {
   minYear: number;
 }
 
-const COLORS = {
-  background: '#1f1f1f',
-  surface: 'rgba(37, 37, 37, 0.6)',
-  glassBorder: 'rgba(255, 255, 255, 0.1)',
+// Component-specific accent colors
+const ACCENT_COLORS = {
   input: '#0d0f0d',
   lime: '#bef264',
 };
@@ -177,7 +176,7 @@ export default function ClientSheetsFilterModal({
             placeholderTextColor="#555"
             className="px-4 py-3 rounded-xl border text-white text-base"
             style={{
-              backgroundColor: COLORS.input,
+              backgroundColor: ACCENT_COLORS.input,
               borderColor: COLORS.glassBorder,
             }}
             autoCapitalize="none"
@@ -210,7 +209,7 @@ export default function ClientSheetsFilterModal({
                 onPress={() => handleApplyFilter(type, month.value.toString())}
                 className="py-3 px-4 rounded-xl mb-2"
                 style={{
-                  backgroundColor: COLORS.surface,
+                  backgroundColor: COLORS.surfaceGlass,
                   borderWidth: 1,
                   borderColor: COLORS.glassBorder,
                 }}
@@ -239,7 +238,7 @@ export default function ClientSheetsFilterModal({
                 onPress={() => handleApplyFilter(type, year.toString())}
                 className="py-3 px-4 rounded-xl mb-2"
                 style={{
-                  backgroundColor: COLORS.surface,
+                  backgroundColor: COLORS.surfaceGlass,
                   borderWidth: 1,
                   borderColor: COLORS.glassBorder,
                 }}
@@ -263,7 +262,7 @@ export default function ClientSheetsFilterModal({
               onPress={() => handleApplyFilter(type, vType.value)}
               className="py-3 px-4 rounded-xl mb-2"
               style={{
-                backgroundColor: COLORS.surface,
+                backgroundColor: COLORS.surfaceGlass,
                 borderWidth: 1,
                 borderColor: COLORS.glassBorder,
               }}
@@ -288,7 +287,7 @@ export default function ClientSheetsFilterModal({
               }
               className="py-3 px-4 rounded-xl mb-2"
               style={{
-                backgroundColor: COLORS.surface,
+                backgroundColor: COLORS.surfaceGlass,
                 borderWidth: 1,
                 borderColor: COLORS.glassBorder,
               }}
@@ -319,7 +318,7 @@ export default function ClientSheetsFilterModal({
           <View
             className="flex-1 rounded-t-3xl p-6"
             style={{
-              backgroundColor: COLORS.background,
+              backgroundColor: COLORS.surface,
               borderTopWidth: 1,
               borderColor: COLORS.glassBorder,
             }}
@@ -353,7 +352,7 @@ export default function ClientSheetsFilterModal({
                       backgroundColor:
                         selectedType === option.value
                           ? 'rgba(190, 242, 100, 0.2)'
-                          : COLORS.surface,
+                          : COLORS.surfaceGlass,
                       borderWidth: 1,
                       borderColor:
                         selectedType === option.value
@@ -364,7 +363,7 @@ export default function ClientSheetsFilterModal({
                     <Text
                       className="text-sm font-medium"
                       style={{
-                        color: selectedType === option.value ? COLORS.lime : '#fff',
+                        color: selectedType === option.value ? ACCENT_COLORS.lime : '#fff',
                       }}
                     >
                       {option.label}

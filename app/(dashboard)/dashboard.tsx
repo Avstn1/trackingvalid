@@ -1,6 +1,7 @@
 // app/(dashboard)/dashboard.tsx
 import AuthLoadingSplash from '@/components/AuthLoadingSpash';
 import Onboarding from '@/components/Onboarding/Onboarding';
+import { COLORS } from '@/constants/design-system';
 import { supabase } from "@/utils/supabaseClient";
 import { useFocusAnimation, useReducedMotionPreference } from '@/utils/motion';
 import * as Device from 'expo-device';
@@ -23,18 +24,10 @@ import { CustomHeader } from '@/components/Header/CustomHeader';
 
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 
-// Color Palette
-const COLORS = {
-  background: '#181818',
-  surface: 'rgba(37, 37, 37, 0.6)',
-  surfaceSolid: '#252525',
-  glassBorder: 'rgba(255, 255, 255, 0.1)',
-  glassHighlight: 'rgba(255, 255, 255, 0.05)',
-  text: '#F7F7F7',
-  textMuted: 'rgba(247, 247, 247, 0.5)',
+// Component-specific accent colors
+const ACCENT_COLORS = {
   orange: '#2f3a2d',
   orangeGlow: '#55694b',
-  yellow: '#FFEB3B',
 };
 
 const MONTHS = [
@@ -341,7 +334,7 @@ export default function DashboardPage() {
           className="flex-1 px-4"
           contentContainerStyle={{ paddingBottom: 80 }}
           refreshControl={
-            <RefreshControl refreshing={isRefreshing} onRefresh={syncAcuityData} tintColor={COLORS.orange} />
+            <RefreshControl refreshing={isRefreshing} onRefresh={syncAcuityData} tintColor={ACCENT_COLORS.orange} />
           }
         >
           {/* HEADER */}

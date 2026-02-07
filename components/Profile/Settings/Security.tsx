@@ -1,4 +1,5 @@
 // components/Settings/SecuritySection.tsx
+import { COLORS, SPACING } from '@/constants/design-system';
 import { getFadeInDown, useReducedMotionPreference } from '@/utils/motion';
 import { supabase } from '@/utils/supabaseClient';
 import * as Device from 'expo-device';
@@ -6,22 +7,6 @@ import { Clock, MapPin, Monitor, Smartphone } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import Animated from 'react-native-reanimated';
-
-// Color Palette
-const COLORS = {
-  background: '#181818',
-  cardBg: '#1a1a1a',
-  surface: 'rgba(37, 37, 37, 0.6)',
-  surfaceSolid: '#252525',
-  glassBorder: 'rgba(255, 255, 255, 0.1)',
-  glassHighlight: 'rgba(255, 255, 255, 0.05)',
-  text: '#F7F7F7',
-  textMuted: 'rgba(247, 247, 247, 0.5)',
-  green: '#8bcf68ff',
-  greenGlow: '#5b8f52ff',
-  orange: '#FF8C42',
-  red: '#FF5252',
-};
 
 interface UserDevice {
   id: string;
@@ -184,243 +169,274 @@ export default function SecuritySection() {
   };
 
   return (
-    <Animated.View style={{ height: '100%' }} entering={getFadeInDown(reduceMotion)}>
-      <Text className="text-xl font-bold mb-4" style={{ color: COLORS.text }}>
-        Security
-      </Text>
-
-      {/* Active Sessions Section - 55% height */}
+    <Animated.View entering={getFadeInDown(reduceMotion)}>
+      {/* Active Sessions Section */}
       <View 
-        className="mb-4 rounded-xl p-4"
+        className="mb-5 rounded-2xl overflow-hidden"
         style={{
-          height: '55%',
-          backgroundColor: COLORS.surfaceSolid,
+          backgroundColor: COLORS.surfaceElevated,
           borderWidth: 1,
-          borderColor: COLORS.glassBorder,
+          borderColor: COLORS.border,
         }}
       >
-        <View className="flex-row items-center justify-between mb-3">
-          <View>
-            <Text className="font-semibold mb-1" style={{ color: COLORS.text, fontSize: 18 }}>
-              Active Sessions
-            </Text>
-            <Text style={{ color: COLORS.textMuted, fontSize: 13 }}>
-              Logged in devices
-            </Text>
-          </View>
-          <View className="flex-row gap-2">
+        {/* Section Header */}
+        <View 
+          className="p-4"
+          style={{ borderBottomWidth: 1, borderBottomColor: COLORS.border }}
+        >
+          <Text 
+            className="font-bold mb-1" 
+            style={{ color: COLORS.textPrimary, fontSize: 18 }}
+          >
+            Active Sessions
+          </Text>
+          <Text style={{ color: COLORS.textSecondary, fontSize: 14 }}>
+            Devices currently logged into your account
+          </Text>
+          
+          {/* Action buttons - stacked below text */}
+          <View className="flex-row gap-2 mt-3">
             {devices.length > 1 && (
               <TouchableOpacity
                 onPress={logoutOthers}
-                className="px-3 py-1.5 rounded-lg"
+                className="px-3 py-2 rounded-lg flex-1"
                 style={{
-                  backgroundColor: 'rgba(255, 140, 66, 0.1)',
+                  backgroundColor: COLORS.warningMuted,
                   borderWidth: 1,
-                  borderColor: 'rgba(255, 140, 66, 0.2)',
+                  borderColor: 'rgba(245, 158, 11, 0.3)',
                 }}
               >
-                <Text style={{ color: COLORS.orange, fontSize: 12, fontWeight: '600' }}>
+                <Text 
+                  className="text-center font-semibold"
+                  style={{ color: COLORS.warning, fontSize: 13 }}
+                >
                   Logout Others
                 </Text>
               </TouchableOpacity>
             )}
             <TouchableOpacity
               onPress={logoutEverywhere}
-              className="px-3 py-1.5 rounded-lg"
+              className="px-3 py-2 rounded-lg flex-1"
               style={{
-                backgroundColor: 'rgba(255, 82, 82, 0.1)',
+                backgroundColor: COLORS.negativeMuted,
                 borderWidth: 1,
-                borderColor: 'rgba(255, 82, 82, 0.2)',
+                borderColor: COLORS.negative + '4D', // 30% opacity
               }}
             >
-              <Text style={{ color: COLORS.red, fontSize: 12, fontWeight: '600' }}>
+              <Text 
+                className="text-center font-semibold"
+                style={{ color: COLORS.negative, fontSize: 13 }}
+              >
                 Logout All
               </Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        {loadingDevices ? (
-          <View className="flex-1 items-center justify-center">
-            <ActivityIndicator color={COLORS.green} />
-          </View>
-        ) : devices.length === 0 ? (
-          <View className="flex-1 items-center justify-center">
-            <Text style={{ color: COLORS.textMuted, fontSize: 13 }}>
-              No active sessions
-            </Text>
-          </View>
-        ) : (
-          <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-            {devices.map((device) => {
-              const isCurrentDevice = device.device_id === currentDeviceId;
-              
-              return (
-                <View
-                  key={device.id}
-                  className="flex-row items-start gap-3 p-3 rounded-lg mb-2"
-                  style={{
-                    backgroundColor: isCurrentDevice
-                      ? 'rgba(139, 207, 104, 0.05)'
-                      : COLORS.surface,
-                    borderWidth: 1,
-                    borderColor: isCurrentDevice
-                      ? 'rgba(139, 207, 104, 0.2)'
-                      : COLORS.glassBorder,
-                  }}
-                >
-                  {/* Icon */}
+        {/* Devices List */}
+        <View className="p-4">
+          {loadingDevices ? (
+            <View className="py-8 items-center justify-center">
+              <ActivityIndicator color={COLORS.primary} />
+            </View>
+          ) : devices.length === 0 ? (
+            <View className="py-8 items-center justify-center">
+              <Text style={{ color: COLORS.textSecondary, fontSize: 14 }}>
+                No active sessions
+              </Text>
+            </View>
+          ) : (
+            <View className="gap-2">
+              {devices.map((device) => {
+                const isCurrentDevice = device.device_id === currentDeviceId;
+                
+                return (
                   <View
-                    className="p-2 rounded-lg"
+                    key={device.id}
+                    className="flex-row items-center p-3 rounded-xl"
                     style={{
                       backgroundColor: isCurrentDevice
-                        ? 'rgba(139, 207, 104, 0.1)'
-                        : COLORS.surfaceSolid,
+                        ? COLORS.primaryMuted
+                        : COLORS.surfaceGlass,
+                      borderWidth: 1,
+                      borderColor: isCurrentDevice
+                        ? 'rgba(139, 207, 104, 0.3)'
+                        : COLORS.glassBorder,
                     }}
                   >
-                    {device.device_type === 'mobile' ? (
-                      <Smartphone
-                        size={16}
-                        color={isCurrentDevice ? COLORS.green : COLORS.textMuted}
-                      />
-                    ) : (
-                      <Monitor
-                        size={16}
-                        color={isCurrentDevice ? COLORS.green : COLORS.textMuted}
-                      />
-                    )}
-                  </View>
+                    {/* Icon */}
+                    <View
+                      className="w-10 h-10 rounded-xl items-center justify-center mr-3"
+                      style={{
+                        backgroundColor: isCurrentDevice
+                          ? 'rgba(139, 207, 104, 0.15)'
+                          : COLORS.surfaceElevated,
+                      }}
+                    >
+                      {device.device_type === 'mobile' ? (
+                        <Smartphone
+                          size={18}
+                          color={isCurrentDevice ? COLORS.primary : COLORS.textSecondary}
+                        />
+                      ) : (
+                        <Monitor
+                          size={18}
+                          color={isCurrentDevice ? COLORS.primary : COLORS.textSecondary}
+                        />
+                      )}
+                    </View>
 
-                  {/* Device Info */}
-                  <View className="flex-1">
-                    <View className="flex-row items-center gap-2 mb-1">
-                      <Text
-                        numberOfLines={1}
-                        className="font-medium"
-                        style={{ color: COLORS.text, fontSize: 15 }}
-                      >
-                        {device.device_name}
-                      </Text>
-                      {isCurrentDevice && (
-                        <View
-                          className="px-1.5 py-0.5 rounded-full"
-                          style={{ backgroundColor: 'rgba(139, 207, 104, 0.2)' }}
+                    {/* Device Info */}
+                    <View className="flex-1">
+                      <View className="flex-row items-center gap-2">
+                        <Text
+                          numberOfLines={1}
+                          className="font-semibold flex-1"
+                          style={{ color: COLORS.textPrimary, fontSize: 14 }}
                         >
-                          <Text style={{ color: COLORS.green, fontSize: 11, fontWeight: '600' }}>
-                            Current
-                          </Text>
-                        </View>
-                      )}
-                    </View>
-
-                    <View className="gap-1">
-                      <View className="flex-row items-center gap-1.5">
-                        <Clock size={11} color={COLORS.textMuted} />
-                        <Text style={{ color: COLORS.textMuted, fontSize: 13 }}>
-                          {formatDate(device.last_active)}
+                          {device.device_name}
                         </Text>
-                      </View>
-                      {device.ip_address && (
-                        <View className="flex-row items-center gap-1.5">
-                          <MapPin size={11} color={COLORS.textMuted} />
-                          <Text
-                            numberOfLines={1}
-                            style={{ color: COLORS.textMuted, fontSize: 13 }}
+                        {isCurrentDevice && (
+                          <View
+                            className="px-2 py-0.5 rounded-full"
+                            style={{ backgroundColor: 'rgba(139, 207, 104, 0.25)' }}
                           >
-                            {device.ip_address}
+                            <Text style={{ color: COLORS.primary, fontSize: 11, fontWeight: '600' }}>
+                              This device
+                            </Text>
+                          </View>
+                        )}
+                      </View>
+
+                      <View className="flex-row items-center gap-3 mt-1">
+                        <View className="flex-row items-center gap-1">
+                          <Clock size={12} color={COLORS.textTertiary} />
+                          <Text style={{ color: COLORS.textTertiary, fontSize: 12 }}>
+                            {formatDate(device.last_active)}
                           </Text>
                         </View>
-                      )}
+                        {device.ip_address && (
+                          <View className="flex-row items-center gap-1">
+                            <MapPin size={12} color={COLORS.textTertiary} />
+                            <Text
+                              numberOfLines={1}
+                              style={{ color: COLORS.textTertiary, fontSize: 12 }}
+                            >
+                              {device.ip_address}
+                            </Text>
+                          </View>
+                        )}
+                      </View>
                     </View>
                   </View>
-                </View>
-              );
-            })}
-          </ScrollView>
-        )}
+                );
+              })}
+            </View>
+          )}
+        </View>
       </View>
 
-      {/* Change Password Section - 40% height */}
+      {/* Change Password Section */}
       <View
-        className="rounded-xl p-4"
+        className="rounded-2xl overflow-hidden"
         style={{
-          height: '50%',
-          backgroundColor: COLORS.surfaceSolid,
+          backgroundColor: COLORS.surfaceElevated,
           borderWidth: 1,
-          borderColor: COLORS.glassBorder,
+          borderColor: COLORS.border,
         }}
       >
-        <Text className="font-semibold mb-1" style={{ color: COLORS.text, fontSize: 18 }}>
-          Change Password
-        </Text>
-        <Text className="mb-3" style={{ color: COLORS.textMuted, fontSize: 13 }}>
-          Update your account password
-        </Text>
-
-        <View className="mb-2.5">
-          <Text className="text-sm mb-1" style={{ color: COLORS.textMuted }}>
-            Current Password
-          </Text>
-          <TextInput
-            secureTextEntry
-            value={oldPassword}
-            onChangeText={setOldPassword}
-            placeholder="Enter current password"
-            placeholderTextColor={COLORS.textMuted}
-            className="px-3 py-2 rounded-lg"
-            style={{
-              backgroundColor: COLORS.surface,
-              borderWidth: 1,
-              borderColor: COLORS.glassBorder,
-              color: COLORS.text,
-              fontSize: 15,
-            }}
-          />
-        </View>
-
-        <View className="mb-2.5">
-          <Text className="text-sm mb-1" style={{ color: COLORS.textMuted }}>
-            New Password
-          </Text>
-          <TextInput
-            secureTextEntry
-            value={newPassword}
-            onChangeText={setNewPassword}
-            placeholder="Min. 6 characters"
-            placeholderTextColor={COLORS.textMuted}
-            className="px-3 py-2 rounded-lg"
-            style={{
-              backgroundColor: COLORS.surface,
-              borderWidth: 1,
-              borderColor: COLORS.glassBorder,
-              color: COLORS.text,
-              fontSize: 15,
-            }}
-          />
-        </View>
-
-        <TouchableOpacity
-          onPress={updatePassword}
-          disabled={updatingPassword}
-          className="py-2.5 rounded-lg"
-          style={{
-            backgroundColor: COLORS.green,
-            opacity: updatingPassword ? 0.6 : 1,
-            shadowColor: COLORS.green,
-            shadowOffset: { width: 0, height: 0 },
-            shadowOpacity: 0.4,
-            shadowRadius: 12,
-            elevation: 5,
-          }}
+        {/* Section Header */}
+        <View 
+          className="p-4"
+          style={{ borderBottomWidth: 1, borderBottomColor: COLORS.border }}
         >
-          {updatingPassword ? (
-            <ActivityIndicator color={COLORS.text} />
-          ) : (
-            <Text className="text-center font-bold" style={{ color: COLORS.text, fontSize: 15 }}>
-              Update Password
+          <Text 
+            className="font-bold mb-1" 
+            style={{ color: COLORS.textPrimary, fontSize: 18 }}
+          >
+            Change Password
+          </Text>
+          <Text style={{ color: COLORS.textSecondary, fontSize: 14 }}>
+            Update your account password
+          </Text>
+        </View>
+
+        {/* Form */}
+        <View className="p-4">
+          <View className="mb-4">
+            <Text 
+              className="font-medium mb-2" 
+              style={{ color: COLORS.textSecondary, fontSize: 13 }}
+            >
+              Current Password
             </Text>
-          )}
-        </TouchableOpacity>
+            <TextInput
+              secureTextEntry
+              value={oldPassword}
+              onChangeText={setOldPassword}
+              placeholder="Enter current password"
+              placeholderTextColor={COLORS.textTertiary}
+              className="px-4 py-3 rounded-xl"
+              style={{
+                backgroundColor: COLORS.surfaceGlass,
+                borderWidth: 1,
+                borderColor: COLORS.glassBorder,
+                color: COLORS.textPrimary,
+                fontSize: 15,
+              }}
+            />
+          </View>
+
+          <View className="mb-4">
+            <Text 
+              className="font-medium mb-2" 
+              style={{ color: COLORS.textSecondary, fontSize: 13 }}
+            >
+              New Password
+            </Text>
+            <TextInput
+              secureTextEntry
+              value={newPassword}
+              onChangeText={setNewPassword}
+              placeholder="Min. 6 characters"
+              placeholderTextColor={COLORS.textTertiary}
+              className="px-4 py-3 rounded-xl"
+              style={{
+                backgroundColor: COLORS.surfaceGlass,
+                borderWidth: 1,
+                borderColor: COLORS.glassBorder,
+                color: COLORS.textPrimary,
+                fontSize: 15,
+              }}
+            />
+          </View>
+
+          <TouchableOpacity
+            onPress={updatePassword}
+            disabled={updatingPassword}
+            className="py-3.5 rounded-xl"
+            style={{
+              backgroundColor: COLORS.primary,
+              opacity: updatingPassword ? 0.6 : 1,
+              shadowColor: COLORS.primary,
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.3,
+              shadowRadius: 8,
+              elevation: 5,
+            }}
+          >
+            {updatingPassword ? (
+              <ActivityIndicator color={COLORS.textInverse} />
+            ) : (
+              <Text 
+                className="text-center font-bold" 
+                style={{ color: COLORS.textInverse, fontSize: 15 }}
+              >
+                Update Password
+              </Text>
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
     </Animated.View>
   );

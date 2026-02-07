@@ -1,20 +1,9 @@
+import { COLORS } from '@/constants/design-system';
 import { supabase } from '@/utils/supabaseClient';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Dimensions, ScrollView, Text, View } from 'react-native';
 
 const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get('window');
-
-// Color Palette
-const COLORS = {
-  background: '#181818',
-  cardBg: '#1a1a1a',
-  surface: 'rgba(37, 37, 37, 0.6)',
-  glassBorder: 'rgba(255, 255, 255, 0.1)',
-  text: '#FFFFFF',
-  textMuted: 'rgba(255, 255, 255, 0.6)',
-  green: '#8bcf68ff',
-  yellow: '#FFEB3B',
-};
 
 type Timeframe = 'year' | 'Q1' | 'Q2' | 'Q3' | 'Q4';
 
@@ -141,7 +130,7 @@ export default function YearlyTopClientsCard({
       <View 
         className="rounded-3xl overflow-hidden items-center justify-center"
         style={{ 
-          backgroundColor: COLORS.cardBg,
+          backgroundColor: COLORS.surface,
           borderWidth: 1,
           borderColor: COLORS.glassBorder,
           height: SCREEN_HEIGHT * 0.35,
@@ -150,7 +139,7 @@ export default function YearlyTopClientsCard({
         }}
       >
         <ActivityIndicator size="small" color="#8bcf68ff" />
-        <Text className="text-sm mt-2" style={{ color: COLORS.textMuted }}>
+        <Text className="text-sm mt-2" style={{ color: COLORS.textSecondary }}>
           Loading...
         </Text>
       </View>
@@ -162,7 +151,7 @@ export default function YearlyTopClientsCard({
       <View 
         className="rounded-3xl overflow-hidden items-center justify-center"
         style={{ 
-          backgroundColor: COLORS.cardBg,
+          backgroundColor: COLORS.surface,
           borderWidth: 1,
           borderColor: COLORS.glassBorder,
           height: SCREEN_HEIGHT * 0.35,
@@ -170,7 +159,7 @@ export default function YearlyTopClientsCard({
           padding: 16,
         }}
       >
-        <Text className="text-xs text-center" style={{ color: COLORS.textMuted }}>
+        <Text className="text-xs text-center" style={{ color: COLORS.textSecondary }}>
           No data available for {titleSuffix}
         </Text>
       </View>
@@ -181,7 +170,7 @@ export default function YearlyTopClientsCard({
     <View 
       className="rounded-3xl overflow-hidden"
       style={{ 
-        backgroundColor: COLORS.cardBg,
+        backgroundColor: COLORS.surface,
         borderWidth: 1,
         borderColor: COLORS.glassBorder,
         height: SCREEN_HEIGHT * 0.35,
@@ -189,16 +178,16 @@ export default function YearlyTopClientsCard({
         padding: 16,
       }}
     >
-      <Text className="text-lg font-bold mb-2" style={{ color: COLORS.text }}>
+      <Text className="text-lg font-bold mb-2" style={{ color: COLORS.textPrimary }}>
         👑 Top Clients ({titleSuffix})
       </Text>
 
       {/* Table Header */}
       <View className="flex-row pb-2 mb-1" style={{ borderBottomWidth: 1, borderBottomColor: 'rgba(255, 255, 255, 0.2)' }}>
-        <Text className="font-semibold text-sm w-6" style={{ color: COLORS.text }}>#</Text>
-        <Text className="font-semibold text-sm flex-1 pr-2" style={{ color: COLORS.text }}>Client</Text>
-        <Text className="font-semibold text-sm w-20 text-right pr-2" style={{ color: COLORS.text }}>Total</Text>
-        <Text className="font-semibold text-sm w-14 text-right" style={{ color: COLORS.text }}>Visits</Text>
+        <Text className="font-semibold text-sm w-6" style={{ color: COLORS.textPrimary }}>#</Text>
+        <Text className="font-semibold text-sm flex-1 pr-2" style={{ color: COLORS.textPrimary }}>Client</Text>
+        <Text className="font-semibold text-sm w-20 text-right pr-2" style={{ color: COLORS.textPrimary }}>Total</Text>
+        <Text className="font-semibold text-sm w-14 text-right" style={{ color: COLORS.textPrimary }}>Visits</Text>
       </View>
 
       {/* Table Rows */}
@@ -213,14 +202,14 @@ export default function YearlyTopClientsCard({
               backgroundColor: idx % 2 === 0 ? 'rgba(255, 255, 255, 0.03)' : 'transparent',
             }}
           >
-            <Text className="text-[15px] w-6" style={{ color: COLORS.text }}>{idx + 1}</Text>
-            <Text className="font-semibold text-[15px] flex-1 pr-2" style={{ color: COLORS.text }} numberOfLines={1}>
+            <Text className="text-[15px] w-6" style={{ color: COLORS.textPrimary }}>{idx + 1}</Text>
+            <Text className="font-semibold text-[15px] flex-1 pr-2" style={{ color: COLORS.textPrimary }} numberOfLines={1}>
               {client.client_name ?? 'N/A'}
             </Text>
-            <Text className="font-semibold text-[15px] w-20 text-right pr-2" style={{ color: COLORS.green }}>
+            <Text className="font-semibold text-[15px] w-20 text-right pr-2" style={{ color: COLORS.primary }}>
               ${client.total_paid?.toFixed(2) ?? '-'}
             </Text>
-            <Text className="font-semibold text-[15px] w-14 text-right" style={{ color: COLORS.yellow }}>
+            <Text className="font-semibold text-[15px] w-14 text-right" style={{ color: COLORS.warning }}>
               {client.num_visits ?? '-'}
             </Text>
           </View>

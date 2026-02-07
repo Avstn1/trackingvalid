@@ -1,3 +1,4 @@
+import { COLORS } from '@/constants/design-system';
 import { supabase } from '@/utils/supabaseClient';
 import { Check, X } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
@@ -14,14 +15,15 @@ import {
   View,
 } from 'react-native';
 
-const COLORS = {
-  background: '#1a1f1b',
-  card: '#1f1f1f',
-  glassBorder: 'rgba(255, 255, 255, 0.1)',
-  input: '#0d0f0d',
+// Component-specific accent colors
+const ACCENT_COLORS = {
   amber: '#fbbf24',
-  green: '#4ade80',
-  red: '#f87171',
+  input: '#0d0f0d',
+};
+
+type AcuityClient = {
+  first_name: string | null;
+  last_name: string | null;
 };
 
 type AppointmentRow = {
@@ -34,8 +36,7 @@ type AppointmentRow = {
   revenue: number | null;
   tip: number | null;
   service_type: string | null;
-  client_first_name: string | null;
-  client_last_name: string | null;
+  acuity_clients: AcuityClient | null;
 };
 
 type Props = {
@@ -145,8 +146,10 @@ export default function AppointmentEditModal({ isOpen, appointment, onClose, onU
       .join(' ');
   };
 
+  const firstName = appointment?.acuity_clients?.first_name || '';
+  const lastName = appointment?.acuity_clients?.last_name || '';
   const clientName =
-    `${capitalizeName(appointment?.client_first_name)} ${capitalizeName(appointment?.client_last_name)}`.trim() ||
+    `${capitalizeName(firstName)} ${capitalizeName(lastName)}`.trim() ||
     'Unknown Client';
 
   if (!isOpen || !appointment) return null;
@@ -226,7 +229,7 @@ export default function AppointmentEditModal({ isOpen, appointment, onClose, onU
                 <Text className="text-[#a0a0a0] text-xs uppercase mb-2">Revenue</Text>
                 <View className="flex-row items-center px-4 py-3 rounded-xl border"
                   style={{
-                    backgroundColor: COLORS.input,
+                    backgroundColor: ACCENT_COLORS.input,
                     borderColor: COLORS.glassBorder,
                   }}
                 >
@@ -249,7 +252,7 @@ export default function AppointmentEditModal({ isOpen, appointment, onClose, onU
                 <Text className="text-[#a0a0a0] text-xs uppercase mb-2">Tip</Text>
                 <View className="flex-row items-center px-4 py-3 rounded-xl border"
                   style={{
-                    backgroundColor: COLORS.input,
+                    backgroundColor: ACCENT_COLORS.input,
                     borderColor: COLORS.glassBorder,
                   }}
                 >
@@ -275,7 +278,7 @@ export default function AppointmentEditModal({ isOpen, appointment, onClose, onU
               )}
               {success && (
                 <View className="px-3 py-2 rounded-lg bg-green-500/20 border border-green-500/30 mb-4 flex-row items-center gap-2">
-                  <Check color="#4ade80" size={16} />
+                  <Check color={COLORS.positive} size={16} />
                   <Text className="text-green-300 text-sm">Appointment updated successfully!</Text>
                 </View>
               )}
@@ -295,7 +298,7 @@ export default function AppointmentEditModal({ isOpen, appointment, onClose, onU
                 disabled={saving || success}
                 className="px-5 py-2 rounded-lg"
                 style={{
-                  backgroundColor: saving || success ? 'rgba(251, 191, 36, 0.5)' : COLORS.amber,
+                  backgroundColor: saving || success ? 'rgba(251, 191, 36, 0.5)' : ACCENT_COLORS.amber,
                 }}
               >
                 {saving ? (

@@ -22,8 +22,8 @@ import { MessageCard } from './MessageCard';
 import { CampaignProgress, SMSMessage } from './types';
 
 // Modals
-import CampaignHistoryModal from './Modals/CampaignHistoryModal';
 import DeleteMessageConfirmModal from './Modals/DeleteMessageConfirmModal';
+import HistoryModal from './Modals/History/HistoryModal';
 import HowCampaignsWorkModal from './Modals/HowCampaignsWorkModal';
 import RecipientPreviewModal from './Modals/RecipientPreviewModal';
 import TestMessageConfirmModal from './Modals/TestMessageConfirmModal';
@@ -46,7 +46,7 @@ export default function SMSCampaigns() {
   
   // Modal states
   const [showHowCampaignsWorkModal, setShowHowCampaignsWorkModal] = useState(false);
-  const [showCampaignHistoryModal, setShowCampaignHistoryModal] = useState(false);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [showTestConfirmModal, setShowTestConfirmModal] = useState(false);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -914,7 +914,7 @@ export default function SMSCampaigns() {
         {/* Top Row: History, How it works, Credits, Tests */}
         <View className="flex-row gap-2 mb-2">
           <TouchableOpacity 
-            onPress={() => setShowCampaignHistoryModal(true)}
+            onPress={() => setShowHistoryModal(true)}
             className="flex-1 flex-row items-center justify-center gap-1 px-2 py-2 bg-purple-300/10 border border-purple-300/30 rounded-lg"
           >
             <Clock size={14} color="#c084fc" />
@@ -1165,9 +1165,9 @@ export default function SMSCampaigns() {
         onClose={() => setShowHowCampaignsWorkModal(false)}
       />
 
-      <CampaignHistoryModal
-        isOpen={showCampaignHistoryModal}
-        onClose={() => setShowCampaignHistoryModal(false)}
+      <HistoryModal
+        isOpen={showHistoryModal}
+        onClose={() => setShowHistoryModal(false)}
         session={session}
       />
 

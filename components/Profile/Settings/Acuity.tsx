@@ -88,7 +88,6 @@ export default function AcuityTab() {
         const data = await res.json();
 
         if (res.ok) {
-          console.log("Res is okay. Calendars: " + JSON.stringify(data.calendars))
           setCalendars(data.calendars || []);
         } else {
           console.warn('Could not fetch calendars - API may not be available');

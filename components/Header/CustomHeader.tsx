@@ -8,8 +8,7 @@ import NewFeaturesModal from '@/components/Header/FeatureUpdatesModal';
 import NotificationsDropdown from '@/components/Header/NotificationsDropdown';
 import ProfileDrawer from '@/components/Navigation/ProfileDrawer';
 import { supabase } from '@/utils/supabaseClient';
-import MaskedView from '@react-native-masked-view/masked-view';
-import { LinearGradient } from 'expo-linear-gradient';
+
 import { Bell, CalendarRange, Coins } from 'lucide-react-native';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
@@ -126,7 +125,7 @@ export function CustomHeader({
   const hasAutoOpenedFeaturesRef = React.useRef(false);
 
   // Check if this page should show the date picker
-  const showsDatePicker = ['Dashboard', 'Finances', 'Reports'].includes(pageName);
+  const showsDatePicker = ['Dashboard', 'Reports'].includes(pageName);
   const isDashboard = pageName === 'Dashboard';
 
   // Fetch user and profile
@@ -485,9 +484,11 @@ export function CustomHeader({
   };
 
   const getDateLabel = () => {
-    const month = localSelectedDate.toLocaleDateString('en-US', { month: 'short' });
-    const year = String(localSelectedDate.getFullYear()).slice(-2);
-    return `${month} '${year}`;
+    return localSelectedDate.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric' 
+    });
   };
 
   const unreadNotificationsCount = notifications.filter((n) => !n.is_read).length;
@@ -538,24 +539,14 @@ export function CustomHeader({
       />
 
       <View className="px-5 flex-row items-center justify-between">
-        <MaskedView
-          className="flex-1"
-          maskElement={
-            <Text className="text-3xl font-bold">{pageName}</Text>
-          }
-        >
-          <LinearGradient
-            colors={['#8bcf68ff', '#beb348ff']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-          >
-            <Text className="text-3xl font-bold opacity-0">
-              {pageName}
-            </Text>
-          </LinearGradient>
-        </MaskedView>
+        {/* Corva Logo */}
+        <Image
+          source={require('@/assets/images/corvalogoTransparent.png')}
+          style={{ width: 36, height: 36 }}
+          resizeMode="contain"
+        />
 
-        <View className="flex-row items-center" style={{ gap: 12 }}>
+        <View className="flex-row items-center" style={{ gap: 16 }}>
           {showsDatePicker && (
             <TouchableOpacity
               onPress={handleOpenDatePicker}
@@ -606,7 +597,7 @@ export function CustomHeader({
             className="relative"
           >
             <View
-              className="w-9 h-9 rounded-full items-center justify-center"
+              className="w-10 h-10 rounded-full items-center justify-center"
               style={{
                 backgroundColor: COLORS.primaryMuted,
                 borderWidth: 1.5,
@@ -620,7 +611,7 @@ export function CustomHeader({
                 />
               ) : (
                 <Text
-                  className="text-sm font-bold"
+                  className="text-base font-bold"
                   style={{ color: COLORS.primary }}
                 >
                   {getInitials(profile?.full_name)}
@@ -673,10 +664,6 @@ export function CustomHeader({
       <CreditsModal
         isOpen={showCreditsModal}
         onClose={() => setShowCreditsModal(false)}
-        onBack={() => {
-          setShowCreditsModal(false);
-          setTimeout(() => setShowSidebar(true), 100);
-        }}
       />
 
       <NewFeaturesModal
@@ -697,10 +684,6 @@ export function CustomHeader({
             userId={profile.user_id}
             externalTrigger={showNotificationsModal}
             onExternalTriggerHandled={() => setShowNotificationsModal(false)}
-            onBack={() => {
-              setShowNotificationsModal(false);
-              setTimeout(() => setShowSidebar(true), 100);
-            }}
             initialNotifications={notifications}
             onNotificationsUpdate={handleNotificationUpdate}
             hasMoreNotifications={hasMoreNotifications}

@@ -218,7 +218,8 @@ export default function DailyRevenueCard({ userId, selectedDate }: DailyRevenueC
                   className="font-extrabold tracking-tight"
                   style={{ color: COLORS.textPrimary, fontSize: 36, lineHeight: 40 }}
                   numberOfLines={1}
-                  ellipsizeMode="tail"
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.7}
                 >
                   {animatedRevenue}
                 </Text>

@@ -432,13 +432,15 @@ export default function ClientSheets() {
           horizontal
           showsHorizontalScrollIndicator={false}
           className="mb-2"
-          contentContainerStyle={{ gap: 8 }}
+          style={{ height: 40 }}
+          contentContainerStyle={{ gap: 8, alignItems: 'center' }}
         >
           {activeFilters.map((filter) => (
             <View
               key={filter.id}
-              className="flex-row items-center gap-2 px-3 py-1.5 rounded-full"
+              className="flex-row items-center gap-2 px-3 rounded-full"
               style={{ 
+                height: 32,
                 backgroundColor: COLORS.primaryMuted,
                 borderWidth: 1,
                 borderColor: COLORS.primary,
@@ -457,8 +459,10 @@ export default function ClientSheets() {
               setActiveFilters([]);
               setPage(1);
             }}
-            className="px-3 py-1.5 rounded-full"
+            className="px-3 rounded-full"
             style={{ 
+              height: 32,
+              justifyContent: 'center',
               backgroundColor: COLORS.negativeMuted,
               borderWidth: 1,
               borderColor: COLORS.negative,

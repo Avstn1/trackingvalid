@@ -2,7 +2,7 @@ import ReportViewerModal from '@/components/Reports/ReportViewerModal'
 import { COLORS } from '@/constants/design-system'
 import { supabase } from '@/utils/supabaseClient'
 import { useRouter } from 'expo-router'
-import { ArrowLeft, Bell } from 'lucide-react-native'
+import { Bell, X } from 'lucide-react-native'
 import React, { useCallback, useEffect, useState } from 'react'
 import {
   Modal,
@@ -76,7 +76,6 @@ interface NotificationsDropdownProps {
   inSidebar?: boolean
   externalTrigger?: boolean
   onExternalTriggerHandled?: () => void
-  onBack?: () => void
   initialNotifications?: Notification[]
   onNotificationsUpdate?: (notifications: Notification[]) => void
   hasMoreNotifications?: boolean
@@ -88,7 +87,6 @@ export default function NotificationsDropdown({
   inSidebar = false, 
   externalTrigger = false, 
   onExternalTriggerHandled, 
-  onBack,
   initialNotifications = [],
   onNotificationsUpdate,
   hasMoreNotifications = false,
@@ -398,11 +396,6 @@ export default function NotificationsDropdown({
                         className="flex-row items-center px-6 py-4"
                         style={{ borderBottomWidth: 1, borderBottomColor: COLORS.glassBorder }}
                       >
-                        {onBack && (
-                          <TouchableOpacity onPress={onBack} className="p-1 mr-2">
-                            <ArrowLeft size={24} color={COLORS.textSecondary} />
-                          </TouchableOpacity>
-                        )}
                         <Text 
                           className="font-semibold text-base tracking-wide flex-1"
                           style={{ color: COLORS.primary }}
@@ -412,7 +405,7 @@ export default function NotificationsDropdown({
                         <TouchableOpacity
                           onPress={handleMarkAllRead}
                           activeOpacity={0.6}
-                          className="px-2 py-1"
+                          className="px-2 py-1 mr-2"
                         >
                           <Text 
                             className="text-xs font-medium"
@@ -420,6 +413,9 @@ export default function NotificationsDropdown({
                           >
                             Mark all read
                           </Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={closeModal} className="p-1">
+                          <X size={24} color={COLORS.textSecondary} />
                         </TouchableOpacity>
                       </View>
 

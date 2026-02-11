@@ -13,20 +13,14 @@ import {
   View,
 } from 'react-native';
 
+// Advanced filters only - name/phone/email handled by search bar, visiting_type by quick chips
 export type FilterType =
-  | 'first_name'
-  | 'last_name'
-  | 'email'
-  | 'phone_normalized'
   | 'phone_available'
   | 'first_appt_month'
   | 'first_appt_year'
   | 'last_appt_month'
   | 'last_appt_year'
-  | 'visiting_type'
   | 'sms_subscribed';
-
-export type VisitingType = 'consistent' | 'semi-consistent' | 'easy-going' | 'rare' | 'new';
 
 export interface ActiveFilter {
   id: string;
@@ -56,16 +50,11 @@ const ACCENT_COLORS = {
 };
 
 const FILTER_OPTIONS: { value: FilterType; label: string }[] = [
-  { value: 'first_name', label: 'First Name' },
-  { value: 'last_name', label: 'Last Name' },
-  { value: 'email', label: 'Email' },
-  { value: 'phone_normalized', label: 'Phone' },
   { value: 'phone_available', label: 'Phone Available' },
   { value: 'first_appt_month', label: 'First Visit Month' },
   { value: 'first_appt_year', label: 'First Visit Year' },
   { value: 'last_appt_month', label: 'Last Visit Month' },
   { value: 'last_appt_year', label: 'Last Visit Year' },
-  { value: 'visiting_type', label: 'Visiting Type' },
   { value: 'sms_subscribed', label: 'SMS Subscribed' },
 ];
 
@@ -84,13 +73,7 @@ const MONTHS = [
   { value: 12, label: 'December' },
 ];
 
-const VISITING_TYPES: { value: VisitingType; label: string }[] = [
-  { value: 'consistent', label: 'Consistent' },
-  { value: 'semi-consistent', label: 'Semi-Consistent' },
-  { value: 'easy-going', label: 'Easy-Going' },
-  { value: 'rare', label: 'Rare' },
-  { value: 'new', label: 'New' },
-];
+
 
 export default function ClientSheetsFilterModal({
   isOpen,
@@ -102,7 +85,7 @@ export default function ClientSheetsFilterModal({
   const [filterRows, setFilterRows] = useState<FilterRow[]>([
     { id: Date.now().toString(), type: '', value: '' },
   ]);
-  const [selectedType, setSelectedType] = useState<FilterType | ''>('first_name');
+  const [selectedType, setSelectedType] = useState<FilterType | ''>('phone_available');
   const [showTypePicker, setShowTypePicker] = useState(false);
   const [currentRowId, setCurrentRowId] = useState<string>('');
   const [currentValue, setCurrentValue] = useState<string>('');
@@ -111,10 +94,6 @@ export default function ClientSheetsFilterModal({
     if (type === 'first_appt_month' || type === 'last_appt_month') {
       const month = MONTHS.find((m) => m.value === Number(value));
       return month?.label || String(value);
-    }
-    if (type === 'visiting_type') {
-      const vType = VISITING_TYPES.find((v) => v.value === value);
-      return vType?.label || String(value);
     }
     if (type === 'sms_subscribed' || type === 'phone_available') {
       return value === 'true' ? 'Yes' : 'No';
@@ -153,46 +132,6 @@ export default function ClientSheetsFilterModal({
           <Text className="text-[#555] text-base text-center py-4">
             Please select a filter type first
           </Text>
-        </View>
-      );
-    }
-
-    // Text inputs
-    if (
-      type === 'first_name' ||
-      type === 'last_name' ||
-      type === 'email' ||
-      type === 'phone_normalized'
-    ) {
-      return (
-        <View className="mt-3">
-          <Text className="text-white text-base mb-2">
-            Enter {FILTER_OPTIONS.find((f) => f.value === type)?.label}
-          </Text>
-          <TextInput
-            value={currentValue}
-            onChangeText={setCurrentValue}
-            placeholder={`Enter ${FILTER_OPTIONS.find((f) => f.value === type)?.label.toLowerCase()}...`}
-            placeholderTextColor="#555"
-            className="px-4 py-3 rounded-xl border text-white text-base"
-            style={{
-              backgroundColor: ACCENT_COLORS.input,
-              borderColor: COLORS.glassBorder,
-            }}
-            autoCapitalize="none"
-          />
-          <TouchableOpacity
-            onPress={() => {
-              if (currentValue.trim()) {
-                handleApplyFilter(type, currentValue.trim());
-              }
-            }}
-            className="mt-3 py-3 px-4 rounded-xl bg-lime-300"
-          >
-            <Text className="text-black text-base font-semibold text-center">
-              Apply Filter
-            </Text>
-          </TouchableOpacity>
         </View>
       );
     }
@@ -251,29 +190,6 @@ export default function ClientSheetsFilterModal({
       );
     }
 
-    // Visiting type
-    if (type === 'visiting_type') {
-      return (
-        <View className="mt-3">
-          <Text className="text-white text-base mb-2">Select Visiting Type</Text>
-          {VISITING_TYPES.map((vType) => (
-            <TouchableOpacity
-              key={vType.value}
-              onPress={() => handleApplyFilter(type, vType.value)}
-              className="py-3 px-4 rounded-xl mb-2"
-              style={{
-                backgroundColor: COLORS.surfaceGlass,
-                borderWidth: 1,
-                borderColor: COLORS.glassBorder,
-              }}
-            >
-              <Text className="text-white text-base">{vType.label}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      );
-    }
-
     // SMS subscribed / Phone available
     if (type === 'sms_subscribed' || type === 'phone_available') {
       return (
@@ -325,7 +241,7 @@ export default function ClientSheetsFilterModal({
           >
           {/* Header */}
           <View className="flex-row justify-between items-center mb-4">
-            <Text className="text-white text-xl font-bold">Add Filter</Text>
+            <Text className="text-white text-xl font-bold">Advanced Filters</Text>
             <TouchableOpacity
               onPress={onClose}
               className="w-10 h-10 bg-white/10 rounded-full items-center justify-center"

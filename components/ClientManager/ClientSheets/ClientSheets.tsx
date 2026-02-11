@@ -347,7 +347,7 @@ export default function ClientSheets() {
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View className="flex-1" style={{ backgroundColor: COLORS.background }}>
         {/* Search Bar */}
-        <View className="px-0 pt-1 pb-2">
+        <View className="px-0 pt-1 pb-1">
           <View 
             className="flex-row items-center px-4 rounded-xl"
             style={{ 
@@ -377,7 +377,7 @@ export default function ClientSheets() {
         </View>
 
         {/* Filter & Sort Row */}
-        <View className="flex-row gap-2 mb-2">
+        <View className="flex-row gap-2 mb-1">
           <TouchableOpacity
             onPress={() => setIsFilterModalOpen(true)}
             className="flex-row items-center gap-2 px-4 py-2 rounded-xl"
@@ -435,7 +435,7 @@ export default function ClientSheets() {
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            className="mb-2"
+            className="mb-1"
             contentContainerStyle={{ gap: 8 }}
           >
             {activeFilters.map((filter) => (
@@ -476,7 +476,7 @@ export default function ClientSheets() {
         )}
 
         {/* Results count */}
-        <View className="mb-2">
+        <View className="mb-1">
           <Text className="text-xs" style={{ color: COLORS.textTertiary }}>
             {total === 0 
               ? 'No clients found' 

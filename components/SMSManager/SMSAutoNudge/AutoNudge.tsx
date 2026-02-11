@@ -1,17 +1,9 @@
-import SegmentedControl from '@/components/ui/SegmentedControl';
 import { supabase } from '@/utils/supabaseClient';
-import { ArrowLeft, Calendar, TrendingUp, Users, X } from 'lucide-react-native';
+import { ArrowLeft, Calendar, TrendingUp, Users } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import Animated, { SlideInRight, SlideOutLeft } from 'react-native-reanimated';
-
-interface AutoNudgeHistoryContentProps {
-  onClose: () => void;
-  session: any;
-  activeTab: string;
-  onTabChange: (tab: string) => void;
-  tabOptions: { id: string; label: string }[];
-}
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface BarberNudgeCampaign {
   message_id: string;
@@ -34,7 +26,7 @@ interface SMSRecipient {
   appointment_date?: string;
 }
 
-export default function AutoNudgeHistoryContent({ onClose, session, activeTab, onTabChange, tabOptions }: AutoNudgeHistoryContentProps) {
+export default function AutoNudge() {
   const [view, setView] = useState<'list' | 'details'>('list');
   const [campaigns, setCampaigns] = useState<BarberNudgeCampaign[]>([]);
   const [selectedCampaign, setSelectedCampaign] = useState<BarberNudgeCampaign | null>(null);
@@ -46,15 +38,6 @@ export default function AutoNudgeHistoryContent({ onClose, session, activeTab, o
   // Fetch campaigns on mount
   useEffect(() => {
     fetchCampaigns();
-  }, []);
-
-  // Reset view when component unmounts
-  useEffect(() => {
-    return () => {
-      setView('list');
-      setSelectedCampaign(null);
-      setRecipients([]);
-    };
   }, []);
 
   const getISOWeekDates = (isoWeek: string): { start: string; end: string } => {
@@ -100,75 +83,6 @@ export default function AutoNudgeHistoryContent({ onClose, session, activeTab, o
         return;
       }
 
-      // Check if we need to update auto nudge history
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('last_updated_auto_nudge_history')
-        .eq('user_id', user.id)
-        .single();
-
-      if (profileError) {
-        console.error('Error fetching profile:', profileError);
-      }
-
-      // Store the last updated timestamp
-      setLastUpdated(profile?.last_updated_auto_nudge_history || null);
-
-      let shouldCallLookAhead = false;
-      
-      if (!profile?.last_updated_auto_nudge_history) {
-        // Never updated before
-        shouldCallLookAhead = true;
-      } else {
-        // Check if it's been 15 minutes since last update
-        const lastUpdated = new Date(profile.last_updated_auto_nudge_history);
-        const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
-        
-        if (lastUpdated <= fifteenMinutesAgo) {
-          shouldCallLookAhead = true;
-        }
-      }
-
-      // Call appointments_look_ahead if needed
-      if (shouldCallLookAhead) {
-        try {
-          const lookAheadResponse = await fetch(
-            `https://efyvkyusfrqcgadocggk.supabase.co/functions/v1/appointments_look_ahead?user_id=${user.id}`,
-            {
-              headers: {
-                'Authorization': `Bearer ${session?.access_token}`
-              }
-            }
-          );
-          
-          if (!lookAheadResponse.ok) {
-            console.error('Error calling appointments_look_ahead:', await lookAheadResponse.text());
-          } else {
-            const lookAheadData = await lookAheadResponse.json();
-            console.log('Appointments look ahead completed:', lookAheadData);
-            
-            // Update last_updated_auto_nudge_history
-            const newTimestamp = new Date().toISOString();
-            const { error: updateError } = await supabase
-              .from('profiles')
-              .update({ last_updated_auto_nudge_history: newTimestamp })
-              .eq('user_id', user.id);
-            
-            if (updateError) {
-              console.error('Error updating last_updated_auto_nudge_history:', updateError);
-            } else {
-              // Update the state with the new timestamp
-              setLastUpdated(newTimestamp);
-            }
-          }
-        } catch (lookAheadError) {
-          console.error('Failed to call appointments_look_ahead:', lookAheadError);
-          // Continue with fetch even if look ahead fails
-        }
-      } else {
-        console.log('Skipping appointments_look_ahead - updated recently');
-      }
-
       // Get all sms_scheduled_messages that match the pattern {user_id}_{iso_week}
       const { data: scheduledMessages, error: schedError } = await supabase
         .from('sms_scheduled_messages')
@@ -182,8 +96,6 @@ export default function AutoNudgeHistoryContent({ onClose, session, activeTab, o
         console.error('Error fetching scheduled messages:', schedError);
         return;
       }
-
-      console.log(JSON.stringify(scheduledMessages));
 
       if (!scheduledMessages || scheduledMessages.length === 0) {
         setCampaigns([]);
@@ -411,124 +323,79 @@ export default function AutoNudgeHistoryContent({ onClose, session, activeTab, o
   };
 
   return (
-    <View className="flex-1">
-      {view === 'list' ? (
+    <SafeAreaView edges={['bottom']} className="flex-1 mb-4">
+      <View className="flex-1">
+        {view === 'list' ? (
         <Animated.View
           key="list"
           entering={SlideInRight.duration(200)}
           exiting={SlideOutLeft.duration(200)}
-          className="flex-1 flex"
+          className="flex-1"
         >
-          {/* Modal Header - Fixed */}
-          <View className="flex-row items-center justify-between p-4 border-b border-white/10 bg-gradient-to-r from-lime-500/10 to-emerald-500/10">
-            <View className="flex-1 pr-2">
-              <View className="flex-row items-center gap-2">
-                <TrendingUp color="#bef264" size={24} />
-                <Text className="text-xl font-bold text-white" numberOfLines={1}>
-                  Barber Nudge History
-                </Text>
-              </View>
-              <Text className="text-xs text-[#bdbdbd] mt-1">
-                Track your weekly barber nudge campaign success
+          {/* Header */}
+          <View className="bg-white/5 border border-white/10 rounded-2xl shadow-xl p-4 mb-4">
+            <View className="flex-row items-center gap-2 mb-2">
+              <TrendingUp color="#bef264" size={24} />
+              <Text className="text-xl font-bold text-white">
+                Barber Nudge History
               </Text>
-              {lastUpdated && (
-                <Text className="text-[10px] text-[#9e9e9e] mt-2">
-                  Last updated: {new Date(lastUpdated).toLocaleString('en-US', { 
-                    month: 'short', 
-                    day: 'numeric', 
-                    hour: 'numeric', 
-                    minute: '2-digit',
-                    hour12: true 
-                  })}. {(() => {
-                    const nextUpdate = new Date(new Date(lastUpdated).getTime() + 15 * 60 * 1000);
-                    const now = new Date();
-                    const minutesUntilNext = Math.max(0, Math.ceil((nextUpdate.getTime() - now.getTime()) / (60 * 1000)));
-                    
-                    if (minutesUntilNext > 0) {
-                      return `Check back in ${minutesUntilNext} minute${minutesUntilNext !== 1 ? 's' : ''} for the latest bookings.`;
-                    } else {
-                      return 'Reopen to see the latest bookings.';
-                    }
-                  })()}
-                </Text>
-              )}
             </View>
-            <TouchableOpacity
-              onPress={onClose}
-              className="p-2 rounded-full"
-            >
-              <X color="#bdbdbd" size={20} />
-            </TouchableOpacity>
+            <Text className="text-xs text-[#bdbdbd]">
+              Track your weekly barber nudge success
+            </Text>
           </View>
 
-          {/* Tab Switcher */}
-          <View className="px-4 pt-3 pb-2">
-            <SegmentedControl
-              options={tabOptions}
-              selected={activeTab}
-              onChange={onTabChange}
-            />
-          </View>
-
-          {/* Campaigns List - Scrollable */}
-          <ScrollView className="flex-1 p-4">
-            {isLoading ? (
-              <View className="items-center py-12">
-                <ActivityIndicator size="large" color="#bef264" className="mb-4" />
-                <Text className="text-sm text-[#bdbdbd]">Updating your campaign history...</Text>
-              </View>
-            ) : campaigns.length === 0 ? (
-              <View className="items-center py-12">
-                <TrendingUp color="#bdbdbd" size={48} style={{ opacity: 0.5 }} />
-                <Text className="text-sm text-[#bdbdbd] mt-4">No barber nudge campaigns yet</Text>
-                <Text className="text-xs text-[#bdbdbd] mt-2">
-                  Successful campaigns will appear here
-                </Text>
-              </View>
-            ) : (
-              <View className="gap-3">
-                {campaigns.map((campaign) => (
-                  <TouchableOpacity
-                    key={campaign.message_id}
-                    onPress={() => handleCampaignClick(campaign)}
-                    className="p-4 bg-white/5 border border-white/10 rounded-xl active:bg-white/10"
-                  >
-                    <View className="flex-row items-start justify-between mb-2 gap-2">
-                      <Text className="font-semibold text-white text-base flex-1" numberOfLines={1}>
-                        {campaign.week_start} - {campaign.week_end}
-                      </Text>
-                      <View className="px-2 py-1 rounded-full bg-lime-300/10 border border-lime-300/20">
-                        <Text className="text-xs font-semibold text-lime-300">
-                          {campaign.clients_booked} booked
+          {/* Campaigns List Container */}
+          <View className="bg-white/5 border border-white/10 rounded-2xl shadow-xl p-4 mb-4">
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {isLoading ? (
+                <View className="items-center py-12">
+                  <ActivityIndicator size="large" color="#bef264" className="mb-4" />
+                  <Text className="text-sm text-[#bdbdbd]">Updating your campaign history...</Text>
+                </View>
+              ) : campaigns.length === 0 ? (
+                <View className="items-center py-12">
+                  <TrendingUp color="#bdbdbd" size={48} style={{ opacity: 0.5 }} />
+                  <Text className="text-sm text-[#bdbdbd] mt-4">No barber nudge campaigns yet</Text>
+                  <Text className="text-xs text-[#bdbdbd] mt-2">
+                    Successful campaigns will appear here
+                  </Text>
+                </View>
+              ) : (
+                <View className="gap-3">
+                  {campaigns.map((campaign) => (
+                    <TouchableOpacity
+                      key={campaign.message_id}
+                      onPress={() => handleCampaignClick(campaign)}
+                      className="bg-white/5 border border-white/10 rounded-xl p-4 active:bg-white/10"
+                    >
+                      <View className="flex-row items-start justify-between mb-2 gap-2">
+                        <Text className="font-semibold text-white text-base flex-1" numberOfLines={1}>
+                          {campaign.week_start} - {campaign.week_end}
+                        </Text>
+                        <View className="px-2 py-1 rounded-full bg-lime-300/10 border border-lime-300/20">
+                          <Text className="text-xs font-semibold text-lime-300">
+                            {campaign.clients_booked} booked
+                          </Text>
+                        </View>
+                      </View>
+                      <View className="flex-row items-center gap-2 flex-wrap">
+                        <View className="flex-row items-center gap-1">
+                          <Calendar color="#bdbdbd" size={12} />
+                          <Text className="text-xs text-[#bdbdbd]">
+                            Sent {formatDate(campaign.date_sent)}
+                          </Text>
+                        </View>
+                        <Text className="text-xs text-[#bdbdbd]">•</Text>
+                        <Text className="text-xs text-lime-300">
+                          Week {campaign.iso_week_number.split('-W')[1]}
                         </Text>
                       </View>
-                    </View>
-                    <View className="flex-row items-center gap-2 flex-wrap">
-                      <View className="flex-row items-center gap-1">
-                        <Calendar color="#bdbdbd" size={12} />
-                        <Text className="text-xs text-[#bdbdbd]">
-                          Sent {formatDate(campaign.date_sent)}
-                        </Text>
-                      </View>
-                      <Text className="text-xs text-[#bdbdbd]">•</Text>
-                      <Text className="text-xs text-lime-300">
-                        Week {campaign.iso_week_number.split('-W')[1]}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
-          </ScrollView>
-
-          {/* Footer */}
-          <View className="border-t border-white/10 p-4 bg-white/5">
-            <TouchableOpacity
-              onPress={onClose}
-              className="px-6 py-3 rounded-xl font-bold bg-white/10 items-center"
-            >
-              <Text className="text-sm font-bold text-white">Close</Text>
-            </TouchableOpacity>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+            </ScrollView>
           </View>
         </Animated.View>
       ) : (
@@ -536,59 +403,45 @@ export default function AutoNudgeHistoryContent({ onClose, session, activeTab, o
           key="details"
           entering={SlideInRight.duration(200)}
           exiting={SlideOutLeft.duration(200)}
-          className="flex-1 flex"
+          className="flex-1"
         >
-          {/* Modal Header - Fixed */}
-          <View className="flex-row items-center justify-between p-4 border-b border-white/10">
-            <View className="flex-row items-center gap-3 flex-1">
+          {/* Header with Back Button */}
+          <View className="bg-white/5 border border-white/10 rounded-2xl shadow-xl p-4 mb-4">
+            <View className="flex-row items-center gap-3">
               <TouchableOpacity
                 onPress={handleBack}
                 className="p-2 rounded-full active:bg-white/10"
               >
-                <ArrowLeft color="#bdbdbd" size={16} />
+                <ArrowLeft color="#bdbdbd" size={20} />
               </TouchableOpacity>
               <View className="flex-1">
                 <Text className="text-lg font-bold text-white" numberOfLines={1}>
                   {selectedCampaign?.week_start} - {selectedCampaign?.week_end}
                 </Text>
-                <Text className="text-xs text-[#bdbdbd] mt-0.5" numberOfLines={1}>
-                  Sent {selectedCampaign && formatDate(selectedCampaign.date_sent)}
-                </Text>
+                <View className="flex-row items-center gap-2 flex-wrap mt-0.5">
+                  <Text className="text-xs text-[#bdbdbd]">
+                    Sent {selectedCampaign && formatDate(selectedCampaign.date_sent)}
+                  </Text>
+                  {selectedCampaign && (
+                    <>
+                      <Text className="text-xs text-[#bdbdbd]">•</Text>
+                      <Text className="text-xs text-white">
+                        Week {selectedCampaign.iso_week_number.split('-W')[1]}
+                      </Text>
+                      <Text className="text-xs text-[#bdbdbd]">•</Text>
+                      <Text className="text-xs text-lime-300">
+                        {selectedCampaign.clients_booked} booked
+                      </Text>
+                    </>
+                  )}
+                </View>
               </View>
             </View>
-            <TouchableOpacity
-              onPress={onClose}
-              className="p-1.5 rounded-full"
-            >
-              <X color="#bdbdbd" size={16} />
-            </TouchableOpacity>
           </View>
 
-          {/* Stats Bar - Fixed */}
-          {selectedCampaign && (
-            <View className="px-4 py-2.5 border-b border-white/10 bg-white/5">
-              <View className="flex-row gap-4">
-                <View>
-                  <Text className="text-xs text-[#bdbdbd] mb-0.5">Clients Booked</Text>
-                  <Text className="text-base font-bold text-lime-300">{selectedCampaign.clients_booked}</Text>
-                </View>
-                <View>
-                  <Text className="text-xs text-[#bdbdbd] mb-0.5">Week</Text>
-                  <Text className="text-base font-bold text-white">
-                    {selectedCampaign.iso_week_number.split('-W')[1]}
-                  </Text>
-                </View>
-              </View>
-            </View>
-          )}
-
-          {/* Recipients List - Scrollable */}
-          <View className="flex-1">
-            <ScrollView 
-              className="flex-1"
-              contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 16 }}
-              showsVerticalScrollIndicator={true}
-            >
+          {/* Recipients List Container */}
+          <View className="bg-white/5 border border-white/10 rounded-2xl shadow-xl p-4 mb-4 flex-1">
+            <ScrollView showsVerticalScrollIndicator={false}>
               {loadingRecipients ? (
                 <View className="items-center py-12">
                   <ActivityIndicator size="large" color="#bef264" className="mb-4" />
@@ -604,10 +457,10 @@ export default function AutoNudgeHistoryContent({ onClose, session, activeTab, o
                   {recipients.map((recipient, index) => (
                     <View
                       key={`${recipient.client_id || recipient.phone_normalized}-${index}`}
-                      className={`p-4 rounded-xl border ${
+                      className={`bg-white/5 border border-white/10 rounded-xl p-4 ${
                         recipient.status === 'booked'
-                          ? 'bg-lime-300/10 border-lime-300/30'
-                          : 'bg-amber-300/10 border-amber-300/30'
+                          ? 'border-lime-300/30'
+                          : 'border-amber-300/30'
                       }`}
                     >
                       {/* Main Row - Name, Status Badge, and Price */}
@@ -668,18 +521,9 @@ export default function AutoNudgeHistoryContent({ onClose, session, activeTab, o
               )}
             </ScrollView>
           </View>
-
-          {/* Footer */}
-          <View className="border-t border-white/10 px-4 py-3 bg-white/5">
-            <TouchableOpacity
-              onPress={handleBack}
-              className="px-4 py-2 rounded-lg bg-white/10 items-center"
-            >
-              <Text className="text-sm font-semibold text-white">Back to History</Text>
-            </TouchableOpacity>
-          </View>
         </Animated.View>
       )}
     </View>
+    </SafeAreaView>
   );
 }

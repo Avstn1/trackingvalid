@@ -310,9 +310,9 @@ export default function MarketingFunnelsChart({
           <TouchableOpacity
             onPress={() => setIsModalOpen(true)}
             className="px-3.5 py-2 rounded-lg"
-            style={{ backgroundColor: '#748E63' }}
+            style={{ backgroundColor: '#8BCF68' }}
           >
-            <Text className="text-base font-semibold" style={{ color: '#2a3612ff' }}>
+            <Text className="text-base font-semibold" style={{ color: '#000000ff' }}>
               Details
             </Text>
           </TouchableOpacity>

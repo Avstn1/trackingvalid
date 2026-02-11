@@ -194,7 +194,7 @@ export default function DashboardLayout() {
       
       case 'sms_campaigns':
         router.push({
-          pathname: '/clientManager',
+          pathname: '/smsManager',
           params: { openComponent: 'campaigns', reference }
         });
         break;
@@ -202,7 +202,7 @@ export default function DashboardLayout() {
       case 'sms_auto_nudge':
       case 'sms_auto_nudge_update':
         router.push({
-          pathname: '/clientManager',
+          pathname: '/smsManager',
           params: { openComponent: 'auto-nudge', reference }
         });
         break;
@@ -313,6 +313,23 @@ export default function DashboardLayout() {
           />
 
           <Tabs.Screen
+            name="smsManager"
+            options={{
+              title: 'SMS',
+              headerShown: false,
+              tabBarIcon: ({ color, focused }) => (
+                <AnimatedTabIcon
+                  focused={focused}
+                  color={color}
+                  size={22}
+                  activeName="paper-plane"
+                  inactiveName="paper-plane-outline"  
+                />
+              ),
+            }}
+          />
+
+          <Tabs.Screen
             name="clientManager"
             options={{
               title: 'Clients',
@@ -324,23 +341,6 @@ export default function DashboardLayout() {
                   size={22}
                   activeName="people-circle"
                   inactiveName="people-circle-outline"
-                />
-              ),
-            }}
-          />
-
-          <Tabs.Screen
-            name="finances"
-            options={{
-              title: 'Finances',
-              headerShown: false,
-              tabBarIcon: ({ color, focused }) => (
-                <AnimatedTabIcon
-                  focused={focused}
-                  color={color}
-                  size={22}
-                  activeName="wallet"
-                  inactiveName="wallet-outline"
                 />
               ),
             }}
@@ -363,6 +363,22 @@ export default function DashboardLayout() {
             }}
           />
 
+          <Tabs.Screen
+            name="finances"
+            options={{
+              title: 'Finances',
+              headerShown: false,
+              tabBarIcon: ({ color, focused }) => (
+                <AnimatedTabIcon
+                  focused={focused}
+                  color={color}
+                  size={22}
+                  activeName="wallet"
+                  inactiveName="wallet-outline"
+                />
+              ),
+            }}
+          />
 
         </Tabs>
       </View>

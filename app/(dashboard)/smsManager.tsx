@@ -1,6 +1,6 @@
-import AppointmentSheets from '@/components/ClientManager/AppointmentSheets/AppointmentSheets';
-import ClientSheets from '@/components/ClientManager/ClientSheets/ClientSheets';
 import { CustomHeader } from '@/components/Header/CustomHeader';
+import AutoNudge from '@/components/SMSManager/SMSAutoNudge/AutoNudge';
+import SMSCampaigns from '@/components/SMSManager/SMSCampaigns/SMSCampaigns';
 import SegmentedControl from '@/components/ui/SegmentedControl';
 import { COLORS } from '@/constants/design-system';
 import { getSpringFadeInDown, useFocusAnimation, useReducedMotionPreference } from '@/utils/motion';
@@ -11,45 +11,48 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 // Tab options for the segmented control
 const TAB_OPTIONS = [
-  { id: 'clients', label: 'Clients' },
-  { id: 'appointments', label: 'Appointments' },
+  { id: 'auto-nudge', label: 'Auto Nudge' },
+  { id: 'campaigns', label: 'SMS Campaigns' },
 ];
 
-export default function ClientManagerScreen() {
+export default function SMSManagerScreen() {
   const params = useLocalSearchParams<{
     openComponent?: string;
-    reference?: string;
   }>();
 
-  const [activeTab, setActiveTab] = useState<string>('clients');
+  const [activeTab, setActiveTab] = useState<string>('auto-nudge');
   const reduceMotion = useReducedMotionPreference();
   const focusStyle = useFocusAnimation(reduceMotion);
 
-  // Handle deep linking from notifications
+  // Handle deep linking from notifications or other sources
   useEffect(() => {
-    if (params.openComponent) {
-      setActiveTab(params.openComponent);
+    if (params.openComponent === 'auto-nudge') {
+      console.log('Opening Auto Nudge from deep link');
+      setActiveTab('auto-nudge');
+    } else if (params.openComponent === 'campaigns') {
+      console.log('Opening SMS Campaigns from deep link');
+      setActiveTab('campaigns');
     }
   }, [params.openComponent]);
 
   const renderActiveView = () => {
     switch (activeTab) {
-      case 'clients':
-        return <ClientSheets />;
-      case 'appointments':
-        return <AppointmentSheets />;
+      case 'campaigns':
+        return <SMSCampaigns />;
+      case 'auto-nudge':
+        return <AutoNudge />;
       default:
-        return <ClientSheets />;
+        return <SMSCampaigns />;
     }
   };
 
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: COLORS.background }}>
-      <CustomHeader pageName="Client Manager" />
+      <CustomHeader pageName="SMS Manager" />
 
       <Animated.View className="flex-1 px-4" style={focusStyle}>
         {/* Segmented Control */}
-        <Animated.View className="mt-3 mb-2" entering={getSpringFadeInDown(reduceMotion)}>
+        <Animated.View className="mt-3 mb-4" entering={getSpringFadeInDown(reduceMotion)}>
           <SegmentedControl
             options={TAB_OPTIONS}
             selected={activeTab}

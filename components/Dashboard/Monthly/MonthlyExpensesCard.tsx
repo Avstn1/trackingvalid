@@ -78,36 +78,47 @@ export default function MonthlyExpensesCard({ userId, month, year }: MonthlyExpe
         }}
       />
 
-      <View className="flex-row items-center gap-2">
+      <View className="flex-row items-center gap-2 flex-shrink">
         <Text className="text-xs">🧾</Text>
-        <MaskedView
-          maskElement={
-            <Text className="text-base font-bold tracking-wide">
-              Monthly Expenses
-            </Text>
-          }
-        >
-          <LinearGradient
-            colors={['#cf6868ff', '#be7348ff']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
+        <View className="flex-shrink">
+          <MaskedView
+            maskElement={
+              <Text 
+                className="font-bold tracking-wide"
+                style={{ fontSize: 14 }}
+                numberOfLines={1}
+              >
+                Monthly Expenses
+              </Text>
+            }
           >
-            <Text className="text-base font-bold tracking-wide opacity-0">
-              Monthly Expenses
-            </Text>
-          </LinearGradient>
-        </MaskedView>
+            <LinearGradient
+              colors={['#cf6868ff', '#be7348ff']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+            >
+              <Text 
+                className="font-bold tracking-wide opacity-0"
+                style={{ fontSize: 14 }}
+                numberOfLines={1}
+              >
+                Monthly Expenses
+              </Text>
+            </LinearGradient>
+          </MaskedView>
+        </View>
       </View>
 
-      <View className="min-h-[40px] justify-center">
+      <View className="min-h-[40px] justify-center flex-shrink">
         {loading ? (
           <ActivityIndicator color={COLORS.negative} size="small" />
         ) : (
           <Text 
-            className="text-xl font-bold" 
-            style={{ color: COLORS.textPrimary }}
+            className="font-bold flex-shrink" 
+            style={{ color: COLORS.textPrimary, fontSize: 20 }}
             numberOfLines={1} 
             adjustsFontSizeToFit
+            minimumFontScale={0.7}
           >
             {animatedExpenses}
           </Text>

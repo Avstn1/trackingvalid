@@ -158,45 +158,59 @@ export default function MonthlyRevenueCard({ userId, selectedMonth, year }: Mont
         }}
       />
 
-      <View className="flex-row items-center gap-2">
+      <View className="flex-row items-center gap-2 flex-shrink">
         <Text className="text-xs">🏆</Text>
-        <MaskedView
-          maskElement={
-            <Text className="text-base font-bold tracking-wide">
-              Monthly Revenue
-            </Text>
-          }
-        >
-          <LinearGradient
-            colors={['#8bcf68ff', '#beb348ff']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
+        <View className="flex-shrink">
+          <MaskedView
+            maskElement={
+              <Text 
+                className="font-bold tracking-wide"
+                style={{ fontSize: 14 }}
+                numberOfLines={1}
+              >
+                Monthly Revenue
+              </Text>
+            }
           >
-            <Text className="text-base font-bold tracking-wide opacity-0">
-              Monthly Revenue
-            </Text>
-          </LinearGradient>
-        </MaskedView>
+            <LinearGradient
+              colors={['#8bcf68ff', '#beb348ff']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+            >
+              <Text 
+                className="font-bold tracking-wide opacity-0"
+                style={{ fontSize: 14 }}
+                numberOfLines={1}
+              >
+                Monthly Revenue
+              </Text>
+            </LinearGradient>
+          </MaskedView>
+        </View>
       </View>
       
-      <View className="min-h-[40px] justify-center">
+      <View className="min-h-[40px] justify-center flex-shrink">
         {loading ? (
           <ActivityIndicator color={COLORS.primary} size="small" />
         ) : (
-          <View className="flex-row items-baseline gap-2">
+          <View className="flex-row items-baseline gap-2 flex-wrap">
             <Text 
-              className="text-xl font-bold" 
-              style={{ color: COLORS.textPrimary }}
+              className="font-bold flex-shrink" 
+              style={{ color: COLORS.textPrimary, fontSize: 20 }}
               numberOfLines={1} 
               adjustsFontSizeToFit
+              minimumFontScale={0.7}
             >
               {revenue !== null ? animatedRevenue : 'N/A'}
             </Text>
             
             {change !== null && (
               <Text
-                className="text-xs font-semibold"
-                style={{ color: change > 0 ? COLORS.positive : change < 0 ? COLORS.negative : COLORS.textSecondary }}
+                className="font-semibold"
+                style={{ 
+                  color: change > 0 ? COLORS.positive : change < 0 ? COLORS.negative : COLORS.textSecondary,
+                  fontSize: 11
+                }}
               >
                 ({change > 0 ? '+' : ''}{change.toFixed(1)}%)
               </Text>

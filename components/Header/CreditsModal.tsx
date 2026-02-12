@@ -30,8 +30,16 @@ import Animated, {
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
+  withSpring,
   withTiming,
 } from 'react-native-reanimated';
+
+// Spring config for smooth modal animations
+const MODAL_SPRING_CONFIG = {
+  damping: 20,
+  stiffness: 200,
+  mass: 0.5,
+};
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Component-specific accent colors
@@ -84,21 +92,21 @@ export default function CreditsModal({ isOpen, onClose }: CreditsModalProps) {
     if (isOpen) {
       translateY.value = modalHeight;
       opacity.value = 0;
-      translateY.value = withTiming(0, { duration: 300 });
-      opacity.value = withTiming(1, { duration: 300 });
+      translateY.value = withSpring(0, MODAL_SPRING_CONFIG);
+      opacity.value = withTiming(1, { duration: 200 });
     }
   }, [isOpen, translateY, opacity, modalHeight]);
 
   const closeModal = () => {
     if (isClosing) return;
     setIsClosing(true);
-    translateY.value = withTiming(modalHeight, { duration: 300 });
-    opacity.value = withTiming(0, { duration: 300 });
+    translateY.value = withSpring(modalHeight, MODAL_SPRING_CONFIG);
+    opacity.value = withTiming(0, { duration: 200 });
     setTimeout(() => {
       onClose();
       setIsClosing(false);
       translateY.value = 0;
-    }, 300);
+    }, 250);
   };
 
   // Pan gesture for swipe down on handle only
@@ -114,8 +122,8 @@ export default function CreditsModal({ isOpen, onClose }: CreditsModalProps) {
       if (event.translationY > 100 || event.velocityY > 500) {
         runOnJS(closeModal)();
       } else {
-        translateY.value = withTiming(0, { duration: 200 });
-        opacity.value = withTiming(1, { duration: 200 });
+        translateY.value = withSpring(0, MODAL_SPRING_CONFIG);
+        opacity.value = withTiming(1, { duration: 150 });
       }
     });
 

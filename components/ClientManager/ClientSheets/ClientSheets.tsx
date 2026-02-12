@@ -340,7 +340,7 @@ export default function ClientSheets() {
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View className="flex-1" style={{ backgroundColor: COLORS.background }}>
         {/* Search Bar */}
-        <View className="px-0 mb-1">
+        <View className="px-0 mb-2">
           <View 
             className="flex-row items-center px-4 rounded-xl"
             style={{ 
@@ -370,7 +370,7 @@ export default function ClientSheets() {
         </View>
 
         {/* Filter Controls Row - No Scroll */}
-        <View className="flex-row justify-between items-center mb-1">
+        <View className="flex-row justify-between items-center" style={{ marginBottom: 6 }}>
           {/* Left: Type dropdown + Advanced filters */}
           <View className="flex-row items-center" style={{ gap: 8 }}>
             {/* Visiting Type Dropdown */}
@@ -468,7 +468,7 @@ export default function ClientSheets() {
         </View>
 
         {/* Results count */}
-        <View className="mb-0">
+        <View className="mb-1">
           <Text className="text-xs" style={{ color: COLORS.textTertiary }}>
             {total === 0 
               ? 'No clients found' 

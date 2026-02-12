@@ -17,9 +17,17 @@ import Animated, {
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
+  withSpring,
   withTiming
 } from 'react-native-reanimated'
 import Toast from 'react-native-toast-message'
+
+// Spring config for smooth modal animations
+const MODAL_SPRING_CONFIG = {
+  damping: 20,
+  stiffness: 200,
+  mass: 0.5,
+}
 
 
 
@@ -122,16 +130,16 @@ export default function NotificationsDropdown({
     if (open && !inSidebar) {
       translateY.value = 1000
       opacity.value = 0
-      translateY.value = withTiming(0, { duration: 250 })
-      opacity.value = withTiming(1, { duration: 250 })
+      translateY.value = withSpring(0, MODAL_SPRING_CONFIG)
+      opacity.value = withTiming(1, { duration: 200 })
     }
   }, [open, translateY, opacity, inSidebar])
 
   const closeModal = useCallback(() => {
     if (isClosing || inSidebar) return
     setIsClosing(true)
-    translateY.value = withTiming(1000, { duration: 250 })
-    opacity.value = withTiming(0, { duration: 250 })
+    translateY.value = withSpring(1000, MODAL_SPRING_CONFIG)
+    opacity.value = withTiming(0, { duration: 200 })
     setTimeout(() => {
       setOpen(false)
       setIsClosing(false)
@@ -151,8 +159,8 @@ export default function NotificationsDropdown({
       if (!inSidebar && (event.translationY > 100 || event.velocityY > 500)) {
         runOnJS(closeModal)()
       } else {
-        translateY.value = withTiming(0, { duration: 200 })
-        opacity.value = withTiming(1, { duration: 200 })
+        translateY.value = withSpring(0, MODAL_SPRING_CONFIG)
+        opacity.value = withTiming(1, { duration: 150 })
       }
     })
 

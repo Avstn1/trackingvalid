@@ -242,7 +242,7 @@ export default function MonthlyDashboard({
           snapToAlignment="start"
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <View style={{ width: SCREEN_WIDTH - 31.5 }}>
+            <View style={{ width: SCREEN_WIDTH - 32 }}>
               <View style={{ padding: 16, flex: 1 }}>
                 {item.component}
               </View>

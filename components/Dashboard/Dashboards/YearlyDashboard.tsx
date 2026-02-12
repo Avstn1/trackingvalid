@@ -197,7 +197,7 @@ export default function YearlyDashboard({
           snapToAlignment="start"
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <View style={{ width: SCREEN_WIDTH - 31.5, flex: 1 }}>
+            <View style={{ width: SCREEN_WIDTH - 32, flex: 1 }}>
               <View style={{ paddingTop: 10, flex: 1, marginRight: 10}}>
                 {item.component}
               </View>

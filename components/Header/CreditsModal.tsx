@@ -2,7 +2,6 @@ import { COLORS } from '@/constants/design-system';
 import { supabase } from '@/utils/supabaseClient';
 import {
   ArrowDownRight,
-  ArrowLeft,
   ArrowUpRight,
   Calendar,
   Coins,
@@ -10,6 +9,7 @@ import {
   Lock,
   ShoppingCart,
   TrendingUp,
+  X,
   Zap
 } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
@@ -30,8 +30,16 @@ import Animated, {
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
+  withSpring,
   withTiming,
 } from 'react-native-reanimated';
+
+// Spring config for smooth modal animations
+const MODAL_SPRING_CONFIG = {
+  damping: 20,
+  stiffness: 200,
+  mass: 0.5,
+};
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Component-specific accent colors
@@ -49,7 +57,6 @@ type HistorySubView = 'purchases' | 'transactions';
 interface CreditsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onBack?: () => void;
 }
 
 interface CreditTransaction {
@@ -62,7 +69,7 @@ interface CreditTransaction {
   created_at: string;
 }
 
-export default function CreditsModal({ isOpen, onClose, onBack }: CreditsModalProps) {
+export default function CreditsModal({ isOpen, onClose }: CreditsModalProps) {
   const insets = useSafeAreaInsets();
   const screenHeight = Dimensions.get('window').height;
   const modalHeight = screenHeight * 0.85;
@@ -85,21 +92,21 @@ export default function CreditsModal({ isOpen, onClose, onBack }: CreditsModalPr
     if (isOpen) {
       translateY.value = modalHeight;
       opacity.value = 0;
-      translateY.value = withTiming(0, { duration: 300 });
-      opacity.value = withTiming(1, { duration: 300 });
+      translateY.value = withSpring(0, MODAL_SPRING_CONFIG);
+      opacity.value = withTiming(1, { duration: 200 });
     }
   }, [isOpen, translateY, opacity, modalHeight]);
 
   const closeModal = () => {
     if (isClosing) return;
     setIsClosing(true);
-    translateY.value = withTiming(modalHeight, { duration: 300 });
-    opacity.value = withTiming(0, { duration: 300 });
+    translateY.value = withSpring(modalHeight, MODAL_SPRING_CONFIG);
+    opacity.value = withTiming(0, { duration: 200 });
     setTimeout(() => {
       onClose();
       setIsClosing(false);
       translateY.value = 0;
-    }, 300);
+    }, 250);
   };
 
   // Pan gesture for swipe down on handle only
@@ -115,8 +122,8 @@ export default function CreditsModal({ isOpen, onClose, onBack }: CreditsModalPr
       if (event.translationY > 100 || event.velocityY > 500) {
         runOnJS(closeModal)();
       } else {
-        translateY.value = withTiming(0, { duration: 200 });
-        opacity.value = withTiming(1, { duration: 200 });
+        translateY.value = withSpring(0, MODAL_SPRING_CONFIG);
+        opacity.value = withTiming(1, { duration: 150 });
       }
     });
 
@@ -375,15 +382,13 @@ export default function CreditsModal({ isOpen, onClose, onBack }: CreditsModalPr
                     className="flex-row items-center justify-between px-6 pb-4"
                     style={{ borderBottomWidth: 1, borderBottomColor: COLORS.glassBorder }}
                   >
-                    {onBack && (
-                      <TouchableOpacity onPress={onBack} className="p-1 mr-2">
-                        <ArrowLeft size={24} color={COLORS.textSecondary} />
-                      </TouchableOpacity>
-                    )}
                     <View className="flex-row items-center gap-2 flex-1">
                       <Coins size={24} color={ACCENT_COLORS.lime} />
                       <Text className="text-2xl font-bold text-white">Credits</Text>
                     </View>
+                    <TouchableOpacity onPress={onClose} className="p-1">
+                      <X size={24} color={COLORS.textSecondary} />
+                    </TouchableOpacity>
                   </View>
                 </View>
               </GestureDetector>

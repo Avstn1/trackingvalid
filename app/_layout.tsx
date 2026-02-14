@@ -47,12 +47,14 @@ export default function RootLayout() {
         if (session) {
           const { data: profile } = await supabase
             .from('profiles')
-            .select('stripe_subscription_status')
+            .select('stripe_subscription_status, trial_active')
             .eq('user_id', session.user.id)
             .single();
           
           const subStatus = profile?.stripe_subscription_status;
-          if (subStatus === 'active') {
+          const trialActive = profile?.trial_active;
+          
+          if (subStatus === 'active' || trialActive === true) {
             setInitialRoute('/(dashboard)/dashboard');
           } else {
             setInitialRoute('/(paywall)/onboarding');

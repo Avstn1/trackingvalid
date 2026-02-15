@@ -17,8 +17,11 @@ import Animated from 'react-native-reanimated';
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import MonthlyDashboard from '@/components/Dashboard/Dashboards/MonthlyDashboard';
+import TrialBanner from '@/components/Dashboard/TrialBanner';
 import YearlyDashboard from '@/components/Dashboard/Dashboards/YearlyDashboard';
 import { CustomHeader } from '@/components/Header/CustomHeader';
+import { getTrialDaysRemaining } from '@/utils/trial';
+import { useRouter } from 'expo-router';
 
 // Component-specific accent colors
 const ACCENT_COLORS = {
@@ -69,6 +72,7 @@ export default function DashboardPage() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const reduceMotion = useReducedMotionPreference();
   const focusStyle = useFocusAnimation(reduceMotion);
+  const router = useRouter();
 
   const hasSyncedInitially = useRef(false);
   const firstSyncAfterConnect = useRef(false);
@@ -259,6 +263,17 @@ export default function DashboardPage() {
           setSelectedYear(date.getFullYear());
         }}
       />
+      
+      {/* Trial Banner - Fixed under header, outside ScrollView */}
+      {profile?.trial_active && profile?.trial_start && (
+        <TrialBanner
+          userId={user.id}
+          daysRemaining={getTrialDaysRemaining(profile)}
+          dateAutoNudgeEnabled={profile.date_autonudge_enabled}
+          onManageTrial={() => router.push('/smsManager')}
+        />
+      )}
+      
       <Animated.View style={[{ flex: 1 }, focusStyle]}>
         <ScrollView
           className="flex-1 px-4"
@@ -267,10 +282,6 @@ export default function DashboardPage() {
             <RefreshControl refreshing={isRefreshing} onRefresh={syncAcuityData} tintColor={ACCENT_COLORS.orange} />
           }
         >
-          {/* HEADER */}
-          <View className="mb-3">
-          </View>
-
           {/* CONTENT */}
           {dashboardView === "monthly" && (
             <MonthlyDashboard

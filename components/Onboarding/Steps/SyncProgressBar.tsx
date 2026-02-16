@@ -44,29 +44,45 @@ export default function SyncProgressBar({
     }
 
     const completed = data?.filter(s => s.status === 'completed').length || 0
+    const pending = data?.filter(s => s.status === 'pending').length || 0
     const hasFailed = data?.some(s => s.status === 'failed') || false
+    
+    console.log(`[SyncProgressBar] Status: ${completed} completed, ${pending} pending, totalMonths: ${totalMonths}`)
     
     setCompletedMonths(completed)
     setFailed(hasFailed)
+    
+    // If no more pending and we have completed some, consider it done
+    if (pending === 0 && completed > 0 && !hasFailed) {
+      console.log('[SyncProgressBar] No pending syncs remaining, marking complete')
+      setDisplayProgress(100)
+      onComplete()
+    }
   }
 
   useEffect(() => {
+    // Skip if already at 100%
+    if (displayProgress >= 100) return
+    
     if (completedMonths === totalMonths && totalMonths > 0) {
+      console.log('[SyncProgressBar] All months completed, setting to 100%')
       setDisplayProgress(100)
       onComplete()
       return
     }
 
     if (completedMonths > lastCompletedCount && totalMonths > 0) {
-      // Calculate jump based on remaining percentage divided by total months
-      const remainingPercentage = 100 - displayProgress
-      const percentageToAdd = remainingPercentage / totalMonths
-      const newProgress = Math.min(displayProgress + percentageToAdd, 99)
+      // Calculate progress based on actual completion
+      const actualProgress = (completedMonths / totalMonths) * 100
+      // Use actual progress but cap at 95% until truly complete
+      const newProgress = Math.min(actualProgress, 95)
       
-      setDisplayProgress(newProgress)
+      console.log(`[SyncProgressBar] Progress update: ${completedMonths}/${totalMonths} = ${actualProgress.toFixed(1)}%`)
+      
+      setDisplayProgress(Math.max(displayProgress, newProgress))
       setLastCompletedCount(completedMonths)
     }
-  }, [completedMonths, totalMonths, onComplete])
+  }, [completedMonths, totalMonths, onComplete, displayProgress, lastCompletedCount])
 
   // Random increments while waiting (for feeling of progress)
   useEffect(() => {

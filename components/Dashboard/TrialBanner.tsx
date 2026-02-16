@@ -258,7 +258,7 @@ export default function TrialBanner({
             />
             <Text style={styles.infoText}>
               <Text style={{ color: autoNudgeStatus === 'active' ? COLORS.primary : COLORS.textTertiary }}>
-                Auto-Nudge {autoNudgeStatus === 'loading' ? '...' : autoNudgeStatus}
+                Auto-Nudge {autoNudgeStatus === 'loading' ? '...' : autoNudgeStatus === 'active' ? 'Active' : 'Inactive'}
               </Text>
               {autoNudgeStatus === 'active' && nextNudgeDate && (
                 <Text style={{ color: COLORS.textSecondary }}>

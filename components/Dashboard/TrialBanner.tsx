@@ -221,7 +221,7 @@ export default function TrialBanner({
           
           {/* Days remaining */}
           <Text style={styles.daysText}>
-            {daysRemaining} days left
+            {daysRemaining} days of trial left
           </Text>
           
           {/* Progress bar */}

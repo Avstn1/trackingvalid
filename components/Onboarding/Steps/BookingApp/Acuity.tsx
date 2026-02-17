@@ -438,104 +438,111 @@ export default function Acuity({ userId, onSyncComplete, onSyncStateChange, exis
         padding: SPACING.xl,
       }}>
         <View style={{ gap: SPACING.lg }}>
-          {/* First Appointment Info */}
-          {!loadingFirstAppointment && firstAppointment && (
-            <View style={{
-              padding: SPACING.sm,
-              borderRadius: RADIUS.lg,
-              borderWidth: 2,
-              borderColor: 'rgba(34, 211, 238, 0.3)',
-              backgroundColor: 'rgba(34, 211, 238, 0.1)',
-            }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.xs, marginBottom: 2 }}>
-                <Calendar size={14} color="#22d3ee" />
-                <Text style={{
-                  fontSize: FONT_SIZE.xs,
-                  fontWeight: '700',
-                  color: '#a5f3fc',
-                }}>
-                  First Appointment
-                </Text>
-              </View>
-              <Text style={{
-                fontSize: FONT_SIZE.xs,
-                color: COLORS.textSecondary,
-                lineHeight: 14,
-              }}>
-                Found in{' '}
-                <Text style={{ fontWeight: '700', color: COLORS.textPrimary }}>
-                  {firstAppointment.month} {firstAppointment.year}
-                </Text>
-              </Text>
-            </View>
-          )}
-
-          {/* Sync Strategy Explanation */}
-          {priorityMonthsInfo && (
-            <View style={{ gap: SPACING.xs }}>
+          {/* Info Cards - All uniform */}
+          <View style={{ gap: SPACING.xs }}>
+            {/* First Appointment Info */}
+            {!loadingFirstAppointment && firstAppointment && (
               <View style={{
                 padding: SPACING.sm,
                 borderRadius: RADIUS.lg,
                 borderWidth: 2,
-                borderColor: 'rgba(52, 211, 153, 0.4)',
-                backgroundColor: 'rgba(52, 211, 153, 0.1)',
-                flexDirection: 'row',
-                gap: SPACING.xs,
+                borderColor: 'rgba(34, 211, 238, 0.3)',
+                backgroundColor: 'rgba(34, 211, 238, 0.1)',
               }}>
-                <Info size={14} color="#34d399" style={{ marginTop: 1 }} />
-                <View style={{ flex: 1 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.xs, marginBottom: 4 }}>
+                  <Calendar size={16} color="#22d3ee" />
                   <Text style={{
-                    fontSize: FONT_SIZE.xs,
+                    fontSize: FONT_SIZE.sm,
                     fontWeight: '700',
-                    color: '#6ee7b7',
-                    marginBottom: 2,
+                    color: '#a5f3fc',
                   }}>
-                    Smart Sync
+                    First Appointment
                   </Text>
+                </View>
+                <View style={{ flexDirection: 'row', gap: SPACING.xs }}>
+                  <View style={{ width: 16 }} />
                   <Text style={{
-                    fontSize: FONT_SIZE.xs,
+                    fontSize: FONT_SIZE.sm,
                     color: COLORS.textSecondary,
-                    lineHeight: 14,
+                    lineHeight: 18,
+                    flex: 1,
                   }}>
-                    Last{' '}
+                    Found in{' '}
                     <Text style={{ fontWeight: '700', color: COLORS.textPrimary }}>
-                      {totalPriorityMonths} months
+                      {firstAppointment.month} {firstAppointment.year}
                     </Text>
-                    {' '}sync now. Older data syncs in background.
                   </Text>
                 </View>
               </View>
+            )}
 
-              <View style={{
-                padding: SPACING.sm,
-                borderRadius: RADIUS.lg,
-                borderWidth: 2,
-                borderColor: 'rgba(251, 191, 36, 0.4)',
-                backgroundColor: 'rgba(251, 191, 36, 0.1)',
-                flexDirection: 'row',
-                gap: SPACING.xs,
-              }}>
-                <Info size={14} color="#fbbf24" style={{ marginTop: 1 }} />
-                <View style={{ flex: 1 }}>
-                  <Text style={{
-                    fontSize: FONT_SIZE.xs,
-                    fontWeight: '700',
-                    color: '#fcd34d',
-                    marginBottom: 2,
-                  }}>
-                    Data Accuracy
-                  </Text>
-                  <Text style={{
-                    fontSize: FONT_SIZE.xs,
-                    color: COLORS.textSecondary,
-                    lineHeight: 14,
-                  }}>
-                    Client metrics may be incomplete until full sync completes. You'll get a notification.
-                  </Text>
+            {/* Sync Strategy Explanation */}
+            {priorityMonthsInfo && (
+              <>
+                <View style={{
+                  padding: SPACING.sm,
+                  borderRadius: RADIUS.lg,
+                  borderWidth: 2,
+                  borderColor: 'rgba(52, 211, 153, 0.4)',
+                  backgroundColor: 'rgba(52, 211, 153, 0.1)',
+                  flexDirection: 'row',
+                  gap: SPACING.xs,
+                }}>
+                  <Info size={16} color="#34d399" style={{ marginTop: 1 }} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={{
+                      fontSize: FONT_SIZE.sm,
+                      fontWeight: '700',
+                      color: '#6ee7b7',
+                      marginBottom: 4,
+                    }}>
+                      Smart Sync
+                    </Text>
+                    <Text style={{
+                      fontSize: FONT_SIZE.sm,
+                      color: COLORS.textSecondary,
+                      lineHeight: 18,
+                    }}>
+                      Last{' '}
+                      <Text style={{ fontWeight: '700', color: COLORS.textPrimary }}>
+                        {totalPriorityMonths} months
+                      </Text>
+                      {' '}sync now. Older data syncs in background.
+                    </Text>
+                  </View>
                 </View>
-              </View>
-            </View>
-          )}
+
+                <View style={{
+                  padding: SPACING.sm,
+                  borderRadius: RADIUS.lg,
+                  borderWidth: 2,
+                  borderColor: 'rgba(251, 191, 36, 0.4)',
+                  backgroundColor: 'rgba(251, 191, 36, 0.1)',
+                  flexDirection: 'row',
+                  gap: SPACING.xs,
+                }}>
+                  <Info size={16} color="#fbbf24" style={{ marginTop: 1 }} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={{
+                      fontSize: FONT_SIZE.sm,
+                      fontWeight: '700',
+                      color: '#fcd34d',
+                      marginBottom: 4,
+                    }}>
+                      Data Accuracy
+                    </Text>
+                    <Text style={{
+                      fontSize: FONT_SIZE.sm,
+                      color: COLORS.textSecondary,
+                      lineHeight: 18,
+                    }}>
+                      Client metrics may be incomplete until full sync completes. You'll get a notification.
+                    </Text>
+                  </View>
+                </View>
+              </>
+            )}
+          </View>
 
           <View>
             <Text style={{

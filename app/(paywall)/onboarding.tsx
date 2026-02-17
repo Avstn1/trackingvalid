@@ -291,10 +291,10 @@ export default function OnboardingScreen() {
               <Sparkles size={80} color="#f5e29a" strokeWidth={1.5} />
             </View>
             <Text className="text-3xl font-bold text-white text-center mb-4">
-              Ready to Get Started?
+              Ready to Systemize Your Business?
             </Text>
             <Text className="text-base text-gray-300 text-center leading-6 mb-8">
-              Choose a plan that works for you and unlock all the powerful features Corva has to offer.
+              Pick your plan and let Corva start bringing clients back automatically.
             </Text>
             
             <TouchableOpacity

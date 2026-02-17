@@ -1,11 +1,11 @@
 // app/_layout.tsx
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { StripeProvider } from '@stripe/stripe-react-native';
 import 'react-native-get-random-values';
 
 import { Stack, useRouter } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
+import { Platform } from 'react-native';
 import '../global.css';
 
 import CustomSplash from '@/components/CustomSplash';
@@ -13,6 +13,11 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { supabase } from '@/utils/supabaseClient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useEffect, useRef, useState } from 'react';
+
+// Conditionally import Stripe only on native platforms (not supported on web)
+const StripeProvider = Platform.OS !== 'web'
+  ? require('@stripe/stripe-react-native').StripeProvider
+  : ({ children }: { children: React.ReactNode }) => children;
 
 // Prevent the splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();

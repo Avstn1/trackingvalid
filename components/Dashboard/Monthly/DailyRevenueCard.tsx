@@ -1,5 +1,4 @@
 import { COLORS } from '@/constants/design-system';
-import { parseYMDToLocalDate } from '@/utils/date';
 import { useCountUp, useReducedMotionPreference } from '@/utils/motion';
 import { supabase } from '@/utils/supabaseClient';
 import MaskedView from '@react-native-masked-view/masked-view';
@@ -218,8 +217,6 @@ export default function DailyRevenueCard({ userId, selectedDate }: DailyRevenueC
                   className="font-extrabold tracking-tight"
                   style={{ color: COLORS.textPrimary, fontSize: 36, lineHeight: 40 }}
                   numberOfLines={1}
-                  adjustsFontSizeToFit
-                  minimumFontScale={0.7}
                 >
                   {animatedRevenue}
                 </Text>

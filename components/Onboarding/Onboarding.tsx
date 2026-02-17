@@ -262,7 +262,7 @@ export default function Onboarding({ onComplete }: OnboardingProps = {}) {
       if (!currentProfile?.trial_start) {
         const now = new Date()
         const trialEnd = new Date(now)
-        trialEnd.setDate(trialEnd.getDate() + 7)
+        trialEnd.setDate(trialEnd.getDate() + 21)
 
         profileUpdate.trial_start = now.toISOString()
         profileUpdate.trial_end = trialEnd.toISOString()

@@ -241,46 +241,14 @@ export default function Onboarding({ onComplete }: OnboardingProps = {}) {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not logged in')
 
-      let avatarUrl = avatarUri || ''
-      
-      // Upload avatar if new file selected
-      if (avatarUri && !avatarUri.startsWith('http')) {
-        const fileName = `${fullName.replace(/\s+/g, '_')}_${Date.now()}`
-        const response = await fetch(avatarUri)
-        const blob = await response.blob()
-        
-        const { error: uploadError } = await supabase.storage
-          .from('avatars')
-          .upload(fileName, blob, { upsert: true })
-          
-        if (uploadError) throw uploadError
-
-        const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(fileName)
-        avatarUrl = urlData.publicUrl
-      }
-
-      const phoneToE164 = (phone: string) => {
-        const cleaned = phone.replace(/\D/g, '')
-        return `+1${cleaned}`
-      }
+      // Profile is already saved in ProfileStep, so we only need to:
+      // 1. Save calendar selection
+      // 2. Set onboarded = true
+      // 3. Grant trial credits if applicable
 
       const profileUpdate: Record<string, unknown> = {
-        full_name: fullName,
-        phone: phoneToE164(phoneNumber),
-        role: selectedRole.role,
-        barber_type: selectedRole.barber_type || null,
-        avatar_url: avatarUrl,
-        username: username.toLowerCase(),
-        booking_link: bookingLink.trim(),
         calendar: selectedProvider === 'acuity' ? selectedAcuityCalendar : null,
         onboarded: true,
-      }
-
-      if (selectedRole.barber_type === 'commission') {
-        if (commissionRate === '' || commissionRate < 1 || commissionRate > 100) {
-          throw new Error('Please enter a valid commission rate between 1 and 100')
-        }
-        profileUpdate.commission_rate = commissionRate / 100
       }
 
       const { data: currentProfile, error: currentProfileError } = await supabase
@@ -324,7 +292,7 @@ export default function Onboarding({ onComplete }: OnboardingProps = {}) {
 
       if (updateError) throw updateError
 
-      console.log('Profile updated successfully')
+      console.log('Onboarding finalized - calendar and trial set')
 
       if (shouldGrantTrialCredits) {
         console.log('Granting trial credits...')

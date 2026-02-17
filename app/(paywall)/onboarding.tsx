@@ -36,25 +36,25 @@ const pages: OnboardingPage[] = [
   {
     image: require('@/assets/images/corvalogoTransparent.png'),
     title: 'Welcome to Corva',
-    description: 'The all-in-one business management platform designed specifically for you.',
+    description: 'Turn your barber hustle into a system that makes you more money — automatically.',
     gradient: ['#101312', '#1a1f1b', '#1e2b22'],
   },
   {
     icon: <TrendingUp size={80} color="#7affc9" strokeWidth={1.5} />,
-    title: 'Track Your Revenue',
-    description: 'Get real-time insights into your revenue, expenses, and profitability with comprehensive dashboards and organized reports.',
+    title: 'See Your Money Clearly',
+    description: 'Instantly track your revenue, expenses, and profits — without the spreadsheets.',
     gradient: ['#101312', '#1a1f1b', '#1e2b22'],
   },
   {
     icon: <Users size={80} color="#3af1f7" strokeWidth={1.5} />,
-    title: 'Know Your Clients',
-    description: 'Understand your top clients, track retention rates, and see detailed analytics on client behavior.',
+    title: 'Know Who\'s About to Book',
+    description: 'Corva analyzes your client patterns so you know exactly who to follow up with.',
     gradient: ['#101312', '#1a1f1b', '#1b2528'],
   },
   {
     icon: <BarChart3 size={80} color="#f5e29a" strokeWidth={1.5} />,
-    title: 'Grow Your Career',
-    description: 'Analyze marketing funnels, track service performance, and make data-driven decisions to scale.',
+    title: 'Stay Booked. Scale Smarter',
+    description: 'Track performance, optimize your funnel, and make data-driven moves to grow.',
     gradient: ['#101312', '#1a1f1b', '#2a2618'],
   },
 ]

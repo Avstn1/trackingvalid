@@ -38,22 +38,27 @@ function getISOWeekNumber(date: Date): string {
   return `${d.getFullYear()}-W${String(weekNo).padStart(2, '0')}`;
 }
 
-function calculateNextNudgeDate(enabledDateUTC: string | null | undefined): string | null {
-  if (!enabledDateUTC) return null;
+// Calculate next nudge date based on TODAY (not when enabled)
+// Nudges go out every Monday at 10am
+// If it's Monday before 10am, next nudge is today at 10am
+// Otherwise, next nudge is the following Monday at 10am
+function calculateNextNudgeDate(): string | null {
+  const now = new Date();
+  const dayOfWeek = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
+  const hour = now.getHours();
   
-  const enabledDate = new Date(enabledDateUTC);
-  if (isNaN(enabledDate.getTime())) return null;
+  const targetDate = new Date(now);
   
-  const dayOfWeek = enabledDate.getDay();
-  const hour = enabledDate.getHours();
-  
-  const targetDate = new Date(enabledDate);
-  
-  if ((dayOfWeek === 1 && hour >= 10) || dayOfWeek === 2 || dayOfWeek === 3) {
-    targetDate.setDate(targetDate.getDate() + 1);
-  } else if (dayOfWeek >= 4 || dayOfWeek === 0) {
-    const daysUntilMonday = dayOfWeek === 0 ? 1 : 8 - dayOfWeek;
+  // If it's Monday before 10am, next nudge is today at 10am
+  if (dayOfWeek === 1 && hour < 10) {
+    targetDate.setHours(10, 0, 0, 0);
+  } 
+  // Otherwise, calculate next Monday at 10am
+  else {
+    // Days until next Monday: if Sunday (0) -> 1 day, if Monday after 10am -> 7 days, etc.
+    const daysUntilMonday = dayOfWeek === 0 ? 1 : dayOfWeek === 1 ? 7 : 8 - dayOfWeek;
     targetDate.setDate(targetDate.getDate() + daysUntilMonday);
+    targetDate.setHours(10, 0, 0, 0);
   }
   
   const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -87,7 +92,8 @@ export default function TrialBanner({
   const urgencyColor = getUrgencyColor(daysRemaining);
   const statusText = daysRemaining <= 7 ? 'Ending soon' : 'Trial';
   const progressPercent = Math.min(100, Math.max(0, ((TRIAL_DAYS - daysRemaining) / TRIAL_DAYS) * 100));
-  const nextNudgeDate = calculateNextNudgeDate(dateAutoNudgeEnabled);
+  // Only show next nudge date if Auto-Nudge is active
+  const nextNudgeDate = autoNudgeStatus === 'active' ? calculateNextNudgeDate() : null;
 
   // Animate progress bar
   useEffect(() => {

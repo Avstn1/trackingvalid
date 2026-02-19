@@ -38,31 +38,57 @@ function getISOWeekNumber(date: Date): string {
   return `${d.getFullYear()}-W${String(weekNo).padStart(2, '0')}`;
 }
 
-// Calculate next nudge date based on TODAY (not when enabled)
-// Nudges go out every Monday at 10am
-// If it's Monday before 10am, next nudge is today at 10am
-// Otherwise, next nudge is the following Monday at 10am
-function calculateNextNudgeDate(): string | null {
-  const now = new Date();
-  const dayOfWeek = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
-  const hour = now.getHours();
-  
-  const targetDate = new Date(now);
-  
-  // If it's Monday before 10am, next nudge is today at 10am
-  if (dayOfWeek === 1 && hour < 10) {
-    targetDate.setHours(10, 0, 0, 0);
-  } 
-  // Otherwise, calculate next Monday at 10am
-  else {
-    // Days until next Monday: if Sunday (0) -> 1 day, if Monday after 10am -> 7 days, etc.
-    const daysUntilMonday = dayOfWeek === 0 ? 1 : dayOfWeek === 1 ? 7 : 8 - dayOfWeek;
-    targetDate.setDate(targetDate.getDate() + daysUntilMonday);
-    targetDate.setHours(10, 0, 0, 0);
-  }
+// Calculate next nudge date based on signup day (dateAutoNudgeEnabled)
+// - Mon/Tue/Wed signup → next day at 10am (Tue/Wed/Thu respectively)
+// - Thu-Sun signup → next Monday at 10am
+// After first nudge, show next Monday at 10am (weekly cycle)
+function calculateNextNudgeDate(dateAutoNudgeEnabled: string | null | undefined): string | null {
+  if (!dateAutoNudgeEnabled) return null;
   
   const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  
+  const now = new Date();
+  const enabledDate = new Date(dateAutoNudgeEnabled);
+  const signupDayOfWeek = enabledDate.getDay(); // 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
+  
+  // Calculate first nudge date based on signup day
+  const firstNudgeDate = new Date(enabledDate);
+  
+  // Mon, Tue, or Wed signup (1, 2, 3) → next day at 10am
+  if (signupDayOfWeek >= 1 && signupDayOfWeek <= 3) {
+    firstNudgeDate.setDate(firstNudgeDate.getDate() + 1);
+    firstNudgeDate.setHours(10, 0, 0, 0);
+  } 
+  // Thu-Sun signup (0, 4, 5, 6) → next Monday at 10am
+  else {
+    const daysUntilMonday = signupDayOfWeek === 0 ? 1 : 8 - signupDayOfWeek;
+    firstNudgeDate.setDate(firstNudgeDate.getDate() + daysUntilMonday);
+    firstNudgeDate.setHours(10, 0, 0, 0);
+  }
+  
+  let targetDate: Date;
+  
+  // If first nudge is still in the future, show it
+  if (firstNudgeDate > now) {
+    targetDate = firstNudgeDate;
+  } else {
+    // Otherwise, calculate next Monday at 10am
+    const currentDayOfWeek = now.getDay();
+    const currentHour = now.getHours();
+    
+    targetDate = new Date(now);
+    
+    // If it's Monday before 10am, next nudge is today at 10am
+    if (currentDayOfWeek === 1 && currentHour < 10) {
+      targetDate.setHours(10, 0, 0, 0);
+    } else {
+      // Calculate next Monday
+      const daysUntilMonday = currentDayOfWeek === 0 ? 1 : currentDayOfWeek === 1 ? 7 : 8 - currentDayOfWeek;
+      targetDate.setDate(targetDate.getDate() + daysUntilMonday);
+      targetDate.setHours(10, 0, 0, 0);
+    }
+  }
   
   const dayIndex = targetDate.getDay();
   const monthIndex = targetDate.getMonth();
@@ -93,7 +119,7 @@ export default function TrialBanner({
   const statusText = daysRemaining <= 7 ? 'Ending soon' : 'Trial';
   const progressPercent = Math.min(100, Math.max(0, ((TRIAL_DAYS - daysRemaining) / TRIAL_DAYS) * 100));
   // Only show next nudge date if Auto-Nudge is active
-  const nextNudgeDate = autoNudgeStatus === 'active' ? calculateNextNudgeDate() : null;
+  const nextNudgeDate = autoNudgeStatus === 'active' ? calculateNextNudgeDate(dateAutoNudgeEnabled) : null;
 
   // Animate progress bar
   useEffect(() => {

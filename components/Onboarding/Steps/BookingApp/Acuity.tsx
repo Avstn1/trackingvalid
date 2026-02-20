@@ -28,6 +28,9 @@ const MONTHS = [
   'July', 'August', 'September', 'October', 'November', 'December'
 ]
 
+const MAX_RETRIES = 8
+const RETRY_DELAY_MS = 2000
+
 export default function Acuity({ userId, onSyncComplete, onSyncStateChange, existingSync }: AcuityProps) {
   const [syncing, setSyncing] = useState(false)
   const [syncStarted, setSyncStarted] = useState(!!existingSync?.hasPending)
@@ -36,6 +39,8 @@ export default function Acuity({ userId, onSyncComplete, onSyncStateChange, exis
   const [syncStartTime, setSyncStartTime] = useState<number | null>(null)
   const [firstAppointment, setFirstAppointment] = useState<{ month: string; year: number; datetime: string } | null>(null)
   const [loadingFirstAppointment, setLoadingFirstAppointment] = useState(true)
+  const [fetchFailed, setFetchFailed] = useState(false)
+  const [retryCount, setRetryCount] = useState(0)
   const [priorityMonthsInfo, setPriorityMonthsInfo] = useState<{ 
     startMonth: string
     startYear: number
@@ -43,17 +48,15 @@ export default function Acuity({ userId, onSyncComplete, onSyncStateChange, exis
     endYear: number 
   } | null>(null)
 
-  // Load first appointment and check for existing sync on mount
   useEffect(() => {
     checkExistingSync()
-    fetchFirstAppointment()
+    fetchFirstAppointmentWithRetry()
   }, [userId])
 
   const checkExistingSync = async () => {
     if (!userId) return
 
     try {
-      // Check if priority syncs are already complete
       const { data: prioritySyncs, error } = await supabase
         .from('sync_status')
         .select('status')
@@ -67,11 +70,10 @@ export default function Acuity({ userId, onSyncComplete, onSyncStateChange, exis
 
       if (prioritySyncs && prioritySyncs.length > 0) {
         const allComplete = prioritySyncs.every(s => s.status === 'completed')
-        
         if (allComplete) {
           console.log('Priority syncs already completed')
           setSyncComplete(true)
-          setSyncStarted(false) // Don't show progress bar, just enable Next button
+          setSyncStarted(false)
         }
       }
     } catch (error) {
@@ -79,14 +81,16 @@ export default function Acuity({ userId, onSyncComplete, onSyncStateChange, exis
     }
   }
 
-  const fetchFirstAppointment = async () => {
+  const fetchFirstAppointmentWithRetry = async (attempt = 0) => {
+    setLoadingFirstAppointment(true)
+    setFetchFailed(false)
+
     try {
       const { data: { session } } = await supabase.auth.getSession()
       const accessToken = session?.access_token
 
       if (!accessToken) {
-        setLoadingFirstAppointment(false)
-        return
+        throw new Error('Not authenticated')
       }
 
       const apiBaseUrl = process.env.EXPO_PUBLIC_API_URL
@@ -103,48 +107,46 @@ export default function Acuity({ userId, onSyncComplete, onSyncStateChange, exis
 
       const data = await response.json()
 
-      if (data.firstAppointment) {
-        const first = data.firstAppointment
-        const appointmentDate = new Date(first.datetime)
-        const month = MONTHS[appointmentDate.getMonth()]
-        const year = appointmentDate.getFullYear()
-
-        setFirstAppointment({
-          month,
-          year,
-          datetime: first.datetime
-        })
-
-        // Calculate priority months (last 12 months or less if first appointment is recent)
-        const now = new Date()
-        const currentMonth = now.getMonth()
-        const currentYear = now.getFullYear()
-        
-        // Calculate months between first appointment and now
-        const monthsSinceFirst = (currentYear - year) * 12 + (currentMonth - appointmentDate.getMonth()) + 1
-        const priorityCount = Math.min(12, monthsSinceFirst)
-        
-        setTotalPriorityMonths(priorityCount)
-        
-        // Calculate the date range for priority months
-        const priorityStartDate = new Date(now)
-        priorityStartDate.setMonth(priorityStartDate.getMonth() - (priorityCount - 1))
-        
-        setPriorityMonthsInfo({
-          startMonth: MONTHS[priorityStartDate.getMonth()],
-          startYear: priorityStartDate.getFullYear(),
-          endMonth: MONTHS[currentMonth],
-          endYear: currentYear
-        })
+      if (!data.firstAppointment) {
+        throw new Error('No appointment data returned')
       }
-    } catch (error) {
-      console.error('Error fetching first appointment:', error)
-    } finally {
+
+      const first = data.firstAppointment
+      const appointmentDate = new Date(first.datetime)
+      const month = MONTHS[appointmentDate.getMonth()]
+      const year = appointmentDate.getFullYear()
+
+      setFirstAppointment({ month, year, datetime: first.datetime })
+
+      const now = new Date()
+      const currentMonth = now.getMonth()
+      const currentYear = now.getFullYear()
+
+      setTotalPriorityMonths(1)
+      setPriorityMonthsInfo({
+        startMonth: MONTHS[currentMonth],
+        startYear: currentYear,
+        endMonth: MONTHS[currentMonth],
+        endYear: currentYear,
+      })
+
+      setRetryCount(attempt)
       setLoadingFirstAppointment(false)
+    } catch (error) {
+      console.error(`Error fetching first appointment (attempt ${attempt + 1}):`, error)
+
+      if (attempt < MAX_RETRIES) {
+        console.log(`Retrying in ${RETRY_DELAY_MS}ms... (${attempt + 1}/${MAX_RETRIES})`)
+        setRetryCount(attempt + 1)
+        setTimeout(() => fetchFirstAppointmentWithRetry(attempt + 1), RETRY_DELAY_MS)
+      } else {
+        console.error('Max retries reached. Could not fetch first appointment.')
+        setFetchFailed(true)
+        setLoadingFirstAppointment(false)
+      }
     }
   }
 
-  // If there's an existing sync, skip and show progress
   useEffect(() => {
     if (existingSync?.hasPending) {
       setSyncStarted(true)
@@ -154,10 +156,7 @@ export default function Acuity({ userId, onSyncComplete, onSyncStateChange, exis
 
   const handleStartSync = async () => {
     if (!firstAppointment) {
-      Toast.show({
-        type: 'error',
-        text1: 'Unable to determine sync range',
-      })
+      Toast.show({ type: 'error', text1: 'Unable to determine sync range' })
       return
     }
 
@@ -167,9 +166,7 @@ export default function Acuity({ userId, onSyncComplete, onSyncStateChange, exis
       const { data: { session } } = await supabase.auth.getSession()
       const accessToken = session?.access_token
 
-      if (!accessToken) {
-        throw new Error('Not authenticated')
-      }
+      if (!accessToken) throw new Error('Not authenticated')
 
       const apiBaseUrl = process.env.EXPO_PUBLIC_API_URL
 
@@ -192,10 +189,7 @@ export default function Acuity({ userId, onSyncComplete, onSyncStateChange, exis
         throw new Error(data.error || 'Failed to start sync')
       }
 
-      Toast.show({
-        type: 'success',
-        text1: `Starting sync for ${data.priorityMonths} priority months!`,
-      })
+      Toast.show({ type: 'success', text1: `Starting sync for ${data.priorityMonths} priority months!` })
       setTotalPriorityMonths(data.priorityMonths)
       setSyncStarted(true)
       setSyncStartTime(Date.now())
@@ -209,7 +203,6 @@ export default function Acuity({ userId, onSyncComplete, onSyncStateChange, exis
   }
 
   const handleRetry = async () => {
-    // Clear sync status and restart
     setSyncStarted(false)
     setSyncComplete(false)
     setTotalPriorityMonths(0)
@@ -220,179 +213,15 @@ export default function Acuity({ userId, onSyncComplete, onSyncStateChange, exis
     setSyncComplete(true)
     onSyncStateChange(false)
     onSyncComplete()
-    
-    // Calculate sync duration
+
     if (syncStartTime) {
       const durationMs = Date.now() - syncStartTime
-      const durationSeconds = (durationMs / 1000).toFixed(2)
-      const durationMinutes = (durationMs / 60000).toFixed(2)
-      console.log(`🎉 Priority sync completed in ${durationSeconds}s (${durationMinutes}min) for ${totalPriorityMonths} months`)
-      console.log(`⏱️  Average time per month: ${(durationMs / totalPriorityMonths / 1000).toFixed(2)}s`)
+      console.log(`Priority sync completed in ${(durationMs / 1000).toFixed(2)}s for ${totalPriorityMonths} months`)
+      console.log(`Average time per month: ${(durationMs / totalPriorityMonths / 1000).toFixed(2)}s`)
     }
   }
 
-  if (syncStarted) {
-    return (
-      <View style={{ gap: SPACING.md }}>
-        <View style={{
-          backgroundColor: COLORS.surfaceGlass,
-          borderRadius: RADIUS.xl,
-          borderWidth: 1,
-          borderColor: COLORS.glassBorder,
-          padding: SPACING.xl,
-        }}>
-          <Text style={{
-            fontSize: FONT_SIZE.base,
-            fontWeight: '700',
-            color: COLORS.textPrimary,
-            marginBottom: SPACING.md,
-          }}>
-            Syncing Priority Data
-          </Text>
-          
-          <SyncProgressBar
-            userId={userId}
-            totalMonths={totalPriorityMonths}
-            syncPhase="priority"
-            onComplete={handleComplete}
-          />
-
-          {syncComplete && (
-            <View style={{
-              marginTop: SPACING.md,
-              padding: SPACING.md,
-              borderRadius: RADIUS.xl,
-              borderWidth: 2,
-              borderColor: COLORS.positive + '4D',
-              backgroundColor: COLORS.positive + '1A',
-            }}>
-              <Text style={{
-                fontSize: FONT_SIZE.sm,
-                color: COLORS.positive,
-                marginBottom: 2,
-              }}>
-                ✓ Priority sync completed successfully!
-              </Text>
-              <Text style={{
-                fontSize: FONT_SIZE.xs,
-                color: COLORS.positive,
-              }}>
-                Older data will continue syncing in the background. You'll receive a notification when complete.
-              </Text>
-            </View>
-          )}
-
-          {!syncComplete && (
-            <TouchableOpacity
-              onPress={handleRetry}
-              style={{
-                marginTop: SPACING.md,
-                padding: SPACING.md,
-                borderRadius: RADIUS.xl,
-                borderWidth: 2,
-                borderColor: COLORS.border,
-                backgroundColor: COLORS.surfaceElevated,
-                alignItems: 'center',
-              }}
-            >
-              <Text style={{
-                fontSize: FONT_SIZE.sm,
-                fontWeight: '700',
-                color: COLORS.textPrimary,
-              }}>
-                Retry
-              </Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      </View>
-    )
-  }
-
-  // If already complete (user navigated back), show the same completion UI
-  if (syncComplete && !loadingFirstAppointment) {
-    return (
-      <View style={{ gap: SPACING.md }}>
-        <View style={{
-          backgroundColor: COLORS.surfaceGlass,
-          borderRadius: RADIUS.xl,
-          borderWidth: 1,
-          borderColor: COLORS.glassBorder,
-          padding: SPACING.xl,
-        }}>
-          <Text style={{
-            fontSize: FONT_SIZE.base,
-            fontWeight: '700',
-            color: COLORS.textPrimary,
-            marginBottom: SPACING.md,
-          }}>
-            Syncing Priority Data
-          </Text>
-          
-          {/* Show progress bar at 100% */}
-          <View style={{ gap: SPACING.sm, marginBottom: SPACING.md }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Text style={{
-                fontSize: FONT_SIZE.sm,
-                fontWeight: '600',
-                color: COLORS.textPrimary,
-              }}>
-                Priority sync complete!
-              </Text>
-              <Text style={{
-                fontSize: FONT_SIZE.base,
-                fontWeight: '700',
-                color: COLORS.primary,
-              }}>
-                100%
-              </Text>
-            </View>
-            
-            <View style={{
-              width: '100%',
-              height: 12,
-              backgroundColor: COLORS.surfaceElevated,
-              borderRadius: RADIUS.full,
-              overflow: 'hidden',
-              borderWidth: 1,
-              borderColor: COLORS.border,
-            }}>
-              <View style={{
-                height: '100%',
-                width: '100%',
-                backgroundColor: COLORS.primary,
-                borderRadius: RADIUS.full,
-              }} />
-            </View>
-          </View>
-          
-          <View style={{
-            padding: SPACING.md,
-            borderRadius: RADIUS.xl,
-            borderWidth: 2,
-            borderColor: COLORS.positive + '4D',
-            backgroundColor: COLORS.positive + '1A',
-          }}>
-            <Text style={{
-              fontSize: FONT_SIZE.sm,
-              color: COLORS.positive,
-              marginBottom: 2,
-            }}>
-              ✓ Priority sync completed successfully!
-            </Text>
-            <Text style={{
-              fontSize: FONT_SIZE.xs,
-              color: COLORS.positive,
-            }}>
-              Older data will continue syncing in the background. You'll receive a notification when complete.
-            </Text>
-          </View>
-        </View>
-      </View>
-    )
-  }
-
-  // Show loading state while fetching first appointment
+  // Always block UI until first appointment is resolved
   if (loadingFirstAppointment) {
     return (
       <View style={{ gap: SPACING.md }}>
@@ -415,12 +244,190 @@ export default function Acuity({ userId, onSyncComplete, onSyncStateChange, exis
             }}>
               Finding your first appointment...
             </Text>
-            <Text style={{
-              fontSize: FONT_SIZE.sm,
-              color: COLORS.textSecondary,
-              textAlign: 'center',
-            }}>
+            <Text style={{ fontSize: FONT_SIZE.sm, color: COLORS.textSecondary, textAlign: 'center' }}>
               This helps us sync your data accurately
+            </Text>
+            {retryCount > 0 && (
+              <Text style={{ fontSize: FONT_SIZE.xs, color: COLORS.textTertiary, marginTop: SPACING.xs }}>
+                Retrying... ({retryCount}/{MAX_RETRIES})
+              </Text>
+            )}
+          </View>
+        </View>
+      </View>
+    )
+  }
+
+  // Show error state only after all retries are exhausted
+  if (fetchFailed) {
+    return (
+      <View style={{ gap: SPACING.md }}>
+        <View style={{
+          backgroundColor: COLORS.surfaceGlass,
+          borderRadius: RADIUS.xl,
+          borderWidth: 1,
+          borderColor: COLORS.glassBorder,
+          padding: SPACING.xl,
+          alignItems: 'center',
+          gap: SPACING.md,
+        }}>
+          <Text style={{
+            fontSize: FONT_SIZE.base,
+            fontWeight: '700',
+            color: COLORS.textPrimary,
+            textAlign: 'center',
+            marginBottom: SPACING.xs,
+          }}>
+            Couldn't load appointment data
+          </Text>
+          <Text style={{ fontSize: FONT_SIZE.sm, color: COLORS.textSecondary, textAlign: 'center' }}>
+            Please check your connection and try again.
+          </Text>
+          <TouchableOpacity
+            onPress={() => fetchFirstAppointmentWithRetry(0)}
+            style={{
+              backgroundColor: COLORS.primary,
+              paddingVertical: SPACING.md,
+              paddingHorizontal: SPACING.xl,
+              borderRadius: RADIUS.xl,
+              marginTop: SPACING.sm,
+            }}
+          >
+            <Text style={{ fontSize: FONT_SIZE.sm, fontWeight: '700', color: COLORS.textInverse }}>
+              Try Again
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    )
+  }
+
+  if (syncStarted) {
+    return (
+      <View style={{ gap: SPACING.md }}>
+        <View style={{
+          backgroundColor: COLORS.surfaceGlass,
+          borderRadius: RADIUS.xl,
+          borderWidth: 1,
+          borderColor: COLORS.glassBorder,
+          padding: SPACING.xl,
+        }}>
+          <Text style={{
+            fontSize: FONT_SIZE.base,
+            fontWeight: '700',
+            color: COLORS.textPrimary,
+            marginBottom: SPACING.md,
+          }}>
+            Syncing Priority Data
+          </Text>
+
+          <SyncProgressBar
+            userId={userId}
+            totalMonths={totalPriorityMonths}
+            syncPhase="priority"
+            onComplete={handleComplete}
+          />
+
+          {syncComplete && (
+            <View style={{
+              marginTop: SPACING.md,
+              padding: SPACING.md,
+              borderRadius: RADIUS.xl,
+              borderWidth: 2,
+              borderColor: COLORS.positive + '4D',
+              backgroundColor: COLORS.positive + '1A',
+            }}>
+              <Text style={{ fontSize: FONT_SIZE.sm, color: COLORS.positive, marginBottom: 2 }}>
+                Priority sync completed successfully!
+              </Text>
+              <Text style={{ fontSize: FONT_SIZE.xs, color: COLORS.positive }}>
+                Older data will continue syncing in the background. You'll receive a notification when complete.
+              </Text>
+            </View>
+          )}
+
+          {!syncComplete && (
+            <TouchableOpacity
+              onPress={handleRetry}
+              style={{
+                marginTop: SPACING.md,
+                padding: SPACING.md,
+                borderRadius: RADIUS.xl,
+                borderWidth: 2,
+                borderColor: COLORS.border,
+                backgroundColor: COLORS.surfaceElevated,
+                alignItems: 'center',
+              }}
+            >
+              <Text style={{ fontSize: FONT_SIZE.sm, fontWeight: '700', color: COLORS.textPrimary }}>
+                Retry
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+    )
+  }
+
+  if (syncComplete) {
+    return (
+      <View style={{ gap: SPACING.md }}>
+        <View style={{
+          backgroundColor: COLORS.surfaceGlass,
+          borderRadius: RADIUS.xl,
+          borderWidth: 1,
+          borderColor: COLORS.glassBorder,
+          padding: SPACING.xl,
+        }}>
+          <Text style={{
+            fontSize: FONT_SIZE.base,
+            fontWeight: '700',
+            color: COLORS.textPrimary,
+            marginBottom: SPACING.md,
+          }}>
+            Syncing Priority Data
+          </Text>
+
+          <View style={{ gap: SPACING.sm, marginBottom: SPACING.md }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Text style={{ fontSize: FONT_SIZE.sm, fontWeight: '600', color: COLORS.textPrimary }}>
+                Priority sync complete!
+              </Text>
+              <Text style={{ fontSize: FONT_SIZE.base, fontWeight: '700', color: COLORS.primary }}>
+                100%
+              </Text>
+            </View>
+
+            <View style={{
+              width: '100%',
+              height: 12,
+              backgroundColor: COLORS.surfaceElevated,
+              borderRadius: RADIUS.full,
+              overflow: 'hidden',
+              borderWidth: 1,
+              borderColor: COLORS.border,
+            }}>
+              <View style={{
+                height: '100%',
+                width: '100%',
+                backgroundColor: COLORS.primary,
+                borderRadius: RADIUS.full,
+              }} />
+            </View>
+          </View>
+
+          <View style={{
+            padding: SPACING.md,
+            borderRadius: RADIUS.xl,
+            borderWidth: 2,
+            borderColor: COLORS.positive + '4D',
+            backgroundColor: COLORS.positive + '1A',
+          }}>
+            <Text style={{ fontSize: FONT_SIZE.sm, color: COLORS.positive, marginBottom: 2 }}>
+              Priority sync completed successfully!
+            </Text>
+            <Text style={{ fontSize: FONT_SIZE.xs, color: COLORS.positive }}>
+              Older data will continue syncing in the background. You'll receive a notification when complete.
             </Text>
           </View>
         </View>
@@ -438,10 +445,8 @@ export default function Acuity({ userId, onSyncComplete, onSyncStateChange, exis
         padding: SPACING.xl,
       }}>
         <View style={{ gap: SPACING.lg }}>
-          {/* Info Cards - All uniform */}
           <View style={{ gap: SPACING.xs }}>
-            {/* First Appointment Info */}
-            {!loadingFirstAppointment && firstAppointment && (
+            {firstAppointment && (
               <View style={{
                 padding: SPACING.sm,
                 borderRadius: RADIUS.lg,
@@ -451,22 +456,13 @@ export default function Acuity({ userId, onSyncComplete, onSyncStateChange, exis
               }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.xs, marginBottom: 4 }}>
                   <Calendar size={16} color="#22d3ee" />
-                  <Text style={{
-                    fontSize: FONT_SIZE.sm,
-                    fontWeight: '700',
-                    color: '#a5f3fc',
-                  }}>
+                  <Text style={{ fontSize: FONT_SIZE.sm, fontWeight: '700', color: '#a5f3fc' }}>
                     First Appointment
                   </Text>
                 </View>
                 <View style={{ flexDirection: 'row', gap: SPACING.xs }}>
                   <View style={{ width: 16 }} />
-                  <Text style={{
-                    fontSize: FONT_SIZE.sm,
-                    color: COLORS.textSecondary,
-                    lineHeight: 18,
-                    flex: 1,
-                  }}>
+                  <Text style={{ fontSize: FONT_SIZE.sm, color: COLORS.textSecondary, lineHeight: 18, flex: 1 }}>
                     Found in{' '}
                     <Text style={{ fontWeight: '700', color: COLORS.textPrimary }}>
                       {firstAppointment.month} {firstAppointment.year}
@@ -476,7 +472,6 @@ export default function Acuity({ userId, onSyncComplete, onSyncStateChange, exis
               </View>
             )}
 
-            {/* Sync Strategy Explanation */}
             {priorityMonthsInfo && (
               <>
                 <View style={{
@@ -490,24 +485,14 @@ export default function Acuity({ userId, onSyncComplete, onSyncStateChange, exis
                 }}>
                   <Info size={16} color="#34d399" style={{ marginTop: 1 }} />
                   <View style={{ flex: 1 }}>
-                    <Text style={{
-                      fontSize: FONT_SIZE.sm,
-                      fontWeight: '700',
-                      color: '#6ee7b7',
-                      marginBottom: 4,
-                    }}>
+                    <Text style={{ fontSize: FONT_SIZE.sm, fontWeight: '700', color: '#6ee7b7', marginBottom: 4 }}>
                       Smart Sync
                     </Text>
-                    <Text style={{
-                      fontSize: FONT_SIZE.sm,
-                      color: COLORS.textSecondary,
-                      lineHeight: 18,
-                    }}>
-                      Last{' '}
+                    <Text style={{ fontSize: FONT_SIZE.sm, color: COLORS.textSecondary, lineHeight: 18 }}>
                       <Text style={{ fontWeight: '700', color: COLORS.textPrimary }}>
-                        {totalPriorityMonths} months
+                        {priorityMonthsInfo.startMonth} {priorityMonthsInfo.startYear}
                       </Text>
-                      {' '}sync now. Older data syncs in background.
+                      {' '}syncs now. Everything else syncs in the background.
                     </Text>
                   </View>
                 </View>
@@ -523,19 +508,10 @@ export default function Acuity({ userId, onSyncComplete, onSyncStateChange, exis
                 }}>
                   <Info size={16} color="#fbbf24" style={{ marginTop: 1 }} />
                   <View style={{ flex: 1 }}>
-                    <Text style={{
-                      fontSize: FONT_SIZE.sm,
-                      fontWeight: '700',
-                      color: '#fcd34d',
-                      marginBottom: 4,
-                    }}>
+                    <Text style={{ fontSize: FONT_SIZE.sm, fontWeight: '700', color: '#fcd34d', marginBottom: 4 }}>
                       Data Accuracy
                     </Text>
-                    <Text style={{
-                      fontSize: FONT_SIZE.sm,
-                      color: COLORS.textSecondary,
-                      lineHeight: 18,
-                    }}>
+                    <Text style={{ fontSize: FONT_SIZE.sm, color: COLORS.textSecondary, lineHeight: 18 }}>
                       Client metrics may be incomplete until full sync completes. You'll get a notification.
                     </Text>
                   </View>
@@ -553,12 +529,8 @@ export default function Acuity({ userId, onSyncComplete, onSyncStateChange, exis
             }}>
               Ready to Sync Your Data
             </Text>
-            <Text style={{
-              fontSize: FONT_SIZE.xs,
-              color: COLORS.textSecondary,
-              marginBottom: SPACING.md,
-            }}>
-              Click "Start Sync" to begin importing your appointment history.
+            <Text style={{ fontSize: FONT_SIZE.xs, color: COLORS.textSecondary, marginBottom: SPACING.md }}>
+              Tap "Start Sync" to begin importing your appointment history.
             </Text>
           </View>
 

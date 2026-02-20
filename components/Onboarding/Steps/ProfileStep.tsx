@@ -244,7 +244,7 @@ export default function ProfileStep({
 
   const roleOptions = [
     { label: 'Commission', role: 'Barber', barber_type: 'commission' },
-    { label: 'Chair Rental', role: 'Barber', barber_type: 'chair_rental' },
+    { label: 'Chair Rental', role: 'Barber', barber_type: 'rental' },
   ]
 
   const userTypeOptions = [

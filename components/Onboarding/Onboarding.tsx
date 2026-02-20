@@ -1,14 +1,16 @@
 // components/Onboarding/Onboarding.tsx
 import { ANIMATION, COLORS, FONT_SIZE, SPACING } from '@/constants/design-system'
 import { supabase } from '@/utils/supabaseClient'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useRouter } from 'expo-router'
-import { Calendar, Download, User, Zap } from 'lucide-react-native'
+import { Calendar, Download, LogOut, User, Zap } from 'lucide-react-native'
 import React, { useEffect, useState } from 'react'
 import {
   ActivityIndicator,
   Alert,
   Keyboard,
   Text,
+  TouchableOpacity,
   TouchableWithoutFeedback,
   View
 } from 'react-native'
@@ -178,6 +180,21 @@ export default function Onboarding({ onComplete }: OnboardingProps = {}) {
     }
   }
 
+  const handleLogout = async () => {
+    Alert.alert('Logout', 'Are you sure you want to logout?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Logout',
+        style: 'destructive',
+        onPress: async () => {
+          await supabase.auth.signOut({ scope: 'global' })
+          await AsyncStorage.setItem('just-logged-out', 'true')
+          router.replace('/login')
+        },
+      },
+    ])
+  }
+
   const handleNext = () => {
     Keyboard.dismiss()
     
@@ -240,11 +257,6 @@ export default function Onboarding({ onComplete }: OnboardingProps = {}) {
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not logged in')
-
-      // Profile is already saved in ProfileStep, so we only need to:
-      // 1. Save calendar selection
-      // 2. Set onboarded = true
-      // 3. Grant trial credits if applicable
 
       const profileUpdate: Record<string, unknown> = {
         calendar: selectedProvider === 'acuity' ? selectedAcuityCalendar : null,
@@ -310,7 +322,6 @@ export default function Onboarding({ onComplete }: OnboardingProps = {}) {
         
         if (creditError) {
           console.error('Credit transaction error:', creditError)
-          // Don't throw - credits are a bonus, not critical
         } else {
           console.log('Trial credits granted')
         }
@@ -318,7 +329,6 @@ export default function Onboarding({ onComplete }: OnboardingProps = {}) {
 
       console.log('Onboarding complete!')
       
-      // Call the onComplete callback to close the modal and refresh dashboard
       if (onComplete) {
         onComplete()
       }
@@ -377,15 +387,37 @@ export default function Onboarding({ onComplete }: OnboardingProps = {}) {
           paddingBottom: SPACING.xl,
           backgroundColor: COLORS.surface,
         }}>
-          <Text style={{ 
-            fontSize: FONT_SIZE['3xl'], 
-            fontWeight: '800', 
-            color: COLORS.textPrimary,
-            marginBottom: SPACING.xs,
-            letterSpacing: -0.5,
-          }}>
-            Get Started
-          </Text>
+          {/* Title row with logout */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: SPACING.xs }}>
+            <Text style={{ 
+              fontSize: FONT_SIZE['3xl'], 
+              fontWeight: '800', 
+              color: COLORS.textPrimary,
+              letterSpacing: -0.5,
+            }}>
+              Get Started
+            </Text>
+            <TouchableOpacity
+              onPress={handleLogout}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 4,
+                paddingVertical: 6,
+                paddingHorizontal: 10,
+                borderRadius: 10,
+                backgroundColor: COLORS.surfaceElevated,
+                height: 38,
+              }}
+            >
+              <LogOut size={15} color={COLORS.textTertiary} strokeWidth={2} />
+              <Text style={{ fontSize: FONT_SIZE.sm, color: COLORS.textTertiary, fontWeight: '500' }}>
+                Log out
+              </Text>
+            </TouchableOpacity>
+          </View>
+
           <Text style={{ 
             fontSize: FONT_SIZE.sm, 
             color: COLORS.textSecondary,
@@ -400,7 +432,6 @@ export default function Onboarding({ onComplete }: OnboardingProps = {}) {
               const StepIcon = step.icon
               const isCompleted = index < currentStepIndex
               const isCurrent = index === currentStepIndex
-              const isUpcoming = index > currentStepIndex
               
               return (
                 <View key={step.key} style={{ flex: 1, alignItems: 'center' }}>

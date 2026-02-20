@@ -1,14 +1,16 @@
 // components/Onboarding/Onboarding.tsx
 import { ANIMATION, COLORS, FONT_SIZE, SPACING } from '@/constants/design-system'
 import { supabase } from '@/utils/supabaseClient'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useRouter } from 'expo-router'
-import { Calendar, Download, User, Zap } from 'lucide-react-native'
+import { Calendar, Download, LogOut, User, Zap } from 'lucide-react-native'
 import React, { useEffect, useState } from 'react'
 import {
   ActivityIndicator,
   Alert,
   Keyboard,
   Text,
+  TouchableOpacity,
   TouchableWithoutFeedback,
   View
 } from 'react-native'
@@ -178,6 +180,21 @@ export default function Onboarding({ onComplete }: OnboardingProps = {}) {
     }
   }
 
+  const handleLogout = async () => {
+    Alert.alert('Logout', 'Are you sure you want to logout?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Logout',
+        style: 'destructive',
+        onPress: async () => {
+          await supabase.auth.signOut({ scope: 'global' })
+          await AsyncStorage.setItem('just-logged-out', 'true')
+          router.replace('/login')
+        },
+      },
+    ])
+  }
+
   const handleNext = () => {
     Keyboard.dismiss()
     
@@ -241,46 +258,9 @@ export default function Onboarding({ onComplete }: OnboardingProps = {}) {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not logged in')
 
-      let avatarUrl = avatarUri || ''
-      
-      // Upload avatar if new file selected
-      if (avatarUri && !avatarUri.startsWith('http')) {
-        const fileName = `${fullName.replace(/\s+/g, '_')}_${Date.now()}`
-        const response = await fetch(avatarUri)
-        const blob = await response.blob()
-        
-        const { error: uploadError } = await supabase.storage
-          .from('avatars')
-          .upload(fileName, blob, { upsert: true })
-          
-        if (uploadError) throw uploadError
-
-        const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(fileName)
-        avatarUrl = urlData.publicUrl
-      }
-
-      const phoneToE164 = (phone: string) => {
-        const cleaned = phone.replace(/\D/g, '')
-        return `+1${cleaned}`
-      }
-
       const profileUpdate: Record<string, unknown> = {
-        full_name: fullName,
-        phone: phoneToE164(phoneNumber),
-        role: selectedRole.role,
-        barber_type: selectedRole.barber_type || null,
-        avatar_url: avatarUrl,
-        username: username.toLowerCase(),
-        booking_link: bookingLink.trim(),
         calendar: selectedProvider === 'acuity' ? selectedAcuityCalendar : null,
         onboarded: true,
-      }
-
-      if (selectedRole.barber_type === 'commission') {
-        if (commissionRate === '' || commissionRate < 1 || commissionRate > 100) {
-          throw new Error('Please enter a valid commission rate between 1 and 100')
-        }
-        profileUpdate.commission_rate = commissionRate / 100
       }
 
       const { data: currentProfile, error: currentProfileError } = await supabase
@@ -324,7 +304,7 @@ export default function Onboarding({ onComplete }: OnboardingProps = {}) {
 
       if (updateError) throw updateError
 
-      console.log('Profile updated successfully')
+      console.log('Onboarding finalized - calendar and trial set')
 
       if (shouldGrantTrialCredits) {
         console.log('Granting trial credits...')
@@ -342,7 +322,6 @@ export default function Onboarding({ onComplete }: OnboardingProps = {}) {
         
         if (creditError) {
           console.error('Credit transaction error:', creditError)
-          // Don't throw - credits are a bonus, not critical
         } else {
           console.log('Trial credits granted')
         }
@@ -350,7 +329,6 @@ export default function Onboarding({ onComplete }: OnboardingProps = {}) {
 
       console.log('Onboarding complete!')
       
-      // Call the onComplete callback to close the modal and refresh dashboard
       if (onComplete) {
         onComplete()
       }
@@ -409,15 +387,37 @@ export default function Onboarding({ onComplete }: OnboardingProps = {}) {
           paddingBottom: SPACING.xl,
           backgroundColor: COLORS.surface,
         }}>
-          <Text style={{ 
-            fontSize: FONT_SIZE['3xl'], 
-            fontWeight: '800', 
-            color: COLORS.textPrimary,
-            marginBottom: SPACING.xs,
-            letterSpacing: -0.5,
-          }}>
-            Get Started
-          </Text>
+          {/* Title row with logout */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: SPACING.xs }}>
+            <Text style={{ 
+              fontSize: FONT_SIZE['3xl'], 
+              fontWeight: '800', 
+              color: COLORS.textPrimary,
+              letterSpacing: -0.5,
+            }}>
+              Get Started
+            </Text>
+            <TouchableOpacity
+              onPress={handleLogout}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 4,
+                paddingVertical: 6,
+                paddingHorizontal: 10,
+                borderRadius: 10,
+                backgroundColor: COLORS.surfaceElevated,
+                height: 38,
+              }}
+            >
+              <LogOut size={15} color={COLORS.textTertiary} strokeWidth={2} />
+              <Text style={{ fontSize: FONT_SIZE.sm, color: COLORS.textTertiary, fontWeight: '500' }}>
+                Log out
+              </Text>
+            </TouchableOpacity>
+          </View>
+
           <Text style={{ 
             fontSize: FONT_SIZE.sm, 
             color: COLORS.textSecondary,
@@ -432,7 +432,6 @@ export default function Onboarding({ onComplete }: OnboardingProps = {}) {
               const StepIcon = step.icon
               const isCompleted = index < currentStepIndex
               const isCurrent = index === currentStepIndex
-              const isUpcoming = index > currentStepIndex
               
               return (
                 <View key={step.key} style={{ flex: 1, alignItems: 'center' }}>

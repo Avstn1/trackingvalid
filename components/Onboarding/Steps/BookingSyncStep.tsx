@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   View
 } from 'react-native'
+import Toast from 'react-native-toast-message'
 import Acuity from './BookingApp/Acuity'
 
 interface BookingSyncStepProps {
@@ -45,34 +46,7 @@ export default function BookingSyncStep({
 
       setUserId(user.id)
 
-      // Call edge function to update availability data
-      supabase.functions.invoke('update_barber_availability', {
-        body: { user_id: user.id }
-      }).catch(err => {
-        console.error('Background availability update failed:', err)
-      })
-
-      // Check for existing sync_status rows
-      const { data: syncStatusData, error: syncError } = await supabase
-        .from('sync_status')
-        .select('status')
-        .eq('user_id', user.id)
-
-      if (!syncError && syncStatusData && syncStatusData.length > 0) {
-        const hasPending = syncStatusData.some(s => s.status === 'pending' || s.status === 'processing')
-        const allComplete = syncStatusData.every(s => s.status === 'completed')
-        
-        if (allComplete) {
-          setSyncComplete(true)
-        } else if (hasPending) {
-          setExistingSync({
-            hasPending: true,
-            totalMonths: syncStatusData.length
-          })
-        }
-      }
-
-      // Check for Acuity token
+      // Check for Acuity token FIRST
       const { data: acuityToken } = await supabase
         .from('acuity_tokens')
         .select('user_id')
@@ -81,7 +55,7 @@ export default function BookingSyncStep({
 
       setHasAcuity(!!acuityToken)
 
-      // Check for Square token
+      // Check for Square token (future)
       const { data: squareToken } = await supabase
         .from('square_tokens')
         .select('user_id')
@@ -89,6 +63,74 @@ export default function BookingSyncStep({
         .maybeSingle()
 
       setHasSquare(!!squareToken)
+
+      // Call edge function to update availability data
+      supabase.functions.invoke('update_barber_availability', {
+        body: { user_id: user.id }
+      }).catch(err => {
+        console.error('Background availability update failed:', err)
+      })
+
+      // Check for existing sync_status rows (priority phase only)
+      const { data: syncStatusData, error: syncError } = await supabase
+        .from('sync_status')
+        .select('status, sync_phase')
+        .eq('user_id', user.id)
+        .eq('sync_phase', 'priority') // Only check priority phase
+
+      if (!syncError && syncStatusData && syncStatusData.length > 0) {
+        const hasPending = syncStatusData.some(s => 
+          s.status === 'pending' || 
+          s.status === 'processing' || 
+          s.status === 'retrying'
+        )
+        const allComplete = syncStatusData.every(s => s.status === 'completed')
+        
+        if (allComplete) {
+          // All priority syncs complete, allow proceeding
+          console.log('All priority syncs already completed, skipping sync step')
+          setSyncComplete(true)
+          setLoading(false)
+          return
+        } else if (hasPending) {
+          // Has pending priority syncs, resume them
+          console.log('Found incomplete priority syncs, resuming...')
+          
+          setExistingSync({
+            hasPending: true,
+            totalMonths: syncStatusData.length
+          })
+          
+          // Auto-resume incomplete syncs
+          const apiBaseUrl = process.env.EXPO_PUBLIC_API_URL
+          const { data: { session } } = await supabase.auth.getSession()
+          const accessToken = session?.access_token
+
+          if (accessToken) {
+            fetch(`${apiBaseUrl}/api/onboarding/resume-sync`, {
+              method: 'POST',
+              headers: { 
+                'Content-Type': 'application/json',
+                'x-client-access-token': accessToken,
+              },
+              body: JSON.stringify({ userId: user.id }),
+            }).then(async (res) => {
+              const data = await res.json()
+              if (res.ok) {
+                console.log('Auto-resumed syncs:', data)
+                Toast.show({
+                  type: 'success',
+                  text1: 'Resuming your sync...',
+                })
+              } else {
+                console.error('Failed to auto-resume:', data.error)
+              }
+            }).catch(err => {
+              console.error('Error auto-resuming syncs:', err)
+            })
+          }
+        }
+      }
     } catch (error) {
       console.error('Error checking integrations:', error)
     } finally {
@@ -153,7 +195,7 @@ export default function BookingSyncStep({
               marginBottom: SPACING.xl,
               lineHeight: 20,
             }}>
-              Please wait for the sync to complete before navigating away. This ensures all your data is properly synced.
+              Please wait for the priority sync to complete before navigating away. Your older data will continue syncing in the background.
             </Text>
             <TouchableOpacity
               onPress={() => setShowBackWarning(false)}
@@ -299,7 +341,7 @@ export default function BookingSyncStep({
             color: profileLoading || !syncComplete ? COLORS.textTertiary : COLORS.textInverse,
             letterSpacing: 0.5,
           }}>
-            Continue
+            {!syncComplete && isSyncing ? 'Syncing...' : 'Continue'}
           </Text>
         </TouchableOpacity>
       </View>

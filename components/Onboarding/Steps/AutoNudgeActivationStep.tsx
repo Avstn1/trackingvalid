@@ -43,10 +43,8 @@ export default function AutoNudgeActivationStep({
     }
 
     try {
-      // Parse the UTC timestamp
       const utcDate = new Date(enabledDateUTC)
       
-      // Convert to Toronto timezone by using toLocaleString to get the parts
       const torontoParts = new Intl.DateTimeFormat('en-CA', {
         timeZone: 'America/Toronto',
         year: 'numeric',
@@ -65,7 +63,6 @@ export default function AutoNudgeActivationStep({
         }
       })
       
-      // Create date using Toronto time components
       const torontoTime = new Date(
         parseInt(partsMap.year),
         parseInt(partsMap.month) - 1,
@@ -75,10 +72,9 @@ export default function AutoNudgeActivationStep({
         parseInt(partsMap.second)
       )
       
-      const dayOfWeek = torontoTime.getDay() // 0 = Sunday, 1 = Monday, etc.
+      const dayOfWeek = torontoTime.getDay()
       const hour = torontoTime.getHours()
       
-      // Get current time in Toronto using same method
       const nowTorontoParts = new Intl.DateTimeFormat('en-CA', {
         timeZone: 'America/Toronto',
         year: 'numeric',
@@ -106,12 +102,10 @@ export default function AutoNudgeActivationStep({
         parseInt(nowPartsMap.second)
       )
       
-      // Monday after 10am to Wednesday: send tomorrow
       if ((dayOfWeek === 1 && hour >= 10) || dayOfWeek === 2 || dayOfWeek === 3) {
         targetDate = new Date(torontoTime)
         targetDate.setDate(targetDate.getDate() + 1)
       } 
-      // Thursday to Sunday: send next Monday
       else if (dayOfWeek >= 4 || dayOfWeek === 0) {
         const daysUntilMonday = dayOfWeek === 0 ? 1 : 8 - dayOfWeek
         targetDate.setDate(targetDate.getDate() + daysUntilMonday)
@@ -125,8 +119,7 @@ export default function AutoNudgeActivationStep({
       const day = targetDate.getDate()
       const year = targetDate.getFullYear()
       
-      const result = `${dayName}, ${monthName} ${day}, ${year}`
-      return result
+      return `${dayName}, ${monthName} ${day}, ${year}`
     } catch (error) {
       console.error('Error calculating first nudge date:', error, 'Input:', enabledDateUTC)
       return 'Error calculating date'
@@ -140,12 +133,14 @@ export default function AutoNudgeActivationStep({
 
       setUserId(user.id)
 
+      // Check if already enabled (date_autonudge_enabled is NOT null)
       const { data: profile } = await supabase
         .from('profiles')
         .select('date_autonudge_enabled')
         .eq('user_id', user.id)
         .single()
 
+      // If date_autonudge_enabled has a value, they've already activated
       if (profile?.date_autonudge_enabled) {
         const enabledDate = new Date(profile.date_autonudge_enabled)
         
@@ -292,7 +287,6 @@ export default function AutoNudgeActivationStep({
       bounces={true}
       alwaysBounceVertical={true}
     >
-      {/* Glass Container */}
       <View style={{
         backgroundColor: COLORS.surfaceGlass,
         borderRadius: RADIUS.xl,
@@ -548,22 +542,22 @@ export default function AutoNudgeActivationStep({
 
           <TouchableOpacity
             onPress={onFinish}
-            disabled={profileLoading || (!alreadyEnabled && !activating)}
+            disabled={profileLoading || !alreadyEnabled}
             style={{
               flex: 2,
               padding: SPACING.lg,
               borderRadius: RADIUS.xl,
-              backgroundColor: profileLoading || (!alreadyEnabled && !activating)
+              backgroundColor: profileLoading || !alreadyEnabled
                 ? COLORS.surfaceElevated
                 : COLORS.primary,
               alignItems: 'center',
-              shadowColor: profileLoading || (!alreadyEnabled && !activating) 
+              shadowColor: profileLoading || !alreadyEnabled 
                 ? '#000' 
                 : COLORS.primary,
               shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: profileLoading || (!alreadyEnabled && !activating) ? 0 : 0.3,
+              shadowOpacity: profileLoading || !alreadyEnabled ? 0 : 0.3,
               shadowRadius: 8,
-              elevation: profileLoading || (!alreadyEnabled && !activating) ? 0 : 4,
+              elevation: profileLoading || !alreadyEnabled ? 0 : 4,
             }}
           >
             {profileLoading ? (
@@ -572,7 +566,7 @@ export default function AutoNudgeActivationStep({
               <Text style={{
                 fontSize: FONT_SIZE.lg,
                 fontWeight: '800',
-                color: profileLoading || (!alreadyEnabled && !activating)
+                color: profileLoading || !alreadyEnabled
                   ? COLORS.textTertiary
                   : COLORS.textInverse,
                 letterSpacing: 0.5,

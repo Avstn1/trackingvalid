@@ -17,6 +17,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
+import Toast from 'react-native-toast-message'
 
 interface ProfileStepProps {
   fullName: string
@@ -77,6 +78,7 @@ export default function ProfileStep({
   const scrollViewRef = useRef<ScrollView>(null)
   const [showUserTypeModal, setShowUserTypeModal] = useState(false)
   const [showOperateModal, setShowOperateModal] = useState(false)
+  const [saving, setSaving] = useState(false)
 
   // Check username on mount if it has a value
   useEffect(() => {
@@ -164,9 +166,85 @@ export default function ProfileStep({
     }
   }
 
+  const phoneToE164 = (phone: string) => {
+    const cleaned = phone.replace(/\D/g, '')
+    return `+1${cleaned}`
+  }
+
+  const handleSaveAndNext = async () => {
+    if (!isProfileValid) {
+      return
+    }
+
+    setSaving(true)
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('Not logged in')
+
+      let avatarUrl = avatarUri || ''
+      
+      // Upload avatar if new file selected
+      if (avatarUri && !avatarUri.startsWith('http')) {
+        const fileName = `${fullName.replace(/\s+/g, '_')}_${Date.now()}`
+        const response = await fetch(avatarUri)
+        const blob = await response.blob()
+        
+        const { error: uploadError } = await supabase.storage
+          .from('avatars')
+          .upload(fileName, blob, { upsert: true })
+          
+        if (uploadError) throw uploadError
+
+        const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(fileName)
+        avatarUrl = urlData.publicUrl
+      }
+
+      const profileUpdate: Record<string, unknown> = {
+        full_name: fullName,
+        phone: phoneToE164(phoneNumber),
+        role: selectedRole.role,
+        barber_type: selectedRole.barber_type || null,
+        avatar_url: avatarUrl,
+        username: username.toLowerCase(),
+        booking_link: bookingLink.trim(),
+        updated_at: new Date().toISOString(),
+      }
+
+      if (selectedRole.barber_type === 'commission') {
+        if (commissionRate === '' || commissionRate < 1 || commissionRate > 100) {
+          throw new Error('Please enter a valid commission rate between 1 and 100')
+        }
+        profileUpdate.commission_rate = commissionRate / 100
+      }
+
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update(profileUpdate)
+        .eq('user_id', user.id)
+
+      if (updateError) throw updateError
+
+      console.log('Profile saved successfully')
+      Toast.show({
+        type: 'success',
+        text1: 'Profile saved!',
+      })
+
+      // Call onNext after successful save
+      onNext()
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to save profile'
+      console.error('Profile save error:', message, err)
+      Alert.alert('Error', message)
+    } finally {
+      setSaving(false)
+    }
+  }
+
   const roleOptions = [
     { label: 'Commission', role: 'Barber', barber_type: 'commission' },
-    { label: 'Chair Rental', role: 'Barber', barber_type: 'chair_rental' },
+    { label: 'Chair Rental', role: 'Barber', barber_type: 'rental' },
   ]
 
   const userTypeOptions = [
@@ -655,31 +733,35 @@ export default function ProfileStep({
             )}
           </View>
 
-          {/* Next Button */}
+          {/* Continue Button - Auto-saves profile */}
           <TouchableOpacity
-            onPress={onNext}
+            onPress={handleSaveAndNext}
+            disabled={!isProfileValid || saving}
             style={{
-              backgroundColor: isProfileValid ? COLORS.primary : COLORS.surfaceElevated,
+              backgroundColor: !isProfileValid || saving ? COLORS.surfaceElevated : COLORS.primary,
               padding: SPACING.lg,
               borderRadius: RADIUS.xl,
               alignItems: 'center',
               marginTop: SPACING.lg,
-              shadowColor: isProfileValid ? COLORS.primary : '#000',
+              shadowColor: !isProfileValid || saving ? '#000' : COLORS.primary,
               shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: isProfileValid ? 0.3 : 0,
+              shadowOpacity: !isProfileValid || saving ? 0 : 0.3,
               shadowRadius: 8,
-              elevation: isProfileValid ? 4 : 0,
+              elevation: !isProfileValid || saving ? 0 : 4,
             }}
-            disabled={!isProfileValid}
           >
-            <Text style={{
-              fontSize: FONT_SIZE.lg,
-              fontWeight: '800',
-              color: isProfileValid ? COLORS.textInverse : COLORS.textTertiary,
-              letterSpacing: 0.5,
-            }}>
-              Continue
-            </Text>
+            {saving ? (
+              <ActivityIndicator color={COLORS.textSecondary} />
+            ) : (
+              <Text style={{
+                fontSize: FONT_SIZE.lg,
+                fontWeight: '800',
+                color: !isProfileValid ? COLORS.textTertiary : COLORS.textInverse,
+                letterSpacing: 0.5,
+              }}>
+                Continue
+              </Text>
+            )}
           </TouchableOpacity>
         </View>
         </View>

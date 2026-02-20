@@ -3,6 +3,7 @@ import ReportViewerModal from '@/components/Reports/ReportViewerModal';
 import { SPRING, useReducedMotionPreference } from '@/utils/motion';
 import { supabase } from '@/utils/supabaseClient';
 import { Ionicons } from '@expo/vector-icons';
+import Constants from 'expo-constants';
 import * as Device from 'expo-device';
 import { EventSubscription } from 'expo-modules-core';
 import * as Notifications from 'expo-notifications';
@@ -44,7 +45,6 @@ const TAB_BAR_STYLES = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 8,
     paddingBottom: Platform.OS === 'ios' ? 25 : 10,
-    
     borderTopWidth: 1,
     borderTopColor: 'rgba(255, 255, 255, 0.1)',
     shadowColor: '#000',
@@ -69,7 +69,7 @@ const TAB_BAR_STYLES = StyleSheet.create({
   },
   activeTabGlow: {
     shadowColor: '#8bcf68ff',
-    shadowOffset: { width: 0, height: 0 }, 
+    shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.6,
     shadowRadius: 12,
   },
@@ -147,19 +147,20 @@ async function registerForPushNotificationsAsync() {
 
   const { status: existingStatus } = await Notifications.getPermissionsAsync();
   let finalStatus = existingStatus;
-  
+
   if (existingStatus !== 'granted') {
     const { status } = await Notifications.requestPermissionsAsync();
     finalStatus = status;
   }
-  
+
   if (finalStatus !== 'granted') {
     console.log('Permission not granted for push notifications');
     return;
   }
 
   try {
-    const pushTokenString = (await Notifications.getExpoPushTokenAsync()).data;
+    const projectId = Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId;
+    const pushTokenString = (await Notifications.getExpoPushTokenAsync({ projectId })).data;
     return pushTokenString;
   } catch (e) {
     console.error('Error getting push token:', e);
@@ -171,8 +172,8 @@ export default function DashboardLayout() {
   const notificationListener = useRef<EventSubscription | undefined>(undefined);
   const responseListener = useRef<EventSubscription | undefined>(undefined);
 
-  const [selectedReport, setSelectedReport] = useState<Report | null>(null)
-  const [reportModalVisible, setReportModalVisible] = useState(false)
+  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+  const [reportModalVisible, setReportModalVisible] = useState(false);
 
   const handleNotificationNavigation = async (data: any) => {
     const { reference, reference_type } = data;
@@ -191,14 +192,14 @@ export default function DashboardLayout() {
           params: { reference: reference }
         });
         break;
-      
+
       case 'sms_campaigns':
         router.push({
           pathname: '/smsManager',
           params: { openComponent: 'campaigns', reference }
         });
         break;
-      
+
       case 'sms_auto_nudge':
       case 'sms_auto_nudge_update':
         router.push({
@@ -206,7 +207,7 @@ export default function DashboardLayout() {
           params: { openComponent: 'auto-nudge', reference }
         });
         break;
-      
+
       default:
         router.push('/dashboard');
         break;
@@ -214,7 +215,6 @@ export default function DashboardLayout() {
   };
 
   useEffect(() => {
-    // Check initial session
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
@@ -222,14 +222,57 @@ export default function DashboardLayout() {
         return;
       }
 
-      // Register for push notifications
+      const userId = session.user.id;
+
+      // Try to get current device token silently if permission already granted
+      let currentToken: string | null = null;
+      try {
+        const { status } = await Notifications.getPermissionsAsync();
+        if (status === 'granted' && Device.isDevice) {
+          const projectId = Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId;
+          const tokenData = await Notifications.getExpoPushTokenAsync({ projectId });
+          currentToken = tokenData.data;
+        }
+      } catch (e) {
+        console.warn('Could not get existing push token silently:', e);
+      }
+
+      if (currentToken) {
+        // Check if this exact device token is already registered for this user
+        const { data: existing } = await supabase
+          .from('push_tokens')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('token', currentToken)
+          .limit(1);
+
+        if (existing && existing.length > 0) {
+          // Already registered for this user on this device — just refresh last_used_at
+          await supabase
+            .from('push_tokens')
+            .update({ last_used_at: new Date().toISOString() })
+            .eq('token', currentToken);
+          return;
+        }
+      }
+
+      // Token not registered for this user (new user, new device, or permission not yet granted)
+      // Request permissions and register
       const token = await registerForPushNotificationsAsync();
-      if (token && session.user) {
+      if (token) {
+        // Remove this token from any other user's account (e.g. previous login on same device)
+        await supabase
+          .from('push_tokens')
+          .delete()
+          .eq('token', token)
+          .neq('user_id', userId);
+
+        // Upsert for current user
         await supabase
           .from('push_tokens')
           .upsert({
-            user_id: session.user.id,
-            token: token,
+            user_id: userId,
+            token,
             device_name: await Device.deviceName,
             device_type: Device.osName,
             last_used_at: new Date().toISOString(),
@@ -244,7 +287,7 @@ export default function DashboardLayout() {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('Auth event:', event);
-      
+
       if (event === 'SIGNED_OUT' || !session) {
         router.replace('/login');
       }
@@ -253,17 +296,15 @@ export default function DashboardLayout() {
     // Listen for notifications received while app is in foreground
     notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
       console.log('Notification received:', notification);
-      // Optionally show in-app banner or update badge
     });
 
-    // Listen for notification taps/clicks (works for all app states: foreground, background, and closed)
+    // Listen for notification taps/clicks
     responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
       const data = response.notification.request.content.data;
       console.log('Notification tapped:', data);
       handleNotificationNavigation(data);
     });
 
-    // Cleanup
     return () => {
       subscription.unsubscribe();
       notificationListener.current?.remove();
@@ -272,26 +313,23 @@ export default function DashboardLayout() {
   }, []);
 
   const handleCloseReportModal = () => {
-    setReportModalVisible(false)
-    setSelectedReport(null)
-  }
+    setReportModalVisible(false);
+    setSelectedReport(null);
+  };
 
   return (
     <>
       <View className="flex-1 bg-[#181818]">
         <Tabs
-          initialRouteName="dashboard" 
+          initialRouteName="dashboard"
           screenOptions={{
             headerShown: false,
             tabBarStyle: TAB_BAR_STYLES.tabBar,
-            
             tabBarInactiveTintColor: 'rgba(247, 247, 247, 0.3)',
             tabBarActiveTintColor: '#8bcf68ff',
-            
             tabBarButton: (props) => <HapticTab {...props} />,
             tabBarIconStyle: TAB_BAR_STYLES.tabBarIcon,
             tabBarLabelStyle: TAB_BAR_STYLES.tabBarLabel,
-            
             tabBarItemStyle: TAB_BAR_STYLES.tabBarItem,
           }}>
 
@@ -323,7 +361,7 @@ export default function DashboardLayout() {
                   color={color}
                   size={22}
                   activeName="paper-plane"
-                  inactiveName="paper-plane-outline"  
+                  inactiveName="paper-plane-outline"
                 />
               ),
             }}

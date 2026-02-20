@@ -58,10 +58,15 @@ export default function RootLayout() {
           
           const subStatus = profile?.stripe_subscription_status;
           const trialActive = profile?.trial_active;
+
+          console.log('Subscription status:', subStatus);
+          console.log('Trial active:', trialActive);
           
-          if (subStatus === 'active' || trialActive === true) {
+          if (subStatus === 'active' || subStatus === 'trialing' || trialActive === true) {
+            console.log('User has active subscription or trial. Navigating to dashboard.');
             setInitialRoute('/(dashboard)/dashboard');
           } else {
+            console.log('No active subscription or trial. Navigating to paywall.');
             setInitialRoute('/(paywall)/onboarding');
           }
         } else {

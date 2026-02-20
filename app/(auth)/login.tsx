@@ -52,7 +52,7 @@ export default function LoginPage() {
       // Get user profile data
       const { data: userData } = await supabase
         .from('profiles')
-        .select('role, full_name, stripe_subscription_status')
+        .select('role, full_name, stripe_subscription_status, trial_active')
         .eq('user_id', data.user?.id)
         .single();
 
@@ -96,9 +96,13 @@ export default function LoginPage() {
       await new Promise(resolve => setTimeout(resolve, 100));
 
       // Navigate to dashboard/paywall
-      const subStatus: string = userData?.stripe_subscription_status
+      const subStatus = userData?.stripe_subscription_status;
+      const trialActive = userData?.trial_active;
 
-      if (subStatus === "active") {
+      console.log('Subscription status:', subStatus);
+      console.log('Trial active:', trialActive);
+
+      if (subStatus === 'active' || subStatus === 'trialing' || trialActive === true) {
         router.replace('/(dashboard)/dashboard');
       } else {
         router.replace('/(paywall)/onboarding');

@@ -193,7 +193,7 @@ export default function RevenueByWeekdayChart({ userId, year, timeframe, refresh
       >
         {title}
       </Text>
-      <View style={{ flex: 1, width: '100%', marginTop: 24 }}>
+      <View style={{ flex: 1, width: '100%', marginTop: 8 }}>
         <BarChart
           data={barDataWithLabels}
           barWidth={43}

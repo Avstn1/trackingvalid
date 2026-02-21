@@ -285,7 +285,7 @@ export default function TimeframeMarketingFunnelsChart({
           backgroundColor: COLORS.surfaceGlass,
           borderWidth: 1,
           borderColor: COLORS.glassBorder,
-          height: SCREEN_HEIGHT * 0.38,
+          height: SCREEN_HEIGHT * 0.45,
           width: SCREEN_WIDTH * 0.935,
           padding: 16,
         }}
@@ -306,7 +306,7 @@ export default function TimeframeMarketingFunnelsChart({
           backgroundColor: COLORS.surfaceGlass,
           borderWidth: 1,
           borderColor: COLORS.glassBorder,
-          height: SCREEN_HEIGHT * 0.38,
+          height: SCREEN_HEIGHT * 0.45,
           width: SCREEN_WIDTH * 0.935,
           padding: 16,
         }}
@@ -332,7 +332,7 @@ export default function TimeframeMarketingFunnelsChart({
           shadowOpacity: 0.15,
           shadowRadius: 8,
           elevation: 3,
-          height: SCREEN_HEIGHT * 0.38,
+          height: SCREEN_HEIGHT * 0.45,
           width: SCREEN_WIDTH * 0.935,
           padding: 16,
         }}
@@ -392,7 +392,7 @@ export default function TimeframeMarketingFunnelsChart({
             const baseDelay = getStaggerDelay(idx, 80);
             
             return (
-              <View key={idx} style={{ flex: 1, marginBottom: isLast ? 0 : 8 }}>
+              <View key={idx} style={{ flex: 1, marginBottom: isLast ? 0 : 4 }}>
                 <Text 
                   className="text-[12px] font-semibold mb-1" 
                   numberOfLines={1}
@@ -401,7 +401,7 @@ export default function TimeframeMarketingFunnelsChart({
                   {item.source}
                 </Text>
 
-                <View className="flex-row items-center mb-1">
+                <View className="flex-row items-center mb-0.5">
                   <AnimatedBar
                     width={newWidth}
                     height={12}
@@ -414,7 +414,7 @@ export default function TimeframeMarketingFunnelsChart({
                   </Text>
                 </View>
 
-                <View className="flex-row items-center mb-1">
+                <View className="flex-row items-center mb-0.5">
                   <AnimatedBar
                     width={retainedWidth}
                     height={12}

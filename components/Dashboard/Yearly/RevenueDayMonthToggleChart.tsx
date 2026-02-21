@@ -27,7 +27,7 @@ export default function RevenueDayMonthToggleChart({ userId, year, timeframe, re
         backgroundColor: COLORS.surface,
         borderWidth: 1,
         borderColor: COLORS.glassBorder,
-        height: SCREEN_HEIGHT * 0.35,
+        height: SCREEN_HEIGHT * 0.42,
         width: '100%',
         padding: 16,
       }}
@@ -87,7 +87,7 @@ export default function RevenueDayMonthToggleChart({ userId, year, timeframe, re
       </View>
 
       {/* Chart */}
-      <View style={{ flex: 1, paddingTop: 40 }}>
+      <View style={{ flex: 1, paddingTop: 28 }}>
         {view === 'weekday' ? (
           <RevenueByWeekdayChart 
             userId={userId} 

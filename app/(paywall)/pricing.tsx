@@ -1,24 +1,7 @@
-<<<<<<< HEAD
-import {
-  endIAP,
-  formatProductPrice,
-  getMonthlyProduct,
-  initIAP,
-  isIAPAvailable,
-  PRODUCT_IDS,
-  purchaseSubscription,
-  restoreAndValidatePurchases,
-  validatePurchaseWithBackend,
-  type IAPProduct,
-} from '@/utils/iapService'
-import { supabase } from '@/utils/supabaseClient'
-import { LinearGradient } from 'expo-linear-gradient'
-=======
 // Minimal paywall - no purchases, just status check
 // All subscriptions must be purchased through the web app
 import { supabase } from '@/utils/supabaseClient'
 import AsyncStorage from '@react-native-async-storage/async-storage'
->>>>>>> 46a37f96c0b56cce4c04c1c8217b7cbc0175773d
 import { useRouter } from 'expo-router'
 import { RefreshCw } from 'lucide-react-native'
 import React, { useEffect, useState } from 'react'

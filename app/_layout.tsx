@@ -64,11 +64,11 @@ export default function RootLayout() {
             setInitialRoute('/(paywall)/onboarding');
           }
         } else {
-          setInitialRoute('/(auth)/login');
+          setInitialRoute('/(auth)/welcome');
         }
       } catch (e) {
         console.warn('Auth check error:', e);
-        setInitialRoute('/(auth)/login');
+        setInitialRoute('/(auth)/welcome');
       } finally {
         setAuthReady(true);
       }

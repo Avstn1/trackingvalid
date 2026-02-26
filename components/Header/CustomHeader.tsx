@@ -1,15 +1,15 @@
 // app/components/Header/CustomHeader.tsx
 
-import { COLORS } from '@/constants/design-system';
 import AuthLoadingSplash from '@/components/AuthLoadingSpash';
 import CreditsModal from '@/components/Header/CreditsModal';
 import FAQModal from '@/components/Header/FAQModal';
 import NewFeaturesModal from '@/components/Header/FeatureUpdatesModal';
 import NotificationsDropdown from '@/components/Header/NotificationsDropdown';
 import ProfileDrawer from '@/components/Navigation/ProfileDrawer';
+import { COLORS } from '@/constants/design-system';
 import { supabase } from '@/utils/supabaseClient';
 
-import { Bell, CalendarRange, Coins } from 'lucide-react-native';
+import { Bell, CalendarRange } from 'lucide-react-native';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -568,11 +568,11 @@ export function CustomHeader({
           )}
 
           {/* Credits Button */}
-          <TouchableOpacity
+          {/* <TouchableOpacity
             onPress={() => setShowCreditsModal(true)}
           >
             <Coins size={22} color={COLORS.textPrimary} />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
           {/* Notifications Button */}
           <TouchableOpacity

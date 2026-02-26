@@ -210,7 +210,7 @@ export default function OnboardingScreen() {
               Ready to Systemize Your Business?
             </Text>
             <Text className="text-base text-gray-300 text-center leading-6 mb-8">
-              Pick your plan and let Corva start bringing clients back automatically.
+              Start your free trial and let Corva bring clients back automatically.
             </Text>
 
             <TouchableOpacity
@@ -225,7 +225,7 @@ export default function OnboardingScreen() {
                 style={{ paddingVertical: 16, alignItems: 'center', justifyContent: 'center', borderRadius: 12 }}
               >
                 <Text style={{ color: '#000', fontWeight: '600', fontSize: 16 }}>
-                  View Plans
+                  Get Started
                 </Text>
               </LinearGradient>
             </TouchableOpacity>

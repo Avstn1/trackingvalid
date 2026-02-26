@@ -34,13 +34,6 @@
     },
     "plugins": [
       "expo-router",
-      "react-native-iap",
-      [
-        "@stripe/stripe-react-native",
-        {
-          "publishableKey": "pk_test_51SYaVGCbzZ8MFXZEduFKB61RsnR4uSWMOjcNH6AoDVPrXjv9aBJbAoKYke7FP6NzeuOt4aBJyDzriMK3xpFWCiZM00c8xL5ne6"
-        }
-      ],
       [
         "expo-splash-screen",
         {

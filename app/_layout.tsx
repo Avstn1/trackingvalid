@@ -5,7 +5,6 @@ import 'react-native-get-random-values';
 import { Stack, useRouter } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { Platform } from 'react-native';
 import '../global.css';
 
 import CustomSplash from '@/components/CustomSplash';
@@ -13,11 +12,6 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { supabase } from '@/utils/supabaseClient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useEffect, useRef, useState } from 'react';
-
-// Conditionally import Stripe only on native platforms (not supported on web)
-const StripeProvider = Platform.OS !== 'web'
-  ? require('@stripe/stripe-react-native').StripeProvider
-  : ({ children }: { children: React.ReactNode }) => children;
 
 // Prevent the splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
@@ -104,30 +98,28 @@ export default function RootLayout() {
   }
 
   return (
-    <StripeProvider publishableKey={process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY!}>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <Stack>
-          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-          <Stack.Screen name="(dashboard)" options={{ headerShown: false }} />
-          <Stack.Screen name="(paywall)" options={{ headerShown: false }} />
-          <Stack.Screen 
-            name="settings" 
-            options={{ 
-              headerShown: false,
-              animation: 'slide_from_right',
-            }} 
-          />
-          <Stack.Screen 
-            name="client/[id]" 
-            options={{ 
-              headerShown: false,
-              presentation: 'card',
-              animation: 'slide_from_right',
-            }} 
-          />
-        </Stack>
-        <StatusBar style="auto" />
-      </ThemeProvider>
-    </StripeProvider>
+    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      <Stack>
+        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+        <Stack.Screen name="(dashboard)" options={{ headerShown: false }} />
+        <Stack.Screen name="(paywall)" options={{ headerShown: false }} />
+        <Stack.Screen 
+          name="settings" 
+          options={{ 
+            headerShown: false,
+            animation: 'slide_from_right',
+          }} 
+        />
+        <Stack.Screen 
+          name="client/[id]" 
+          options={{ 
+            headerShown: false,
+            presentation: 'card',
+            animation: 'slide_from_right',
+          }} 
+        />
+      </Stack>
+      <StatusBar style="auto" />
+    </ThemeProvider>
   );
 }

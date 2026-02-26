@@ -1,17 +1,16 @@
-import { supabase } from '@/utils/supabaseClient'
 import {
-  isIAPAvailable,
-  initIAP,
   endIAP,
-  getMonthlyProduct,
-  purchaseSubscription,
-  validatePurchaseWithBackend,
-  restoreAndValidatePurchases,
   formatProductPrice,
+  getMonthlyProduct,
+  initIAP,
+  isIAPAvailable,
   PRODUCT_IDS,
+  purchaseSubscription,
+  restoreAndValidatePurchases,
+  validatePurchaseWithBackend,
   type IAPProduct,
 } from '@/utils/iapService'
-import { useStripe } from '@stripe/stripe-react-native'
+import { supabase } from '@/utils/supabaseClient'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
 import { RotateCcw } from 'lucide-react-native'

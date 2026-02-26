@@ -294,7 +294,7 @@ export default function NotificationsDropdown({
                   activeOpacity={0.7}
                   className="px-3 py-2.5 rounded-lg mb-2"
                   style={{
-                    backgroundColor: !n.is_read ? COLORS.primaryLight : COLORS.surface,
+                    backgroundColor: !n.is_read ? '#122d1e' : COLORS.surface,
                     borderWidth: 1,
                     borderColor: !n.is_read ? COLORS.primary : COLORS.glassBorder,
                   }}
@@ -448,7 +448,7 @@ export default function NotificationsDropdown({
                               activeOpacity={0.7}
                               className="px-4 py-3.5 rounded-xl mb-2"
                               style={{
-                                backgroundColor: !n.is_read ? COLORS.primaryLight : COLORS.surface,
+                                backgroundColor: !n.is_read ? '#122d1e' : COLORS.surface,
                                 borderWidth: 1,
                                 borderColor: !n.is_read ? COLORS.primary : COLORS.glassBorder,
                               }}

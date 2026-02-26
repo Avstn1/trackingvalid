@@ -1,12 +1,10 @@
-import { COLORS } from '@/constants/design-system';
 import { supabase } from '@/utils/supabaseClient';
-import MaskedView from '@react-native-masked-view/masked-view';
 import * as Device from 'expo-device';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { Eye, EyeOff } from 'lucide-react-native';
+import { ArrowLeft, Eye, EyeOff } from 'lucide-react-native';
 import React, { useState } from 'react';
-import { ActivityIndicator, Alert, Image, Keyboard, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, Keyboard, KeyboardAvoidingView, Platform, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -31,7 +29,6 @@ export default function LoginPage() {
 
       if (error) {
         Alert.alert('Login Failed', error.message);
-
         await supabase.from('system_logs').insert({
           source: 'Unauthenticated user',
           action: 'user_login',
@@ -42,21 +39,18 @@ export default function LoginPage() {
         return;
       }
 
-      // Wait for session to be established
       if (!data.session) {
         Alert.alert('Error', 'Failed to establish session');
         setLoading(false);
         return;
       }
 
-      // Get user profile data
       const { data: userData } = await supabase
         .from('profiles')
         .select('role, full_name, stripe_subscription_status, trial_active')
         .eq('user_id', data.user?.id)
         .single();
 
-      // Log successful login (except for admin)
       if (userData?.role?.toLowerCase() !== 'admin') {
         await supabase.from('system_logs').insert({
           source: `${userData?.full_name}: ${data.user?.id}`,
@@ -66,15 +60,9 @@ export default function LoginPage() {
         });
       }
 
-      // Track device login
       try {
-        // Get the actual session UUID using the RPC function
-        const { data: sessionId, error: sessionError } = await supabase
-          .rpc('get_current_session_id')
-
-        if (sessionError) {
-          console.error('Error getting session ID:', sessionError)
-        }
+        const { data: sessionId, error: sessionError } = await supabase.rpc('get_current_session_id');
+        if (sessionError) console.error('Error getting session ID:', sessionError);
 
         await supabase.from('user_devices').upsert({
           user_id: data.user.id,
@@ -84,30 +72,25 @@ export default function LoginPage() {
           session_id: sessionId || data.session.access_token,
           last_login: new Date().toISOString(),
           last_active: new Date().toISOString(),
-        }, {
-          onConflict: 'user_id,device_id'
-        });
+        }, { onConflict: 'user_id,device_id' });
       } catch (trackingError) {
-        console.error('Error tracking device:', trackingError)
-        // Don't block login if device tracking fails
+        console.error('Error tracking device:', trackingError);
       }
 
-      // Small delay to ensure session is persisted
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      // Navigate to dashboard/paywall
       const subStatus = userData?.stripe_subscription_status;
       const trialActive = userData?.trial_active;
 
-      console.log('Subscription status:', subStatus);
-      console.log('Trial active:', trialActive);
-
-      if (subStatus === 'active' || subStatus === 'trialing' || trialActive === true) {
+      if (subStatus === 'active' || trialActive === true) {
         router.replace('/(dashboard)/dashboard');
       } else {
-        router.replace('/(paywall)/onboarding');
+        Alert.alert('Account Not Active', 'Account not active. Please activate your account on Corva Web.');
+        await supabase.auth.signOut();
+        setLoading(false);
+        return;
       }
-      
+
     } catch (err) {
       console.error('Login error:', err);
       Alert.alert('Error', 'An unexpected error occurred');
@@ -117,91 +100,87 @@ export default function LoginPage() {
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View 
-        className="flex-1 justify-center items-center px-5"
-        style={{ backgroundColor: COLORS.background }}
-      >
-        <View 
-          className="w-full max-w-md rounded-3xl p-8 shadow-lg"
-          style={{ 
-            backgroundColor: COLORS.surface,
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#101312' }}>
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+
+        {/* Back button */}
+        <TouchableOpacity
+          onPress={() => router.back()}
+          disabled={loading}
+          style={{
+            marginTop: 8,
+            marginLeft: 20,
+            width: 40,
+            height: 40,
+            borderRadius: 12,
+            backgroundColor: 'rgba(255,255,255,0.06)',
             borderWidth: 1,
-            borderColor: COLORS.glassBorder,
+            borderColor: 'rgba(255,255,255,0.1)',
+            alignItems: 'center',
+            justifyContent: 'center',
           }}
         >
-          {/* Logo and App Name */}
-          <View className="items-center mb-8">
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
+          <ArrowLeft size={18} color="#8a9e93" />
+        </TouchableOpacity>
+
+        {/* Centered content */}
+        <View style={{ flex: 1, justifyContent: 'center', paddingHorizontal: 24 }}>
+
+          {/* Logo */}
+          <View style={{ alignItems: 'center', marginBottom: 40 }}>
+            <View
+              style={{
+                width: 80,
+                height: 80,
+                borderRadius: 22,
+                backgroundColor: 'rgba(122,255,201,0.08)',
+                borderWidth: 1,
+                borderColor: 'rgba(122,255,201,0.25)',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 20,
+              }}
+            >
               <Image
                 source={require('@/assets/images/corvalogoTransparent.png')}
-                style={{
-                  width: 48,
-                  height: 48,
-                  marginRight: -3, 
-                }}
+                style={{ width: 48, height: 48 }}
                 resizeMode="contain"
               />
-    
-              <MaskedView
-                maskElement={
-                  <Text
-                    style={{
-                      fontSize: 36,
-                      fontWeight: 'bold',
-                      letterSpacing: -0.5,
-                      marginTop: 3,
-                      backgroundColor: 'transparent',
-                    }}
-                  >
-                    orva
-                  </Text>
-                }
-              >
-                <LinearGradient
-                  colors={['#34D556', '#28C63E', '#34D556']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                >
-                  {/* This text only exists to size the gradient */}
-                  <Text
-                    style={{
-                      fontSize: 36,
-                      fontWeight: 'bold',
-                      letterSpacing: -0.5,
-                      marginTop: 3,
-                      opacity: 0,
-                    }}
-                  >
-                    orva
-                  </Text>
-                </LinearGradient>
-              </MaskedView>
             </View>
-
-            <View 
-              className="h-1 w-16 rounded-full mt-2"
-              style={{ 
-                backgroundColor: COLORS.primary,
-                shadowColor: COLORS.primary,
-                shadowOffset: { width: 0, height: 0 },
-                shadowOpacity: 0.8,
-                shadowRadius: 8,
-                elevation: 4,
-              }}
-            />
+            <Text style={{ color: '#ffffff', fontSize: 28, fontWeight: '800', letterSpacing: -0.5, marginBottom: 6 }}>
+              Welcome back
+            </Text>
+            <Text style={{ color: '#8a9e93', fontSize: 15, textAlign: 'center' }}>
+              Sign in to your Corva account
+            </Text>
           </View>
 
-          <View className="gap-4">
+          {/* Form card */}
+          <View
+            style={{
+              backgroundColor: 'rgba(255,255,255,0.04)',
+              borderWidth: 1,
+              borderColor: 'rgba(255,255,255,0.1)',
+              borderRadius: 24,
+              padding: 24,
+              gap: 12,
+            }}
+          >
             <TextInput
-              className="w-full p-4 rounded-xl text-white"
               style={{
-                backgroundColor: COLORS.surfaceElevated,
+                backgroundColor: 'rgba(255,255,255,0.06)',
                 borderWidth: 1,
-                borderColor: COLORS.glassBorder,
-                color: COLORS.textPrimary,
+                borderColor: 'rgba(255,255,255,0.1)',
+                borderRadius: 14,
+                padding: 16,
+                color: '#ffffff',
+                fontSize: 15,
               }}
               placeholder="Email"
-              placeholderTextColor={COLORS.textSecondary}
+              placeholderTextColor="#8a9e93"
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
@@ -211,18 +190,20 @@ export default function LoginPage() {
               onSubmitEditing={() => Keyboard.dismiss()}
             />
 
-            <View className="relative">
+            <View>
               <TextInput
-                className="w-full p-4 rounded-xl text-white"
                 style={{
-                  backgroundColor: COLORS.surfaceElevated,
+                  backgroundColor: 'rgba(255,255,255,0.06)',
                   borderWidth: 1,
-                  borderColor: COLORS.glassBorder,
-                  color: COLORS.textPrimary,
-                  paddingRight: 48,
+                  borderColor: 'rgba(255,255,255,0.1)',
+                  borderRadius: 14,
+                  padding: 16,
+                  paddingRight: 52,
+                  color: '#ffffff',
+                  fontSize: 15,
                 }}
                 placeholder="Password"
-                placeholderTextColor={COLORS.textSecondary}
+                placeholderTextColor="#8a9e93"
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
@@ -231,58 +212,43 @@ export default function LoginPage() {
                 onSubmitEditing={handleLogin}
               />
               <TouchableOpacity
-                style={{
-                  position: 'absolute',
-                  right: 16,
-                  top: 16,
-                }}
+                style={{ position: 'absolute', right: 16, top: 16 }}
                 onPress={() => setShowPassword(!showPassword)}
                 disabled={loading}
               >
-                {showPassword ? (
-                  <EyeOff size={20} color={COLORS.textSecondary} />
-                ) : (
-                  <Eye size={20} color={COLORS.textSecondary} />
-                )}
+                {showPassword
+                  ? <EyeOff size={20} color="#8a9e93" />
+                  : <Eye size={20} color="#8a9e93" />
+                }
               </TouchableOpacity>
             </View>
 
             <TouchableOpacity
-              className="w-full py-4 rounded-xl mt-2"
-              style={{
-                backgroundColor: loading ? COLORS.surfaceElevated : COLORS.primary,
-                opacity: loading ? 0.5 : 1,
-                elevation: loading ? 0 : 8,
-              }}
               onPress={handleLogin}
               disabled={loading}
+              style={{
+                marginTop: 4,
+                backgroundColor: loading ? 'rgba(122,255,201,0.3)' : '#7affc9',
+                borderRadius: 14,
+                paddingVertical: 16,
+                alignItems: 'center',
+                shadowColor: '#7affc9',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: loading ? 0 : 0.3,
+                shadowRadius: 12,
+                elevation: loading ? 0 : 8,
+              }}
             >
-              {loading ? (
-                <ActivityIndicator color={COLORS.textPrimary} />
-              ) : (
-                <Text 
-                  className="font-bold text-center text-base"
-                  style={{ color: COLORS.textPrimary }}
-                >
-                  Log In
-                </Text>
-              )}
+              {loading
+                ? <ActivityIndicator color="#101312" />
+                : <Text style={{ color: '#101312', fontWeight: '800', fontSize: 16 }}>Log In</Text>
+              }
             </TouchableOpacity>
           </View>
 
-          <View className="mt-6 items-center">
-            <Text style={{ color: COLORS.textSecondary, fontSize: 14 }}>
-              Need an account?{' '}
-              <Text
-                style={{ color: COLORS.primary, fontWeight: '600' }}
-                onPress={() => !loading && router.push('/(auth)/signup')}
-              >
-                Sign up
-              </Text>
-            </Text>
-          </View>
         </View>
-      </View>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
     </TouchableWithoutFeedback>
   );
 }

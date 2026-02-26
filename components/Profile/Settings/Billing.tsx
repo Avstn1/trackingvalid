@@ -1,9 +1,13 @@
 import { COLORS } from '@/constants/design-system';
+import { isIAPAvailable, restoreAndValidatePurchases } from '@/utils/iapService';
 import { getFadeInDown, useReducedMotionPreference } from '@/utils/motion';
+import { RotateCcw } from 'lucide-react-native';
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Modal,
+  Platform,
   Text,
   TouchableOpacity,
   View,
@@ -28,6 +32,10 @@ export default function Billing() {
   const [loadingAction, setLoadingAction] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [showResumeConfirm, setShowResumeConfirm] = useState(false);
+  const [restoring, setRestoring] = useState(false);
+
+  // Check if we should show Apple IAP restore option
+  const showRestorePurchases = Platform.OS === 'ios' && isIAPAvailable();
 
   // Placeholder values (these will eventually come from your API)
   const amountText = '$20.00';
@@ -60,6 +68,30 @@ export default function Billing() {
     if (loadingAction) return;
     setShowCancelConfirm(false);
     setShowResumeConfirm(false);
+  };
+
+  // Handle Apple IAP restore purchases
+  const handleRestorePurchases = async () => {
+    try {
+      setRestoring(true);
+      const result = await restoreAndValidatePurchases();
+
+      if (!result.success) {
+        Alert.alert('Error', result.error || 'Failed to restore purchases');
+        return;
+      }
+
+      if (result.restored) {
+        Alert.alert('Restored', 'Your subscription has been restored!');
+      } else {
+        Alert.alert('No Purchases', 'No previous purchases found to restore.');
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Could not restore purchases';
+      Alert.alert('Error', message);
+    } finally {
+      setRestoring(false);
+    }
   };
 
   return (
@@ -233,6 +265,28 @@ export default function Billing() {
           You can&apos;t change plans in the app yet. We know it&apos;s not
           ideal.
         </Text>
+
+        {/* Restore Purchases - iOS only */}
+        {showRestorePurchases && (
+          <TouchableOpacity
+            onPress={handleRestorePurchases}
+            disabled={restoring || loadingAction}
+            className="flex-row items-center justify-center mt-3 py-2"
+            style={{ opacity: restoring || loadingAction ? 0.5 : 1 }}
+          >
+            {restoring ? (
+              <ActivityIndicator size="small" color={ACCENT_COLORS.textSubtle} style={{ marginRight: 6 }} />
+            ) : (
+              <RotateCcw size={14} color={ACCENT_COLORS.textSubtle} style={{ marginRight: 6 }} />
+            )}
+            <Text
+              className="text-sm"
+              style={{ color: ACCENT_COLORS.textSubtle }}
+            >
+              {restoring ? 'Restoring…' : 'Restore Purchases'}
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Confirmation modals */}

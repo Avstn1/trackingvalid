@@ -12,7 +12,8 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.corva.corva",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSPhotoLibraryUsageDescription": "Corva needs access to your photo library to upload a profile picture and client haircut images for business records and booking management."
       }
     },
     "android": {
@@ -23,7 +24,8 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.corva.corva"
     },
     "web": {
       "output": "static",

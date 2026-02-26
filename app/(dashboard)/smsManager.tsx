@@ -1,7 +1,6 @@
 import { CustomHeader } from '@/components/Header/CustomHeader';
 import AutoNudge from '@/components/SMSManager/SMSAutoNudge/AutoNudge';
 import SMSCampaigns from '@/components/SMSManager/SMSCampaigns/SMSCampaigns';
-import SegmentedControl from '@/components/ui/SegmentedControl';
 import { COLORS } from '@/constants/design-system';
 import { getSpringFadeInDown, useFocusAnimation, useReducedMotionPreference } from '@/utils/motion';
 import { useLocalSearchParams } from 'expo-router';
@@ -50,15 +49,15 @@ export default function SMSManagerScreen() {
     <SafeAreaView className="flex-1" style={{ backgroundColor: COLORS.background }}>
       <CustomHeader pageName="SMS Manager" />
 
-      <Animated.View className="flex-1 px-4" style={focusStyle}>
+      <Animated.View className="flex-1 px-4 pt-4" style={focusStyle}>
         {/* Segmented Control */}
-        <Animated.View className="mt-3 mb-4" entering={getSpringFadeInDown(reduceMotion)}>
+        {/* <Animated.View className="mt-3 mb-4" entering={getSpringFadeInDown(reduceMotion)}>
           <SegmentedControl
             options={TAB_OPTIONS}
             selected={activeTab}
             onChange={setActiveTab}
           />
-        </Animated.View>
+        </Animated.View> */}
 
         {/* Active View */}
         <Animated.View

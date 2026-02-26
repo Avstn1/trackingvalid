@@ -1,11 +1,25 @@
 import { supabase } from '@/utils/supabaseClient'
+import {
+  isIAPAvailable,
+  initIAP,
+  endIAP,
+  getMonthlyProduct,
+  purchaseSubscription,
+  validatePurchaseWithBackend,
+  restoreAndValidatePurchases,
+  formatProductPrice,
+  PRODUCT_IDS,
+  type IAPProduct,
+} from '@/utils/iapService'
 import { useStripe } from '@stripe/stripe-react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
+import { RotateCcw } from 'lucide-react-native'
 import React, { useEffect, useState } from 'react'
 import {
   ActivityIndicator,
   Alert,
+  Platform,
   SafeAreaView,
   ScrollView,
   Text,
@@ -33,14 +47,58 @@ export default function PricingScreen() {
   const { initPaymentSheet, presentPaymentSheet } = useStripe()
   const [loading, setLoading] = useState(false)
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null)
+  const [restoring, setRestoring] = useState(false)
+  
+  // Stripe pricing (for non-iOS)
   const [pricing, setPricing] = useState<PricingResponse | null>(null)
   const [loadingPrices, setLoadingPrices] = useState(true)
+  
+  // Apple IAP state (for iOS)
+  const [iapProduct, setIapProduct] = useState<IAPProduct | null>(null)
+  const [iapReady, setIapReady] = useState(false)
+  
+  const isIOS = Platform.OS === 'ios'
+  const useAppleIAP = isIOS && isIAPAvailable()
 
-  // Fetch prices from your API
+  // Initialize IAP on iOS
   useEffect(() => {
+    if (!useAppleIAP) return
+
+    let mounted = true
+
+    const setupIAP = async () => {
+      try {
+        const connected = await initIAP()
+        if (!connected || !mounted) return
+
+        const product = await getMonthlyProduct()
+        if (mounted) {
+          setIapProduct(product)
+          setIapReady(true)
+          setLoadingPrices(false)
+        }
+      } catch (error) {
+        console.error('IAP setup error:', error)
+        if (mounted) {
+          setLoadingPrices(false)
+        }
+      }
+    }
+
+    setupIAP()
+
+    return () => {
+      mounted = false
+      endIAP()
+    }
+  }, [useAppleIAP])
+
+  // Fetch Stripe prices for non-iOS platforms
+  useEffect(() => {
+    if (useAppleIAP) return // Skip Stripe pricing on iOS
+
     const fetchPricing = async () => {
       try {
-        console.log(`${process.env.EXPO_PUBLIC_API_URL}api/stripe/pricing`)
         const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL}api/stripe/pricing`)
         const data = await res.json()
 
@@ -58,7 +116,7 @@ export default function PricingScreen() {
     }
 
     fetchPricing()
-  }, [])
+  }, [useAppleIAP])
 
   const formatAmount = (amount: number, currency: string) =>
     new Intl.NumberFormat('en-US', {
@@ -67,12 +125,95 @@ export default function PricingScreen() {
       maximumFractionDigits: 0,
     }).format(amount / 100)
 
-  const startCheckout = async (plan: Plan) => {
+  // Apple IAP purchase flow
+  const handleAppleIAPPurchase = async () => {
+    if (!iapProduct) {
+      Alert.alert('Error', 'Product not available')
+      return
+    }
+
+    try {
+      setLoading(true)
+      setSelectedPlan('monthly')
+
+      // Request purchase - shows Apple payment sheet
+      const purchase = await purchaseSubscription(PRODUCT_IDS.MONTHLY)
+
+      if (!purchase) {
+        // User cancelled
+        return
+      }
+
+      // Validate with backend
+      const result = await validatePurchaseWithBackend(purchase)
+
+      if (!result.success) {
+        Alert.alert('Error', result.error || 'Failed to validate purchase')
+        return
+      }
+
+      // Success!
+      Alert.alert(
+        'Success',
+        'Your subscription is now active!',
+        [
+          {
+            text: 'OK',
+            onPress: () => router.replace('/(dashboard)/dashboard'),
+          },
+        ]
+      )
+    } catch (err: any) {
+      console.error('IAP purchase error:', err)
+      Alert.alert('Error', err.message || 'Could not complete purchase')
+    } finally {
+      setLoading(false)
+      setSelectedPlan(null)
+    }
+  }
+
+  // Restore purchases (iOS only)
+  const handleRestorePurchases = async () => {
+    if (!useAppleIAP) return
+
+    try {
+      setRestoring(true)
+
+      const result = await restoreAndValidatePurchases()
+
+      if (!result.success) {
+        Alert.alert('Error', result.error || 'Failed to restore purchases')
+        return
+      }
+
+      if (result.restored) {
+        Alert.alert(
+          'Restored',
+          'Your subscription has been restored!',
+          [
+            {
+              text: 'OK',
+              onPress: () => router.replace('/(dashboard)/dashboard'),
+            },
+          ]
+        )
+      } else {
+        Alert.alert('No Purchases', 'No previous purchases found to restore.')
+      }
+    } catch (err: any) {
+      console.error('Restore error:', err)
+      Alert.alert('Error', err.message || 'Could not restore purchases')
+    } finally {
+      setRestoring(false)
+    }
+  }
+
+  // Stripe checkout flow (non-iOS)
+  const startStripeCheckout = async (plan: Plan) => {
     try {
       setLoading(true)
       setSelectedPlan(plan)
 
-      // Get user session
       const { data: { session } } = await supabase.auth.getSession()
       
       if (!session?.user?.id || !session.access_token) {
@@ -81,26 +222,21 @@ export default function PricingScreen() {
         return
       }
 
-      // Create payment intent on your backend
       const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL}api/stripe/create-payment-intent`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'x-client-access-token': session.access_token,
         },
-        body: JSON.stringify({ 
-          plan,
-        }),
+        body: JSON.stringify({ plan }),
       })
 
       const data = await res.json()
-      console.log(`Payment intent data: ${JSON.stringify(data)}`)
 
       if (!res.ok) {
         throw new Error(data.error || 'Failed to start checkout')
       }
 
-      // Initialize payment sheet
       const { error: initError } = await initPaymentSheet({
         merchantDisplayName: 'Corva',
         paymentIntentClientSecret: data.paymentIntent,
@@ -116,18 +252,15 @@ export default function PricingScreen() {
         throw new Error(initError.message)
       }
 
-      // Present payment sheet
       const { error: presentError } = await presentPaymentSheet()
 
       if (presentError) {
         if (presentError.code === 'Canceled') {
-          // User canceled - this is fine
           return
         }
         throw new Error(presentError.message)
       }
 
-      // Payment successful!
       Alert.alert(
         'Success',
         'Your subscription is now active!',
@@ -142,9 +275,9 @@ export default function PricingScreen() {
     } catch (err: any) {
       console.error(err)
       Alert.alert('Error', err.message || 'Could not start checkout')
-      setSelectedPlan(null)
     } finally {
       setLoading(false)
+      setSelectedPlan(null)
     }
   }
   
@@ -155,17 +288,178 @@ export default function PricingScreen() {
         text: 'Logout',
         style: 'destructive',
         onPress: async () => {
-          await supabase.auth.signOut();
-          router.replace('/login');
+          await supabase.auth.signOut()
+          router.replace('/login')
         },
       },
-    ]);
-  };
-  
+    ])
+  }
 
   const monthly = pricing?.monthly
   const yearly = pricing?.yearly
 
+  // Render iOS-specific Apple IAP UI
+  if (useAppleIAP) {
+    return (
+      <View style={{ flex: 1, backgroundColor: '#101312' }}>
+        <LinearGradient
+          colors={['#101312', '#1a1f1b', '#2e3b2b']}
+          style={{ flex: 1 }}
+        >
+          <SafeAreaView style={{ flex: 1 }}>
+            <ScrollView
+              style={{ flex: 1, paddingHorizontal: 16 }}
+              contentContainerStyle={{ paddingTop: 60, paddingBottom: 120 }}
+            >
+              <View className="bg-black/30 border border-white/10 rounded-3xl p-6">
+                <Text className="text-2xl font-bold text-white mb-2">
+                  Upgrade to Corva Pro
+                </Text>
+                <Text className="text-sm text-gray-300 mb-6">
+                  Unlock the full power of Corva to grow your business.
+                </Text>
+
+                {/* Monthly Plan - Apple IAP */}
+                <View className="bg-white/5 rounded-2xl p-4 border border-white/10 mb-4">
+                  <Text className="text-lg font-semibold text-white mb-2">
+                    Corva Pro (Monthly)
+                  </Text>
+
+                  {loadingPrices || !iapProduct ? (
+                    <View className="flex-row items-center gap-2 mb-6">
+                      <ActivityIndicator size="small" color="#9CA3AF" />
+                      <Text className="text-gray-400 text-sm">Loading price…</Text>
+                    </View>
+                  ) : (
+                    <>
+                      <Text className="text-3xl font-bold text-white mb-1">
+                        {formatProductPrice(iapProduct)}
+                      </Text>
+                      <Text className="text-xs uppercase tracking-wide text-gray-400 mb-4">
+                        per month • cancel anytime
+                      </Text>
+                    </>
+                  )}
+
+                  <View className="mb-4">
+                    <Text className="text-xs text-gray-200 mb-2">
+                      • Full revenue, expense & profit dashboards
+                    </Text>
+                    <Text className="text-xs text-gray-200 mb-2">
+                      • Marketing funnels & top clients analytics
+                    </Text>
+                    <Text className="text-xs text-gray-200">
+                      • Priority support and future features
+                    </Text>
+                  </View>
+
+                  <TouchableOpacity
+                    onPress={handleAppleIAPPurchase}
+                    disabled={loading || !iapReady || !iapProduct}
+                    activeOpacity={0.8}
+                    style={{
+                      marginTop: 16,
+                      borderRadius: 12,
+                      overflow: 'hidden',
+                      opacity: loading || !iapReady || !iapProduct ? 0.6 : 1,
+                    }}
+                  >
+                    <LinearGradient
+                      colors={['#7affc9', '#3af1f7']}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                      style={{
+                        paddingVertical: 14,
+                        paddingHorizontal: 16,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderRadius: 12,
+                      }}
+                    >
+                      {loading && selectedPlan === 'monthly' && (
+                        <ActivityIndicator
+                          size="small"
+                          color="#000"
+                          style={{ marginRight: 8 }}
+                        />
+                      )}
+                      <Text style={{ color: '#000', fontWeight: '600', fontSize: 14 }}>
+                        {loading && selectedPlan === 'monthly'
+                          ? 'Processing…'
+                          : 'Subscribe Monthly'}
+                      </Text>
+                    </LinearGradient>
+                  </TouchableOpacity>
+                </View>
+
+                {/* Restore Purchases */}
+                <TouchableOpacity
+                  onPress={handleRestorePurchases}
+                  disabled={restoring || loading}
+                  className="flex-row items-center justify-center py-3"
+                  style={{ opacity: restoring || loading ? 0.5 : 1 }}
+                >
+                  {restoring ? (
+                    <ActivityIndicator size="small" color="#9CA3AF" style={{ marginRight: 8 }} />
+                  ) : (
+                    <RotateCcw size={14} color="#9CA3AF" style={{ marginRight: 6 }} />
+                  )}
+                  <Text className="text-gray-400 text-sm">
+                    {restoring ? 'Restoring…' : 'Restore Purchases'}
+                  </Text>
+                </TouchableOpacity>
+
+                <Text className="mt-4 text-[11px] text-gray-400 text-center">
+                  Payment will be charged to your Apple ID account. Subscription automatically 
+                  renews unless canceled at least 24 hours before the end of the current period.
+                </Text>
+              </View>
+            </ScrollView>
+
+            {/* Navigation Buttons */}
+            <View
+              style={{
+                position: 'absolute',
+                bottom: 40,
+                left: 20,
+                right: 20,
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
+              <TouchableOpacity
+                onPress={() => router.back()}
+                style={{
+                  paddingVertical: 12,
+                  paddingHorizontal: 32,
+                  backgroundColor: 'rgba(122, 255, 201, 0.1)',
+                  borderRadius: 8,
+                  borderWidth: 1,
+                  borderColor: 'rgba(122, 255, 201, 0.3)',
+                }}
+              >
+                <Text className="text-[#7affc9] font-semibold">Back</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleLogout}
+                style={{
+                  paddingVertical: 12,
+                  paddingHorizontal: 20,
+                }}
+              >
+                <Text className="text-gray-400 font-semibold">Logout</Text>
+              </TouchableOpacity>
+            </View>
+          </SafeAreaView>
+        </LinearGradient>
+      </View>
+    )
+  }
+
+  // Render Stripe UI for non-iOS platforms (Android, Web)
   return (
     <View style={{ flex: 1, backgroundColor: '#101312' }}>
       <LinearGradient
@@ -221,7 +515,7 @@ export default function PricingScreen() {
                 </View>
 
                 <TouchableOpacity
-                  onPress={() => startCheckout('monthly')}
+                  onPress={() => startStripeCheckout('monthly')}
                   disabled={loading || loadingPrices || !monthly}
                   activeOpacity={0.8}
                   style={{
@@ -298,7 +592,7 @@ export default function PricingScreen() {
                 </View>
 
                 <TouchableOpacity
-                  onPress={() => startCheckout('yearly')}
+                  onPress={() => startStripeCheckout('yearly')}
                   disabled={loading || loadingPrices || !yearly}
                   activeOpacity={0.8}
                   style={{

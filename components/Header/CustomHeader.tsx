@@ -1,7 +1,6 @@
 // app/components/Header/CustomHeader.tsx
 
 import AuthLoadingSplash from '@/components/AuthLoadingSpash';
-import CreditsModal from '@/components/Header/CreditsModal';
 import FAQModal from '@/components/Header/FAQModal';
 import NewFeaturesModal from '@/components/Header/FeatureUpdatesModal';
 import NotificationsDropdown from '@/components/Header/NotificationsDropdown';
@@ -110,7 +109,6 @@ export function CustomHeader({
 
   // Modal states
   const [showSidebar, setShowSidebar] = useState(false);
-  const [showCreditsModal, setShowCreditsModal] = useState(false);
   const [showNotificationsModal, setShowNotificationsModal] = useState(false);
   const [showFeaturesModal, setShowFeaturesModal] = useState(false);
   const [showFAQModal, setShowFAQModal] = useState(false);
@@ -567,13 +565,6 @@ export function CustomHeader({
             </TouchableOpacity>
           )}
 
-          {/* Credits Button */}
-          {/* <TouchableOpacity
-            onPress={() => setShowCreditsModal(true)}
-          >
-            <Coins size={22} color={COLORS.textPrimary} />
-          </TouchableOpacity> */}
-
           {/* Notifications Button */}
           <TouchableOpacity
             onPress={() => setShowNotificationsModal(true)}
@@ -660,11 +651,6 @@ export function CustomHeader({
           onDateChange={handleDateChange}
         />
       )}
-
-      <CreditsModal
-        isOpen={showCreditsModal}
-        onClose={() => setShowCreditsModal(false)}
-      />
 
       <NewFeaturesModal
         isOpen={showFeaturesModal}

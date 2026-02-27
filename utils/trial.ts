@@ -1,10 +1,5 @@
 // Trial utility functions - match web exactly
-import {
-  TRIAL_DAYS,
-  SOFT_PROMPT_DAY,
-  URGENT_PROMPT_DAY,
-  STRONG_PROMPT_DAY,
-} from '@/constants/trial'
+import { TRIAL_DAYS } from '@/constants/trial'
 
 export type TrialProfile = {
   trial_active?: boolean | null
@@ -58,65 +53,4 @@ export const getTrialDaysRemaining = (profile?: TrialProfile | null): number => 
   const remaining = TRIAL_DAYS - dayNumber + 1
 
   return Math.max(0, remaining)
-}
-
-/**
- * Returns true if soft prompt should show (Day 14-17, no payment method).
- */
-export const shouldShowSoftPrompt = (
-  profile?: TrialProfile | null,
-  hasPaymentMethod?: boolean
-): boolean => {
-  if (hasPaymentMethod) return false
-  if (!isTrialActive(profile)) return false
-
-  const dayNumber = getTrialDayNumber(profile)
-  return dayNumber >= SOFT_PROMPT_DAY && dayNumber < URGENT_PROMPT_DAY
-}
-
-/**
- * Returns true if urgent prompt should show (Day 18-20, no payment method).
- */
-export const shouldShowUrgentPrompt = (
-  profile?: TrialProfile | null,
-  hasPaymentMethod?: boolean
-): boolean => {
-  if (hasPaymentMethod) return false
-  if (!isTrialActive(profile)) return false
-
-  const dayNumber = getTrialDayNumber(profile)
-  return dayNumber >= URGENT_PROMPT_DAY && dayNumber < STRONG_PROMPT_DAY
-}
-
-/**
- * Returns true if strong/blocking prompt should show (Day 21+, no payment method).
- */
-export const shouldShowStrongPrompt = (
-  profile?: TrialProfile | null,
-  hasPaymentMethod?: boolean
-): boolean => {
-  if (hasPaymentMethod) return false
-  
-  // If they have an active paid subscription, no prompt needed
-  if (profile?.stripe_subscription_status === 'active') return false
-
-  const dayNumber = getTrialDayNumber(profile)
-  
-  // Day 21+ and no payment method = blocked
-  return dayNumber >= STRONG_PROMPT_DAY
-}
-
-export type TrialPromptMode = 'soft' | 'urgent' | 'strong' | null
-
-/**
- * Returns the prompt mode that should be shown, or null if no prompt needed.
- */
-export const getTrialPromptMode = (
-  profile?: TrialProfile | null,
-  hasPaymentMethod?: boolean
-): TrialPromptMode => {
-  if (shouldShowStrongPrompt(profile, hasPaymentMethod)) return 'strong'
-  if (shouldShowUrgentPrompt(profile, hasPaymentMethod)) return 'urgent'
-  if (shouldShowSoftPrompt(profile, hasPaymentMethod)) return 'soft'
-  return null
 }

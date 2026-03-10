@@ -108,7 +108,7 @@ export default function LoginPage() {
 
         {/* Back button */}
         <TouchableOpacity
-          onPress={() => router.back()}
+          onPress={() => router.push('/welcome')}
           disabled={loading}
           style={{
             marginTop: 8,

@@ -1,7 +1,7 @@
 import { useRouter } from 'expo-router'
 import { MoreVertical, X } from 'lucide-react-native'
 import React, { useState } from 'react'
-import { Image, Linking, Modal, Text, TouchableOpacity, View } from 'react-native'
+import { Image, Linking, Modal, ScrollView, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 const FEATURES = [
@@ -55,7 +55,10 @@ export default function WelcomeScreen() {
         </TouchableOpacity>
       </View>
 
-      <View style={{ flex: 1, paddingHorizontal: 24, paddingBottom: 24 }}>
+      <ScrollView
+        contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 40 }}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Hero */}
         <View className="items-center mt-12 mb-12">
           <View
@@ -125,7 +128,7 @@ export default function WelcomeScreen() {
         </View>
 
         {/* CTA card */}
-        <View className="w-full bg-[#7affc9]/10 border border-[#7affc9]/30 rounded-2xl p-6 items-center gap-3" style={{ marginTop: 64 }}>
+        <View className="w-full bg-[#7affc9]/10 border border-[#7affc9]/30 rounded-2xl p-6 items-center gap-3" style={{ marginTop: 24 }}>
           <Text className="text-white font-bold text-lg text-center">
             Ready to grow your business?
           </Text>
@@ -137,7 +140,7 @@ export default function WelcomeScreen() {
             Create an account on Corva Web
           </Text>
         </View>
-      </View>
+      </ScrollView>
 
       {/* Dropdown menu modal */}
       <Modal

@@ -179,10 +179,10 @@ export default function DashboardPage() {
 
       await res.json();
       setRefreshKey((prev) => prev + 1);
-      Alert.alert("Success", `Data updated for ${selectedMonth} ${selectedYear}`);
+      // Background refresh on open / month change: stay silent. The one-time
+      // "fully synced" notice after onboarding is sent by the server.
     } catch (err) {
-      console.error(err);
-      Alert.alert("Error", "Error fetching Acuity data");
+      console.error('Background Acuity refresh failed:', err);
     } finally {
       setIsRefreshing(false);
     }

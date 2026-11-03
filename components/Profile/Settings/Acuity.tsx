@@ -15,10 +15,6 @@ import {
 import Animated from 'react-native-reanimated';
 import ConnectAcuityButton from './ConnectAcuityButton';
 
-const MONTHS = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
-];
 
 export default function AcuityTab() {
   const reduceMotion = useReducedMotionPreference();
@@ -150,26 +146,21 @@ export default function AcuityTab() {
             const accessToken = session?.access_token ?? '';
 
             try {
-              for (const month of MONTHS) {
-                try {
-                  const res = await fetch( 
-                    `${API_BASE_URL}/api/pull?granularity=month&month=${encodeURIComponent(month)}&year=${encodeURIComponent(year)}`,
-                    {
-                      headers: {
-                        'x-client-access-token': accessToken,
-                      },
-                    }
-                  );
-                  const data = await res.json();
-                  if (!res.ok) throw new Error(data.error || `Failed to fetch ${month}`);
-                } catch (err: any) {
-                  console.error(`Error syncing ${month}:`, err);
+              // One full-year sync (the server allows a couple per hour) instead of 12 month syncs
+              const res = await fetch(
+                `${API_BASE_URL}/api/pull?granularity=year&year=${encodeURIComponent(year)}&force=1`,
+                {
+                  headers: {
+                    'x-client-access-token': accessToken,
+                  },
                 }
-              }
+              );
+              const data = await res.json().catch(() => ({}));
+              if (!res.ok) throw new Error(data.error || `Failed to sync ${year}`);
               Alert.alert('Success', `Successfully synced all appointments and clients for ${year}!`);
             } catch (err: any) {
               console.error(err);
-              Alert.alert('Error', `Failed to sync appointments and clients for ${year}`);
+              Alert.alert('Error', err?.message || `Failed to sync appointments and clients for ${year}`);
             } finally {
               setSyncingAppointments(false);
             }

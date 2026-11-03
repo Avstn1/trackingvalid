@@ -195,8 +195,8 @@ export default function DashboardPage() {
       const { data: { session } } = await supabase.auth.getSession();
       const accessToken = session?.access_token ?? '';
 
-      const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/acuity/sync-full`, {
-        method: "POST",
+      // First sync after connecting Acuity: pull the whole year (/api/acuity/sync-full no longer exists)
+      const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/pull?granularity=year&year=${new Date().getFullYear()}&force=1`, {
         headers: {
           'x-client-access-token': accessToken,
         },
